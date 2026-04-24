@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax-check:
+    name: Syntax & import check (CPU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only dependencies for syntax check
+        run: |
+          pip install --upgrade pip
+          pip install torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install numpy==1.26.4 sentence-transformers==3.0.1 datasets==2.20.0 \
+                      transformers==4.41.2 huggingface-hub==0.24.2 faiss-cpu==1.7.4
+
+      - name: Compile all Python sources
+        run: |
+          python -m py_compile seva_benchmark_4060.py
+          python -m py_compile adaptive_attack_seva.py
+          python -m py_compile generate_poison_corpus.py
+          python -m py_compile run_seva_v6_100k.py
+          python -m py_compile run_seva_v6_smoke.py
+
+      - name: Verify poison corpus generator runs (stdlib only, no GPU)
+        run: python generate_poison_corpus.py
+
+      - name: Verify generated corpus integrity
+        run: |
+          python - <<'EOF'
+          import json, sys
+          docs = json.load(open("poison_corpus_diverse.json"))
+          assert len(docs) == 10000, f"Expected 10000 docs, got {len(docs)}"
+          assert all("text" in d for d in docs[:10]), "Missing 'text' field"
+          print(f"OK: {len(docs)} docs, sample text length = {len(docs[0]['text'])} chars")
+          EOF
+
+  lint:
+    name: Lint (flake8)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install flake8
+        run: pip install flake8
+
+      - name: Run flake8 (errors only — E9xx, F-series)
+        run: |
+          flake8 seva_benchmark_4060.py adaptive_attack_seva.py generate_poison_corpus.py \
+                 run_seva_v6_100k.py run_seva_v6_smoke.py \
+                 --select=E9,F401,F811,F821,F841 --max-line-length=120
