@@ -10,6 +10,7 @@ seva_checkpoints*/
 *.log
 *.json
 !poison_corpus_diverse.json
+!results/seva_v6_2_results_100k_*.json
 *.pdf
 *.txt
 !requirements.txt

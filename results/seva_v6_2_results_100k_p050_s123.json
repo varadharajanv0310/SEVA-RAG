@@ -1,0 +1,256 @@
+{
+  "version": "v6.2.1",
+  "corpus": 100000,
+  "poisoned": 5000,
+  "poison_ratio": 0.05,
+  "cal_seed": 123,
+  "benign_q": 2000,
+  "target_fpr": 0.0069,
+  "norm_config": {
+    "doc_length": 224.0,
+    "sent_length": 35.75500000000001,
+    "punct_density": 0.11580472921434022
+  },
+  "snrs": {
+    "topic_drift": 0.6377898256168573,
+    "sent_unif": 1.5248018648515194,
+    "ttr_signal": -1.8993565497043035,
+    "repeat_rate": -0.4024128289139116,
+    "kw_density": 34.804542199332424,
+    "doc_length_signal": 1.2099345881844321,
+    "avg_sent_len_signal": 1.3756888954519453,
+    "punct_signal": 1.5103901772264217,
+    "content_ttr_signal": -2.1770531985162096,
+    "cluster_coh": 4.784656818811337
+  },
+  "signal_stats": {
+    "topic_drift": {
+      "clean_mean": 0.3543645143508911,
+      "clean_std": 0.04136103019118309,
+      "poison_mean": 0.38074415922164917,
+      "poison_std": 0.017090968787670135,
+      "snr": 0.6377898256168573,
+      "gap": 0.026379644870758057
+    },
+    "sent_unif": {
+      "clean_mean": 0.11791772395372391,
+      "clean_std": 0.07093735039234161,
+      "poison_mean": 0.22608312964439392,
+      "poison_std": 0.07489007711410522,
+      "snr": 1.5248018648515194,
+      "gap": 0.10816540569067001
+    },
+    "ttr_signal": {
+      "clean_mean": 0.25585922598838806,
+      "clean_std": 0.05879703164100647,
+      "poison_mean": 0.1441826969385147,
+      "poison_std": 0.034850187599658966,
+      "snr": -1.8993565497043035,
+      "gap": -0.11167652904987335
+    },
+    "repeat_rate": {
+      "clean_mean": 0.007068965118378401,
+      "clean_std": 0.01736079342663288,
+      "poison_mean": 8.275861910078675e-05,
+      "poison_std": 0.0011916473740711808,
+      "snr": -0.4024128289139116,
+      "gap": -0.0069862063974142075
+    },
+    "kw_density": {
+      "clean_mean": 0.003200000151991844,
+      "clean_std": 0.01759999990463257,
+      "poison_mean": 0.6157599687576294,
+      "poison_std": 0.13145197927951813,
+      "snr": 34.804542199332424,
+      "gap": 0.612559974193573
+    },
+    "doc_length_signal": {
+      "clean_mean": 0.3828660547733307,
+      "clean_std": 0.2147090882062912,
+      "poison_mean": 0.6426500082015991,
+      "poison_std": 0.03150743618607521,
+      "snr": 1.2099345881844321,
+      "gap": 0.25978395342826843
+    },
+    "avg_sent_len_signal": {
+      "clean_mean": 0.31385764479637146,
+      "clean_std": 0.17485365271568298,
+      "poison_mean": 0.5544018745422363,
+      "poison_std": 0.04531090334057808,
+      "snr": 1.3756888954519453,
+      "gap": 0.24054422974586487
+    },
+    "punct_signal": {
+      "clean_mean": 0.3540409207344055,
+      "clean_std": 0.22508744895458221,
+      "poison_mean": 0.6940107941627502,
+      "poison_std": 0.19162236154079437,
+      "snr": 1.5103901772264217,
+      "gap": 0.3399698734283447
+    },
+    "content_ttr_signal": {
+      "clean_mean": 0.2849791347980499,
+      "clean_std": 0.08173666149377823,
+      "poison_mean": 0.10703407227993011,
+      "poison_std": 0.03921752795577049,
+      "snr": -2.1770531985162096,
+      "gap": -0.1779450625181198
+    },
+    "cluster_coh": {
+      "clean_mean": 0.7322263121604919,
+      "clean_std": 0.05407312512397766,
+      "poison_mean": 0.9909476637840271,
+      "poison_std": 0.005749781150370836,
+      "snr": 4.784656818811337,
+      "gap": 0.25872135162353516
+    }
+  },
+  "L1_weights": {
+    "topic_drift": 0.061682,
+    "sent_unif": 0.115796,
+    "ttr_signal": 0.125028,
+    "kw_density": 0.125028,
+    "doc_length_signal": 0.099143,
+    "avg_sent_len_signal": 0.108185,
+    "punct_signal": 0.115081,
+    "content_ttr_signal": 0.125028,
+    "cluster_coh": 0.125028
+  },
+  "tau_L1": 0.5500639975070956,
+  "L2_weights": {
+    "topic_drift": 0.070496,
+    "sent_unif": 0.132343,
+    "ttr_signal": 0.142894,
+    "doc_length_signal": 0.11331,
+    "avg_sent_len_signal": 0.123644,
+    "punct_signal": 0.131525,
+    "content_ttr_signal": 0.142894,
+    "cluster_coh": 0.142894
+  },
+  "tau_L2": 0.627467483282089,
+  "L3_weights": {
+    "topic_drift": 0.080443,
+    "sent_unif": 0.151015,
+    "ttr_signal": 0.163055,
+    "doc_length_signal": 0.129296,
+    "punct_signal": 0.150082,
+    "content_ttr_signal": 0.163055,
+    "cluster_coh": 0.163055
+  },
+  "tau_L3": 0.6609875857830045,
+  "L1": {
+    "asr": 0.0,
+    "doc_fpr": 0.6241519674355495,
+    "query_fpr": 2.75,
+    "tau": 0.5500639975070956,
+    "weights": {
+      "topic_drift": 0.061682,
+      "sent_unif": 0.115796,
+      "ttr_signal": 0.125028,
+      "kw_density": 0.125028,
+      "doc_length_signal": 0.099143,
+      "avg_sent_len_signal": 0.108185,
+      "punct_signal": 0.115081,
+      "content_ttr_signal": 0.125028,
+      "cluster_coh": 0.125028
+    },
+    "counts": {
+      "TP": 250,
+      "FN": 0,
+      "FP": 23,
+      "TN": 3662,
+      "poison_encounters": 250,
+      "clean_seen": 3685
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 273
+    },
+    "attacks": {
+      "successes": 0,
+      "attempts": 250
+    },
+    "fp_docs": 23,
+    "clean_seen": 3685,
+    "latency": {
+      "mean": 42.93505964713404,
+      "p95": 52.844304998143336
+    }
+  },
+  "L2": {
+    "asr": 0.0,
+    "doc_fpr": 0.6241519674355495,
+    "query_fpr": 2.875,
+    "tau": 0.627467483282089,
+    "weights": {
+      "topic_drift": 0.070496,
+      "sent_unif": 0.132343,
+      "ttr_signal": 0.142894,
+      "doc_length_signal": 0.11331,
+      "avg_sent_len_signal": 0.123644,
+      "punct_signal": 0.131525,
+      "content_ttr_signal": 0.142894,
+      "cluster_coh": 0.142894
+    },
+    "counts": {
+      "TP": 250,
+      "FN": 0,
+      "FP": 23,
+      "TN": 3662,
+      "poison_encounters": 250,
+      "clean_seen": 3685
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 273
+    },
+    "attacks": {
+      "successes": 0,
+      "attempts": 250
+    },
+    "fp_docs": 23,
+    "clean_seen": 3685,
+    "latency": {
+      "mean": 42.93505964713404,
+      "p95": 52.844304998143336
+    }
+  },
+  "L3": {
+    "asr": 17.599999999999998,
+    "doc_fpr": 0.5427408412483039,
+    "query_fpr": 2.5,
+    "tau": 0.6609875857830045,
+    "weights": {
+      "topic_drift": 0.080443,
+      "sent_unif": 0.151015,
+      "ttr_signal": 0.163055,
+      "doc_length_signal": 0.129296,
+      "punct_signal": 0.150082,
+      "content_ttr_signal": 0.163055,
+      "cluster_coh": 0.163055
+    },
+    "counts": {
+      "TP": 206,
+      "FN": 44,
+      "FP": 20,
+      "TN": 3665,
+      "poison_encounters": 250,
+      "clean_seen": 3685
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 226
+    },
+    "attacks": {
+      "successes": 44,
+      "attempts": 250
+    },
+    "fp_docs": 20,
+    "clean_seen": 3685,
+    "latency": {
+      "mean": 42.93505964713404,
+      "p95": 52.844304998143336
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU"
+}
