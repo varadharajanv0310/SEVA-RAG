@@ -1,0 +1,31 @@
+name: seva
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+
+  # PyTorch with CUDA 12.4 (RTX 4060 tested)
+  - pytorch::pytorch=2.3.1
+  - pytorch::torchvision=0.18.1
+  - pytorch::pytorch-cuda=12.4
+
+  # FAISS GPU build (reliable via conda; pip builds vary by platform)
+  - conda-forge::faiss-gpu=1.7.4
+
+  # Numerics
+  - conda-forge::numpy=1.26.4
+
+  # pip-only packages
+  - pip:
+    - sentence-transformers==3.0.1
+    - transformers==4.41.2
+    - huggingface-hub==0.24.2
+    - tokenizers==0.19.1
+    - datasets==2.20.0
+    - fsspec==2024.5.0
+    - scipy==1.13.1
+    - tqdm==4.66.4

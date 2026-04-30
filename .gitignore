@@ -18,3 +18,4 @@ seva_checkpoints*/
 # Python caches
 __pycache__/
 *.py[cod]
+!p3_v6.2_s*.json
