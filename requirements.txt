@@ -1,0 +1,30 @@
+# SEVA-RAG — Python Dependencies
+# Tested on: Python 3.11, CUDA 12.4, RTX 4060 Laptop GPU (8 GB VRAM)
+#
+# Install PyTorch with CUDA 12.4 first (separate index):
+#   pip install torch==2.3.1+cu124 torchvision==0.18.1+cu124 \
+#       --index-url https://download.pytorch.org/whl/cu124
+#
+# Install FAISS GPU (choose one):
+#   conda: conda install -c pytorch faiss-gpu=1.7.4 cudatoolkit=12.4
+#   pip:   pip install faiss-gpu-cu12          # community build for CUDA 12
+#
+# Then install the remainder:
+#   pip install -r requirements.txt
+
+# Embedding model + HuggingFace ecosystem
+sentence-transformers==3.0.1
+transformers==4.41.2
+huggingface-hub==0.24.2
+tokenizers==0.19.1
+
+# Dataset loading (WikiText-103)
+datasets==2.20.0
+fsspec==2024.5.0
+
+# Numeric / ML support
+numpy==1.26.4
+scipy==1.13.1
+
+# Utilities (stdlib-only generate_poison_corpus.py needs none)
+tqdm==4.66.4

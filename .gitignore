@@ -9,8 +9,10 @@ seva_checkpoints*/
 # Logs and Data
 *.log
 *.json
+!poison_corpus_diverse.json
 *.pdf
 *.txt
+!requirements.txt
 
 # Python caches
 __pycache__/
