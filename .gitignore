@@ -1,0 +1,17 @@
+# Environments
+seva_env/
+
+# Models and Checkpoints
+seva_checkpoints*/
+*.pt
+*.bin
+
+# Logs and Data
+*.log
+*.json
+*.pdf
+*.txt
+
+# Python caches
+__pycache__/
+*.py[cod]
