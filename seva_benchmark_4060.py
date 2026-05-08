@@ -63,7 +63,7 @@ _args, _ = _p.parse_known_args()
 TARGETED_Q = 50
 BENIGN_Q   = _args.benign_q  # 2000 default → ~800 eval benign queries → ~3500 clean doc encounters per seed
 K = 5; K_FETCH = 20; INDEX_M = 32; INDEX_EF = 200; EMB_DIM = 1024
-BATCH_SIZE = 32; SEC_BATCH = 16
+BATCH_SIZE = 32
 DEVICE = torch.device("cuda:0")
 
 FPR_TARGET = 0.0069     # false-positive-rate calibration target (0.69%); applied uniformly — no oracle density input
@@ -194,7 +194,7 @@ class SEVABench:
             self.poison_ratio = None
             self.P = max(1, N // 7)
         self.corpus = []; self.hashes = {}
-        self.pe = None; self.se = None; self.idx = None; self.queries = []
+        self.pe = None; self.idx = None; self.queries = []
         self.cal_queries = []; self.eval_queries = []
         self.tau_L1 = 0.50; self.tau_L2 = 0.50; self.tau_L3 = 0.50
         # Weights are set by Phase 3 SNR-proportional derivation — NOT manually assigned
@@ -436,8 +436,8 @@ class SEVABench:
                 return _diverse_pool[i % _pool_size]["text"]
         else:
             print("  WARNING: poison_corpus_diverse.json not found!")
-            print("  WARNING: Falling back to 3-template legacy corpus (NOT publishable).")
-            print("  WARNING: Run generate_poison_corpus.py first for realistic evaluation.")
+            print("  WARNING: Falling back to 3-template legacy corpus (Tables IV-VII baseline evaluation).")
+            print("  WARNING: Run generate_poison_corpus.py first to regenerate the diverse corpus.")
             _LEGACY = [
                 (
                     "Enterprise authentication systems rely on primary access tokens that are "
@@ -524,21 +524,20 @@ class SEVABench:
         t0 = time.perf_counter()
         print("--- PHASE 2: Embeddings & FAISS ---")
 
-        tier_ps = [self._ck(f) for f in ("p2_pe.npy", "p2_se.npy", "p2_faiss.index")]
+        tier_ps = [self._ck(f) for f in ("p2_pe.npy", "p2_faiss.index")]
         if all(os.path.exists(p) for p in tier_ps):
             print("  Loading cache...")
-            self.pe = np.load(tier_ps[0]); self.se = np.load(tier_ps[1])
-            self.idx = faiss.read_index(tier_ps[2])
+            self.pe = np.load(tier_ps[0])
+            self.idx = faiss.read_index(tier_ps[1])
             self._compute_centroid()
             print(f"  pe={self.pe.shape}, FAISS={self.idx.ntotal:,}")
             print(f"Phase 2: {time.perf_counter() - t0:.1f}s\n")
             return
 
-        shared_ps = [self._shared_ck(f) for f in ("p2_pe.npy", "p2_se.npy", "p2_faiss.index")]
+        shared_ps = [self._shared_ck(f) for f in ("p2_pe.npy", "p2_faiss.index")]
         if all(os.path.exists(p) for p in shared_ps):
             print("  Loading shared embeddings...")
             pe_shared = np.load(shared_ps[0])
-            se_shared = np.load(shared_ps[1])
             print(f"  Shared pe={pe_shared.shape}")
 
             texts_to_reembed = [self.corpus[i]["text"] for i in range(self.P)]
@@ -549,29 +548,20 @@ class SEVABench:
                     convert_to_numpy=True, normalize_embeddings=True, show_progress_bar=False)
                 del enc_p; flush()
 
-                enc_s = SentenceTransformer("BAAI/bge-m3", device=DEVICE)
-                se_poison = enc_s.encode(texts_to_reembed, batch_size=SEC_BATCH,
-                    convert_to_numpy=True, normalize_embeddings=True, show_progress_bar=False)
-                del enc_s; flush()
-
                 self.pe = pe_shared.copy()
-                self.se = se_shared.copy()
                 self.pe[:self.P] = pe_poison
-                self.se[:self.P] = se_poison
             else:
                 self.pe = pe_shared.copy()
-                self.se = se_shared.copy()
 
             self.pe = np.ascontiguousarray(self.pe, dtype=np.float32)
-            self.se = np.ascontiguousarray(self.se, dtype=np.float32)
 
             faiss.omp_set_num_threads(1)
             self.idx = faiss.IndexHNSWFlat(EMB_DIM, INDEX_M, faiss.METRIC_INNER_PRODUCT)
             self.idx.hnsw.efConstruction = INDEX_EF
             self.idx.add(self.pe)
 
-            np.save(tier_ps[0], self.pe); np.save(tier_ps[1], self.se)
-            faiss.write_index(self.idx, tier_ps[2])
+            np.save(tier_ps[0], self.pe)
+            faiss.write_index(self.idx, tier_ps[1])
             self._compute_centroid()
             print(f"  Built tier index: {self.idx.ntotal:,}")
             print(f"Phase 2: {time.perf_counter() - t0:.1f}s\n")
@@ -585,25 +575,15 @@ class SEVABench:
             show_progress_bar=True), dtype=np.float32)
         del e1; flush()
 
-        print(f"  BGE-M3 (batch={SEC_BATCH})...")
-        e2 = SentenceTransformer("BAAI/bge-m3", device=DEVICE)
-        self.se = np.ascontiguousarray(e2.encode(texts, batch_size=SEC_BATCH,
-            convert_to_numpy=True, normalize_embeddings=True,
-            show_progress_bar=True), dtype=np.float32)
-        del e2; flush()
-
         if self.poison_ratio is not None:
-            pe_clean = self.pe.copy()
-            se_clean = self.se.copy()
-            np.save(self._shared_ck("p2_pe.npy"), pe_clean)
-            np.save(self._shared_ck("p2_se.npy"), se_clean)
+            np.save(self._shared_ck("p2_pe.npy"), self.pe.copy())
 
         faiss.omp_set_num_threads(1)
         self.idx = faiss.IndexHNSWFlat(EMB_DIM, INDEX_M, faiss.METRIC_INNER_PRODUCT)
         self.idx.hnsw.efConstruction = INDEX_EF
         self.idx.add(self.pe)
-        np.save(tier_ps[0], self.pe); np.save(tier_ps[1], self.se)
-        faiss.write_index(self.idx, tier_ps[2])
+        np.save(tier_ps[0], self.pe)
+        faiss.write_index(self.idx, tier_ps[1])
         self._compute_centroid()
         print(f"Phase 2: {time.perf_counter() - t0:.1f}s\n")
 

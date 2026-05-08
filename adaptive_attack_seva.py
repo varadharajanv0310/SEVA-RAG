@@ -617,14 +617,13 @@ def make_adaptive_bench_class(seva_mod):
             if os.path.exists(perturb_marker):
                 # Load everything from cache, skip re-perturbation
                 tier_ps = [self._ck(f) for f in
-                           ("p2_pe.npy", "p2_se.npy", "p2_faiss.index")]
+                           ("p2_pe.npy", "p2_faiss.index")]
                 if all(os.path.exists(p) for p in tier_ps):
                     print("--- PHASE 2 (ADAPTIVE) ---")
                     print("  [cache] Loading perturbed embeddings ...")
                     self.pe  = np.load(tier_ps[0])
-                    self.se  = np.load(tier_ps[1])
                     import faiss as _faiss
-                    self.idx = _faiss.read_index(tier_ps[2])
+                    self.idx = _faiss.read_index(tier_ps[1])
                     self._compute_centroid()
                     self._compute_doc_coh()
                     m = json.load(open(perturb_marker, encoding="utf-8"))
@@ -752,10 +751,9 @@ def make_adaptive_bench_class(seva_mod):
 
             # ---- Save updated embeddings + FAISS to tier cache ----
             tier_ps = [self._ck(f) for f in
-                       ("p2_pe.npy", "p2_se.npy", "p2_faiss.index")]
+                       ("p2_pe.npy", "p2_faiss.index")]
             np.save(tier_ps[0], self.pe)
-            # se.npy is unchanged (secondary encoder not used for cluster_coh)
-            _faiss.write_index(self.idx, tier_ps[2])
+            _faiss.write_index(self.idx, tier_ps[1])
 
             # ---- Write perturbation marker ----
             final_coh = self._adaptive_coh_values

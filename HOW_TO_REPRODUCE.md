@@ -144,20 +144,34 @@ Results are written to `adaptive_attack_results/` (Table VIII of the paper). The
 
 ---
 
-## Reading Table IV from JSON output
+## Reading committed Table IV results
+
+The nine production result files are committed to the `results/` directory:
+
+```
+results/seva_v6_2_results_100k_p010_s{007,042,123}.json   ← 1% density
+results/seva_v6_2_results_100k_p050_s{007,042,123}.json   ← 5% density
+results/seva_v6_2_results_100k_p100_s{007,042,123}.json   ← 10% density
+```
+
+Read them with:
 
 ```python
 import json, glob, numpy as np
 
 results = {}
-for path in sorted(glob.glob("seva_checkpoints_4060_100k_p*/seva_v6_2_results_100k_*.json")):
+for path in sorted(glob.glob("results/seva_v6_2_results_100k_*.json")):
     d = json.load(open(path))
-    tag = f"p{d['poison_ratio_pct']:.0f}% s{d['cal_seed']}"
-    results[tag] = {layer: {"asr": d[layer]["asr"], "fpr": d[layer]["fpr"]}
+    ratio_pct = int(d["poison_ratio"] * 100)
+    tag = f"{ratio_pct}% s{d['cal_seed']}"
+    results[tag] = {layer: {"asr": d[layer]["asr"], "fpr": d[layer]["doc_fpr"],
+                             "tau": d[layer]["tau"],
+                             "lat_mean": d[layer]["latency"]["mean"],
+                             "lat_p95":  d[layer]["latency"]["p95"]}
                     for layer in ("L1", "L2", "L3")}
 
-for tag, v in results.items():
-    print(tag, {l: f"ASR={v[l]['asr']:.2f}% FPR={v[l]['fpr']:.2f}%" for l in v})
+for tag, v in sorted(results.items()):
+    print(tag, {l: f"ASR={v[l]['asr']:.2f}% FPR={v[l]['fpr']:.3f}%" for l in v})
 ```
 
 ---

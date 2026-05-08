@@ -1,0 +1,250 @@
+{
+  "version": "v6.2.1",
+  "corpus": 100000,
+  "poisoned": 10000,
+  "poison_ratio": 0.1,
+  "cal_seed": 7,
+  "benign_q": 2000,
+  "target_fpr": 0.0069,
+  "norm_config": {
+    "doc_length": 232.0,
+    "sent_length": 34.666666666666664,
+    "punct_density": 0.11572643430350944
+  },
+  "snrs": {
+    "topic_drift": -0.24383472674971315,
+    "sent_unif": 0.9769531749782217,
+    "ttr_signal": -1.6996994870063835,
+    "repeat_rate": -0.3868072017942733,
+    "kw_density": 32.84983346926932,
+    "doc_length_signal": 1.0773400481543998,
+    "avg_sent_len_signal": 1.3944029451728186,
+    "punct_signal": 1.2875172217774637,
+    "content_ttr_signal": -1.9204963142197198,
+    "cluster_coh": 4.66173078483474
+  },
+  "signal_stats": {
+    "topic_drift": {
+      "clean_mean": 0.35703980922698975,
+      "clean_std": 0.0411478690803051,
+      "poison_mean": 0.34700652956962585,
+      "poison_std": 0.01771857589483261,
+      "snr": -0.24383472674971315,
+      "gap": -0.010033279657363892
+    },
+    "sent_unif": {
+      "clean_mean": 0.11854344606399536,
+      "clean_std": 0.07391642779111862,
+      "poison_mean": 0.19075633585453033,
+      "poison_std": 0.07128484547138214,
+      "snr": 0.9769531749782217,
+      "gap": 0.07221288979053497
+    },
+    "ttr_signal": {
+      "clean_mean": 0.257057249546051,
+      "clean_std": 0.06142999976873398,
+      "poison_mean": 0.15264470875263214,
+      "poison_std": 0.03626713529229164,
+      "snr": -1.6996994870063835,
+      "gap": -0.10441254079341888
+    },
+    "repeat_rate": {
+      "clean_mean": 0.00863065104931593,
+      "clean_std": 0.02220556139945984,
+      "poison_mean": 4.137930955039337e-05,
+      "poison_std": 0.0008436375064775348,
+      "snr": -0.3868072017942733,
+      "gap": -0.008589271456003189
+    },
+    "kw_density": {
+      "clean_mean": 0.003599999938160181,
+      "clean_std": 0.018629010766744614,
+      "poison_mean": 0.6155599355697632,
+      "poison_std": 0.13149099051952362,
+      "snr": 32.84983346926932,
+      "gap": 0.6119599342346191
+    },
+    "doc_length_signal": {
+      "clean_mean": 0.3939310312271118,
+      "clean_std": 0.22861860692501068,
+      "poison_mean": 0.6402310132980347,
+      "poison_std": 0.03370438143610954,
+      "snr": 1.0773400481543998,
+      "gap": 0.24629998207092285
+    },
+    "avg_sent_len_signal": {
+      "clean_mean": 0.2724711000919342,
+      "clean_std": 0.1784716546535492,
+      "poison_mean": 0.5213325023651123,
+      "poison_std": 0.05219654366374016,
+      "snr": 1.3944029451728186,
+      "gap": 0.2488614022731781
+    },
+    "punct_signal": {
+      "clean_mean": 0.3752143979072571,
+      "clean_std": 0.21950432658195496,
+      "poison_mean": 0.657829999923706,
+      "poison_std": 0.18759265542030334,
+      "snr": 1.2875172217774637,
+      "gap": 0.282615602016449
+    },
+    "content_ttr_signal": {
+      "clean_mean": 0.2814791202545166,
+      "clean_std": 0.08565598726272583,
+      "poison_mean": 0.11697711050510406,
+      "poison_std": 0.03971267491579056,
+      "snr": -1.9204963142197198,
+      "gap": -0.16450200974941254
+    },
+    "cluster_coh": {
+      "clean_mean": 0.7285715341567993,
+      "clean_std": 0.056923676282167435,
+      "poison_mean": 0.9939343929290771,
+      "poison_std": 0.0027185578364878893,
+      "snr": 4.66173078483474,
+      "gap": 0.26536285877227783
+    }
+  },
+  "L1_weights": {
+    "sent_unif": 0.095908,
+    "ttr_signal": 0.139753,
+    "kw_density": 0.140718,
+    "doc_length_signal": 0.102878,
+    "avg_sent_len_signal": 0.122866,
+    "punct_signal": 0.11644,
+    "content_ttr_signal": 0.140718,
+    "cluster_coh": 0.140718
+  },
+  "tau_L1": 0.5716350972652435,
+  "L2_weights": {
+    "sent_unif": 0.111614,
+    "ttr_signal": 0.16264,
+    "doc_length_signal": 0.119725,
+    "avg_sent_len_signal": 0.142987,
+    "punct_signal": 0.135508,
+    "content_ttr_signal": 0.163763,
+    "cluster_coh": 0.163763
+  },
+  "tau_L2": 0.6652483642101286,
+  "L3_weights": {
+    "sent_unif": 0.130236,
+    "ttr_signal": 0.189775,
+    "doc_length_signal": 0.139701,
+    "punct_signal": 0.158117,
+    "content_ttr_signal": 0.191086,
+    "cluster_coh": 0.191086
+  },
+  "tau_L3": 0.7130760848522184,
+  "L1": {
+    "asr": 0.0,
+    "doc_fpr": 0.627900627900628,
+    "query_fpr": 2.75,
+    "tau": 0.5716350972652435,
+    "weights": {
+      "sent_unif": 0.095908,
+      "ttr_signal": 0.139753,
+      "kw_density": 0.140718,
+      "doc_length_signal": 0.102878,
+      "avg_sent_len_signal": 0.122866,
+      "punct_signal": 0.11644,
+      "content_ttr_signal": 0.140718,
+      "cluster_coh": 0.140718
+    },
+    "counts": {
+      "TP": 250,
+      "FN": 0,
+      "FP": 23,
+      "TN": 3640,
+      "poison_encounters": 250,
+      "clean_seen": 3663
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 283
+    },
+    "attacks": {
+      "successes": 0,
+      "attempts": 250
+    },
+    "fp_docs": 23,
+    "clean_seen": 3663,
+    "latency": {
+      "mean": 39.041029881867445,
+      "p95": 47.476160000951495
+    }
+  },
+  "L2": {
+    "asr": 0.0,
+    "doc_fpr": 0.627900627900628,
+    "query_fpr": 2.75,
+    "tau": 0.6652483642101286,
+    "weights": {
+      "sent_unif": 0.111614,
+      "ttr_signal": 0.16264,
+      "doc_length_signal": 0.119725,
+      "avg_sent_len_signal": 0.142987,
+      "punct_signal": 0.135508,
+      "content_ttr_signal": 0.163763,
+      "cluster_coh": 0.163763
+    },
+    "counts": {
+      "TP": 250,
+      "FN": 0,
+      "FP": 23,
+      "TN": 3640,
+      "poison_encounters": 250,
+      "clean_seen": 3663
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 283
+    },
+    "attacks": {
+      "successes": 0,
+      "attempts": 250
+    },
+    "fp_docs": 23,
+    "clean_seen": 3663,
+    "latency": {
+      "mean": 39.041029881867445,
+      "p95": 47.476160000951495
+    }
+  },
+  "L3": {
+    "asr": 20.8,
+    "doc_fpr": 0.7098007098007098,
+    "query_fpr": 3.25,
+    "tau": 0.7130760848522184,
+    "weights": {
+      "sent_unif": 0.130236,
+      "ttr_signal": 0.189775,
+      "doc_length_signal": 0.139701,
+      "punct_signal": 0.158117,
+      "content_ttr_signal": 0.191086,
+      "cluster_coh": 0.191086
+    },
+    "counts": {
+      "TP": 198,
+      "FN": 52,
+      "FP": 26,
+      "TN": 3637,
+      "poison_encounters": 250,
+      "clean_seen": 3663
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 234
+    },
+    "attacks": {
+      "successes": 52,
+      "attempts": 250
+    },
+    "fp_docs": 26,
+    "clean_seen": 3663,
+    "latency": {
+      "mean": 39.041029881867445,
+      "p95": 47.476160000951495
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU"
+}
