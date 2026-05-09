@@ -70,6 +70,7 @@ FPR_TARGET = 0.0069     # false-positive-rate calibration target (0.69%); applie
 SNR_MIN_ABS = 0.5    # minimum |SNR| to include signal in weights; filters noise signals (e.g. repeat_rate)
 SNR_LOG_CAP = 1.0    # max log1p(SNR) per signal; prevents high-SNR signals (kw_density, cluster_coh) from dominating
 NORM_PERCENTILE = 90 # percentile for corpus-derived normalization constants (doc_length, sent_len, punct)
+SNR_SAMPLE_SEED = 99 # fixed RNG seed for the 500-doc clean sample used in Phase 3 SNR estimation
 
 
 @dataclass
@@ -123,7 +124,11 @@ def text_features(text: str, norm_config=None):
     ttr_signal = 1.0 - ttr_raw  # invert: high ttr_signal = low TTR = repetitive = suspicious
 
     # Signal 3: length-normalized repeat_rate on 60-word window (HIGH = suspicious)
-    # Same window as TTR — removes length confound that inverts signal on full-doc trigrams
+    # Same window as TTR — removes length confound that inverts signal on full-doc trigrams.
+    # NOTE: repeat_rate is computed here but permanently excluded from scoring by the
+    # |SNR| < SNR_MIN_ABS gate in _snr_weights (empirical |SNR| = 0.35-0.40 across all
+    # densities). It is retained in the output tuple so callers do not need to change
+    # their argument lists if the gate threshold is adjusted in future work.
     if len(sample) >= 3:
         trigrams = [tuple(sample[i:i+3]) for i in range(len(sample)-2)]
         counts = Counter(trigrams)
@@ -263,7 +268,9 @@ class SEVABench:
                doc_length_signal, avg_sent_len_signal, punct_signal, content_ttr_signal,
                cluster_coh, weights):
         """Compute weighted A-score. Signals in self.flipped_signals are inverted
-        (1 - val) so that negative-SNR signals contribute in the correct direction."""
+        (1 - val) so that negative-SNR signals contribute in the correct direction.
+        repeat_rate is passed through for completeness but will always receive weight=0
+        from _snr_weights because its |SNR| < SNR_MIN_ABS at all tested densities."""
         sigs = {"topic_drift": topic_drift, "sent_unif": sent_unif, "ttr_signal": ttr_signal,
                 "repeat_rate": repeat_rate, "kw_density": kw_density,
                 "doc_length_signal": doc_length_signal, "avg_sent_len_signal": avg_sent_len_signal,
@@ -619,7 +626,7 @@ class SEVABench:
 
         # ── Step 2: Direct SNR from corpus sampling (no adversarial queries needed) ──
         # Clean sample: random non-poisoned docs. Poison sample: all poisoned docs.
-        rng_snr = np.random.default_rng(seed=99)
+        rng_snr = np.random.default_rng(seed=SNR_SAMPLE_SEED)
         clean_indices = [i for i in range(len(self.corpus)) if not self.corpus[i]["is_poisoned"]]
         n_snr_clean = min(500, len(clean_indices))
         snr_clean_idx = rng_snr.choice(clean_indices, size=n_snr_clean, replace=False)

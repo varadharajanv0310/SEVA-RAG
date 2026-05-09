@@ -12,9 +12,9 @@ if hasattr(sys.stdout, 'buffer'):
 if hasattr(sys.stderr, 'buffer'):
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 
-PYTHON = r"C:\Users\varad\miniconda3\envs\seva\python.exe"
-BENCH  = r"C:\Users\varad\OneDrive\Desktop\SEVA\seva_benchmark_4060.py"
-CWD    = r"C:\Users\varad\OneDrive\Desktop\SEVA"
+PYTHON = sys.executable
+BENCH  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seva_benchmark_4060.py")
+CWD    = os.path.dirname(os.path.abspath(__file__))
 ENV    = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"}
 
 CORPUS         = 100000
