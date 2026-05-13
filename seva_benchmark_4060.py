@@ -58,10 +58,20 @@ _p.add_argument("--cal-seed", type=int, default=42,
                 help="RNG seed for the calibration/evaluation query split (default 42)")
 _p.add_argument("--benign-q", type=int, default=2000,
                 help="Benign query count (default 2000; 60%% → cal, 40%% → eval → ~3500 clean doc encounters)")
+# --- E2/E3 (experiment-plan) inputs; defaults reproduce the original WikiText behaviour exactly ---
+_p.add_argument("--clean-corpus", type=str, default=None,
+                help="E2: path to a pre-built in-domain clean corpus JSON; default None = stream WikiText-103")
+_p.add_argument("--benign-queries", type=str, default=None,
+                help="E3/CF-008: path to held-out independent benign query JSON; default None = legacy corpus-derived")
+_p.add_argument("--corpus-tag", type=str, default="",
+                help="Isolation tag appended to checkpoint+result dir/file names (keeps runs from colliding)")
 _args, _ = _p.parse_known_args()
 
 TARGETED_Q = 50
 BENIGN_Q   = _args.benign_q  # 2000 default → ~800 eval benign queries → ~3500 clean doc encounters per seed
+CLEAN_CORPUS_PATH   = _args.clean_corpus     # E2 in-domain corpus path (None = WikiText-103)
+BENIGN_QUERIES_PATH = _args.benign_queries   # E3/CF-008 held-out benign set path (None = legacy)
+CORPUS_TAG = _args.corpus_tag                # isolation tag for checkpoint/result names
 K = 5; K_FETCH = 20; INDEX_M = 32; INDEX_EF = 200; EMB_DIM = 1024
 BATCH_SIZE = 32
 DEVICE = torch.device("cuda:0")
@@ -220,13 +230,14 @@ class SEVABench:
         self.signal_stats = {}          # Per-signal {clean_mean, clean_std, poison_mean, poison_std, snr, gap}
         self.phase3_ok = False
 
+        _tag = f"_{CORPUS_TAG}" if CORPUS_TAG else ""   # isolation tag (e.g. _secqa); empty = original names
         if poison_ratio is not None:
             ptag = poison_tag(poison_ratio)
-            self.ckdir = f"seva_checkpoints_4060_{N // 1000}k_{ptag}"
-            self.rf = f"seva_v6_2_results_{N//1000}k_{ptag}_s{_args.cal_seed:03d}.json"
+            self.ckdir = f"seva_checkpoints_4060_{N // 1000}k{_tag}_{ptag}"
+            self.rf = f"seva_v6_2_results_{N//1000}k{_tag}_{ptag}_s{_args.cal_seed:03d}.json"
         else:
-            self.ckdir = f"seva_checkpoints_4060_{N // 1000}k"
-            self.rf = f"seva_v6_2_results_{N//1000}k_s{_args.cal_seed:03d}.json"
+            self.ckdir = f"seva_checkpoints_4060_{N // 1000}k{_tag}"
+            self.rf = f"seva_v6_2_results_{N//1000}k{_tag}_s{_args.cal_seed:03d}.json"
         os.makedirs(self.ckdir, exist_ok=True)
 
         self.target_fpr = FPR_TARGET
@@ -251,7 +262,8 @@ class SEVABench:
     def _ck(self, f): return os.path.join(self.ckdir, f)
 
     def _shared_ck(self, f):
-        shared_dir = f"seva_checkpoints_4060_{self.N // 1000}k_shared"
+        _tag = f"_{CORPUS_TAG}" if CORPUS_TAG else ""
+        shared_dir = f"seva_checkpoints_4060_{self.N // 1000}k{_tag}_shared"
         os.makedirs(shared_dir, exist_ok=True)
         return os.path.join(shared_dir, f)
 
@@ -410,6 +422,13 @@ class SEVABench:
         if os.path.exists(shared_ps[0]):
             print("  Loading shared clean corpus...")
             clean_corpus = json.load(open(shared_ps[0], encoding="utf-8"))
+        elif CLEAN_CORPUS_PATH:
+            print(f"  Loading in-domain clean corpus from {CLEAN_CORPUS_PATH} ...")
+            _cc = json.load(open(CLEAN_CORPUS_PATH, encoding="utf-8"))
+            clean_corpus = [{"id": f"doc_{i}", "text": d["text"], "is_poisoned": False}
+                            for i, d in enumerate(_cc[:self.N])]
+            json.dump(clean_corpus, open(shared_ps[0], "w", encoding="utf-8"))
+            print(f"  Saved shared clean corpus: {len(clean_corpus):,} docs (in-domain)")
         else:
             print("  Streaming wikitext-103-v1...")
             ds = load_dataset("wikitext", "wikitext-103-v1", split="train", streaming=True)
@@ -510,16 +529,49 @@ class SEVABench:
             "Describe the endpoint security protocol for API authentication.",
             "How are secrets vault access permissions configured at deployment?",
             "What provisioning pipeline handles certificate lifecycle management?",
+            "How should API keys be stored and rotated in a microservices deployment?",
+            "What is the recommended way to revoke a compromised JWT access token?",
+            "How do mutual TLS certificates authenticate service-to-service traffic?",
+            "What hardening steps secure an OpenID Connect authorization server?",
+            "How are privileged session credentials brokered through a bastion host?",
+            "What policy governs short-lived credentials in a zero-trust architecture?",
+            "How is least-privilege enforced for CI/CD pipeline service accounts?",
+            "What controls prevent token replay against the authentication endpoint?",
+            "How should HSM-backed signing keys be provisioned for the PKI?",
+            "What is the procedure for emergency break-glass administrator access?",
+            "How are scoped OAuth refresh tokens bound to a client device?",
+            "What audit logging is required for privileged credential usage?",
+            "How does SCIM provisioning synchronize identities to downstream apps?",
+            "What protects the secrets manager master key from insider misuse?",
+            "How are Kerberos service tickets validated against the key distribution center?",
+            "What enforces MFA step-up for high-risk administrative actions?",
+            "How should database connection credentials be injected at runtime?",
+            "What is the rotation cadence for TLS certificates on internal endpoints?",
+            "How are federated SAML assertions verified for tampering?",
+            "What prevents privilege escalation through misconfigured IAM roles?",
+            "How are workload identities issued in a Kubernetes cluster?",
+            "What review process governs changes to the central access-control registry?",
+            "How is credential exposure detected in source-code repositories?",
+            "What secures the enrollment of new devices into the identity provider?",
+            "How are administrator API tokens scoped and time-limited at issuance?",
         ]
         for i in range(TARGETED_Q):
             self.queries.append({"q": tq[i % len(tq)], "adv": True, "pids": pids})
-        rng = np.random.default_rng(42)
-        bi = rng.choice(range(self.P, self.N), size=BENIGN_Q, replace=False)
-        for idx in bi:
-            t = self.corpus[idx]["text"]
-            ss = [s.strip() for s in t.split(".") if len(s.strip()) > 40]
-            q = ss[0] + "." if ss else t[:100]
-            self.queries.append({"q": q, "adv": False, "pids": []})
+        rng = np.random.default_rng(self.cal_seed)   # CF-009: per-seed independence (was hardcoded 42)
+        if BENIGN_QUERIES_PATH:
+            # CF-008: independent held-out benign queries (NOT first-sentences of indexed corpus docs)
+            _bq_pool = json.load(open(BENIGN_QUERIES_PATH, encoding="utf-8"))
+            _sel = rng.choice(len(_bq_pool), size=min(BENIGN_Q, len(_bq_pool)), replace=False)
+            for j in _sel:
+                self.queries.append({"q": _bq_pool[int(j)], "adv": False, "pids": []})
+        else:
+            # legacy: benign query = first sentence of a sampled clean corpus doc (corpus-coupled)
+            bi = rng.choice(range(self.P, self.N), size=BENIGN_Q, replace=False)
+            for idx in bi:
+                t = self.corpus[idx]["text"]
+                ss = [s.strip() for s in t.split(".") if len(s.strip()) > 40]
+                q = ss[0] + "." if ss else t[:100]
+                self.queries.append({"q": q, "adv": False, "pids": []})
         print(f"  {TARGETED_Q} targeted + {BENIGN_Q} benign queries.")
         for i, p in enumerate(tier_ps):
             json.dump([self.corpus, self.hashes, self.queries][i],
