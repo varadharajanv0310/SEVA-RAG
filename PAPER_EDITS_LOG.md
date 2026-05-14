@@ -159,4 +159,17 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 **(e) E3 methodology (paper Methods + eval):** benign queries = held-out security question titles (independent, CF-008); 50 unique adversarial templates (CF-007); benign pool seeded per cal_seed (CF-009). **Paper edit: describe the corrected eval protocol.**
 
+### RESCOPE-1 · Narrow the adaptive-adversary claim; supersede Table V/VI L2/L3 with in-domain values
+- **Added:** 2026-05-30 · **Origin:** E2 in-domain finding (see E2-2(c)) · **Status:** PROVISIONAL (→ E1/E1b + seeds 7,123)
+- **Trigger:** in-domain L2/L3 ASR = 44/61/73% (vs WikiText ~0–17%); kw_density SNR collapsed 38→~7 → the composite's adaptive robustness was domain-confounded, carried by kw_density.
+- **SUPERSEDES:** Table V & Table VI **L2/L3 ASR cells** — the WikiText L2/L3 numbers are not representative once the domain confound is removed. Report the **in-domain** L2/L3 ASR (keep L1=0% and FPR).
+- **CLAIM NARROWING — every affected section to edit:**
+  - **Abstract:** remove/soften "resists adaptive adversaries" / "evasion-resistant"; scope robustness to the L1 operating point + the `cluster_coh` geometric core.
+  - **§I-C contributions:** narrow the adaptive-robustness contribution; lead with domain-independent doc-level `cluster_coh` + density-agnostic calibration (EXPERIMENT_PLAN §0.5).
+  - **Table V / Table VI:** replace L2/L3 ASR with in-domain values (44/61/73% @1/5/10%); keep L1 ASR (0%) + DocFPR.
+  - **§VI results (L2/L3 discussion):** rewrite to the in-domain reality.
+  - **Limitations:** add — multi-signal adaptive robustness was partly domain-confounded; a keyword-dropping adversary largely defeats SEVA in-domain; `cluster_coh` alone is the load-bearing signal under evasion.
+  - **Conclusion:** align.
+- **Note:** FINAL framing depends on whether `cluster_coh` survives the E1 white-box suppression attack — **E1/E1b are now decisive, not confirmatory.** Do not finalize the rescoped claim until E1/E1b land; also pending seeds 7,123 for in-domain L2/L3 mean±std.
+
 *(further entries appended per the Standing rule as E1 / E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
