@@ -52,6 +52,7 @@ cluster_coh confound‑kill **CONFIRMED** (gap holds in‑domain, SNR higher). B
 
 ## 7. File map (committed on `exec/step2-e2-corpus`)
 - `PROJECT_STATE.md` — THIS FILE (read first).
+- `KICKOFF_E1_DECISION.md` — paste-ready prompt + procedure for the next session's E1/E1b go/no-go (author convenience).
 - `EXPERIMENT_PLAN.md` — master plan rev. 5 (E1…E7, triage, venue, acceptance read).
 - `STEP3_GATE_RESULTS.md` — authoritative Step‑3 gate numbers.
 - `STEP3_FINDING_AND_DECISION.md` — the finding + pending decision (read for paper status).
