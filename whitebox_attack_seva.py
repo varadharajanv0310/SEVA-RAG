@@ -246,10 +246,13 @@ def main():
     cmin_maj,   best_maj   = cmin("asr_majority")
 
     def verdict(cmin_val):
+        # CORRECTED FRAMING (author 2026-05-31): free-on-sphere placement tests only the r*^2 cone
+        # floor (r*^2=0.52 << tau_coh=0.84 -> low cohesion is FOREGONE), NOT manifold realizability.
+        # This is therefore NOT a NECESSARY/CORRELATED verdict on the real claim.
         if cmin_val is None:
-            return "NECESSARY (strong) — no attack-effective config exists at the floor"
-        return ("CORRELATED-leaning (C_min <= tau_coh)" if cmin_val <= tau_coh
-                else "NECESSARY-leaning (C_min > tau_coh)")
+            return "no attack-effective config at the floor even free-on-sphere"
+        return ("pure-geometric necessity UNCLAIMABLE (r*^2 << tau_coh, foregone); manifold "
+                "realizability is the open decisive question (E1) -- NOT evidence SEVA is weak")
 
     log("\n" + "=" * 72)
     log(f"  tau_coh(42) = {tau_coh:.4f}   (clean P95 = {clean_p95:.4f})   "
