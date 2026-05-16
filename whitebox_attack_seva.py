@@ -448,11 +448,111 @@ def run_cheap():
     log("  CHEAP-END COMPLETE — STOP at cost-curve gate.")
 
 
+def run_full(out_tag="full", host_source="incorpus"):
+    """CHECK 1+2: run the clone-inject cheap poison through the FULL FROZEN detector
+    (hash + ALL signals, real phase3/phase4, real TARGETED_Q, frozen retrieval).
+    Reports COMPOSITE L1/L2/L3 ASR + hash/ml catches. Reuses cached 95k clean embeddings.
+    host_source: 'incorpus' = clone top clean docs already indexed; 'outcorpus' = clone
+    held-out diverse security text (benign_queries titles expanded) NOT in the index."""
+    import torch, numpy as _np, json as _json, time as _time, importlib.util
+    DEVICE = torch.device("cuda:0"); torch.manual_seed(SYNTH_SEED); _np.random.seed(SYNTH_SEED)
+    t0 = _time.perf_counter()
+    log("=" * 72); log(f"  CHECK 1+2: clone-inject ({host_source}) vs FULL FROZEN detector".center(72)); log("=" * 72)
+    pe = _np.load(os.path.join(CKDIR, "p2_pe.npy"))
+    corpus = _json.load(open(os.path.join(CKDIR, "p1_corpus.json"), encoding="utf-8"))
+    gq = _json.load(open(os.path.join(CKDIR, "p1_query.json"), encoding="utf-8"))
+    isp = _np.array([bool(d["is_poisoned"]) for d in corpus])
+    clean_emb = _np.ascontiguousarray(pe[~isp])                 # 95k clean embeddings (correct, cached)
+    clean_dicts = [corpus[i] for i in _np.where(~isp)[0]]
+    clean_texts = [d["text"] for d in clean_dicts]
+    clean_t = torch.from_numpy(clean_emb).to(DEVICE)
+    advq = []; seen = set()
+    for q in gq:
+        if q.get("adv") and q["q"] not in seen: advq.append(q["q"]); seen.add(q["q"])
+    from sentence_transformers import SentenceTransformer
+    enc = SentenceTransformer("BAAI/bge-large-en-v1.5", device="cuda:0")
+    Q = torch.from_numpy(enc.encode(advq, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)).to(DEVICE)
+    # host pool
+    if host_source == "outcorpus":
+        bq = _json.load(open(r"D:\SEVA-RAG\a1_corpus\benign_queries_security.json", encoding="utf-8"))
+        host_pool_texts = [str(t) for t in bq][:20000]           # held-out security titles (NOT indexed)
+        hp_emb = enc.encode(host_pool_texts, batch_size=64, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+        hp_t = torch.from_numpy(hp_emb).to(DEVICE)
+        topH = torch.topk(Q @ hp_t.T, 5, dim=1).indices.cpu().numpy()
+        get_host = lambda qi, r: host_pool_texts[int(topH[qi, r])]
+    else:
+        topH = torch.topk(Q @ clean_t.T, 5, dim=1).indices.cpu().numpy()
+        get_host = lambda qi, r: clean_texts[int(topH[qi, r])]
+    poison_texts = []
+    for qi in range(len(advq)):
+        for r in range(5):
+            poison_texts.append(_make_poison(get_host(qi, r), _PAYLOADS[(qi * 5 + r) % len(_PAYLOADS)]))
+    P = len(poison_texts)
+    log(f"  built {P} clone-inject poison (top-5 {host_source} hosts/query + payload)")
+    poison_emb = enc.encode(poison_texts, batch_size=64, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+    del enc; torch.cuda.empty_cache()
+
+    mod_name = f"seva_full_{out_tag}"
+    if mod_name in sys.modules: del sys.modules[mod_name]
+    saved = sys.argv[:]
+    sys.argv = ["seva_benchmark_4060.py", "--corpus", "100000", "--poison-ratio", "0.0025",
+                "--cal-seed", "42", "--benign-q", "2000", "--corpus-tag", "secqawb" + out_tag]
+    try:
+        spec = importlib.util.spec_from_file_location(mod_name, os.path.join(CWD, "seva_benchmark_4060.py"))
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    finally:
+        sys.argv = saved
+    SEVABench = m.SEVABench; _sha = m.sha256; _faiss = m.faiss
+    ckdir = os.path.join(CWD, f"seva_checkpoints_4060_100k_secqawb{out_tag}")
+
+    class FullBench(SEVABench):
+        def phase1(self):
+            self.corpus = [{"id": f"doc_{i}", "text": poison_texts[i], "is_poisoned": True} for i in range(P)]
+            self.corpus += [{"id": f"doc_{P+j}", "text": clean_dicts[j]["text"], "is_poisoned": False}
+                            for j in range(len(clean_dicts))]
+            self.N = len(self.corpus); self.P = P
+            self.hashes = {d["id"]: _sha(d["text"]) for d in self.corpus}
+            pids = [f"doc_{i}" for i in range(P)]
+            self.queries = [{"q": q["q"], "adv": bool(q["adv"]), "pids": (pids if q["adv"] else [])} for q in gq]
+            print(f"  [full] corpus={self.N} ({P} clone-inject poison)  queries={len(self.queries)}")
+
+        def phase2(self):
+            self.pe = _np.ascontiguousarray(_np.concatenate([poison_emb, clean_emb], 0), dtype=_np.float32)
+            self.idx = _faiss.IndexHNSWFlat(m.EMB_DIM, m.INDEX_M, _faiss.METRIC_INNER_PRODUCT)
+            self.idx.hnsw.efConstruction = m.INDEX_EF; self.idx.add(self.pe)
+            self._compute_centroid()
+            print(f"  [full] pe={self.pe.shape}  idx={self.idx.ntotal}")
+
+    b = FullBench(95000, poison_ratio=0.0025)
+    b.ckdir = ckdir; os.makedirs(ckdir, exist_ok=True)
+    b.rf = os.path.join(RESULTS_DIR, f"full_{out_tag}_s042.json")
+    b.phase1(); b._compute_corpus_stats(); b.phase2(); b._compute_doc_coh(); b.phase3()
+    if not b.phase3_ok: log("  phase3 STOP"); return
+    R1, R2, R3 = b.phase4(); out = b.report(R1, R2, R3)
+    pc = b.doc_coh[:P]
+    log("\n" + "=" * 72)
+    log(f"  CLONE-INJECT ({host_source}) vs FULL FROZEN DETECTOR (composite, P={P}):")
+    for L, R, o in [("L1", R1, out["L1"]), ("L2", R2, out["L2"]), ("L3", R3, out["L3"])]:
+        log(f"   {L}: composite ASR={o['asr']:.1f}%  DocFPR={o['doc_fpr']:.2f}%  "
+            f"hash_catch={R.hash_c}  ml_catch={R.ml_c}  attempts={o['attacks']['attempts']}")
+    log(f"  poison cluster_coh mean={float(pc.mean()):.4f}  | hash caught {R1.hash_c} clones "
+        f"({'tamper check, NOT near-dup' if R1.hash_c == 0 else 'HASH FIRES'})")
+    log("=" * 72)
+    _json.dump({"mode": "full", "host_source": host_source, "P": P, "poison_coh_mean": float(pc.mean()),
+                "L1": out["L1"], "L2": out["L2"], "L3": out["L3"], "runtime_s": _time.perf_counter() - t0},
+               open(os.path.join(RESULTS_DIR, f"full_check_{out_tag}_s042.json"), "w", encoding="utf-8"), indent=2)
+    log(f"  ({_time.perf_counter()-t0:.1f}s) saved full_check_{out_tag}_s042.json")
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "probe"
     if mode == "probe":
         main()
     elif mode == "cheap":
         run_cheap()
+    elif mode == "full":
+        run_full("incorpus", "incorpus")
+    elif mode == "fullout":
+        run_full("outcorpus", "outcorpus")
     else:
-        print("modes: probe | cheap (steelman b=400 is post cheap-end gate)"); sys.exit(2)
+        print("modes: probe | cheap | full | fullout"); sys.exit(2)
