@@ -36,8 +36,9 @@ need is on disk. The repo is at D:\SEVA-RAG\SEVA-RAG (work from there).
    detection, CPU/weak-hardware-deployable, sub-30ms. Offline attack/baseline tooling
    MAY use an LLM; the detector may NOT. Anything risking (a) LLM/API at detection,
    (b) CPU/weak-hardware break, (c) sub-30ms regression -> STOP & flag.
-3. All paper edits batch to the END via PAPER_EDITS_LOG.md. Do NOT edit manuscript
-   prose; the .tex is not in this repo.
+3. Keep PAPER_EDITS_LOG.md CURRENT as findings land (provisional entries fine) — it's a
+   running ledger, not an end task; never defer logging a finding. Only manuscript
+   PROSE/.tex is batched to the end (the .tex is not in this repo).
 4. Provenance: every comparative number must trace to a results file made on this machine.
 5. Gates are MINE (the author's): stop at each gate, present numbers, let me decide.
 6. Commit+push around each step is authorized; keep large data artifacts out of git.
