@@ -41,6 +41,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | E1-2 | results; Limitations; Tables V/VI companion | PROVISIONAL (blocked on OPEN-CAL-1) |
 | E1-3 | method/system; any dedup claim | FLAG — verify vs paper |
 | OPEN-CAL-1 | paper-wide (calibration disclosure) | OPEN |
+| E3-2 | §IV methods; error bars; Limitations | DISCLOSURE (FINAL direction) |
 
 ---
 
@@ -218,6 +219,13 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 ### NOTE-1 · clone-inject is itself a contribution (consider a "boundary of geometric detection" subsection)
 - **Added** 2026-05-31 — the clone-inject evasion + the prominence/cohesion boundary + the templating-vs-poisoning distinction are a **novel result**. Consider presenting as a positive "boundary of geometric detection" subsection rather than only a limitation. Decide at framing time (after OPEN-CAL-1 + E4-HH).
+
+### E3-2 · Methods disclosure: "N seeds" certifies CALIBRATION-sampling variance only (poison/corpus/embeddings/SNR-weights are seed-invariant)
+- **Added** 2026-05-31 · **Origin** seed-semantics audit (`seva_benchmark_4060.py`: `SNR_SAMPLE_SEED=99` @681 fixed; benign sampling @560–564 and cal/eval split @325 use `cal_seed`)
+- **Finding:** clean corpus, poison set, embeddings, `doc_coh`, AND SNR weights are all seed-**independent**; only benign-query sampling + cal/eval split vary with `cal_seed` (→ τ). So multi-seed mean±std bounds **calibration-sampling** variance, not poison/corpus-draw variance. The `cluster_coh` gap is fully seed-invariant (report without seed error bars).
+- **Also:** the first seeds-7/123 background run was INVALID (per-tier cache not seed-tagged → reused seed-42's cached queries). Correct protocol: delete `p1_query.json` per seed before each run (embeddings reused).
+- **Manuscript impact:** when reporting error bars / "N seeds," **disclose** they reflect calibration sampling only; for camera-ready consider one additional poison realization to bound draw variance.
+- **Affected:** §IV methods; any error-bar / multi-seed statement; Limitations.
 
 ---
 
