@@ -44,6 +44,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | E3-2 | §IV methods; error bars; Limitations | DISCLOSURE (FINAL direction) |
 | E-CAL-1 | §I-C; results; Limitations | POSITIVE — SETTLED s42 / PROVISIONAL (→ 3-seed) |
 | E-CAL-2 | Tables V/VI L2/L3; §VI; Limitations | SETTLED s42 / PROVISIONAL (→ 3-seed) |
+| E4-HH | §I-C; Limitations; Table IX / head-to-head | CAUTIONARY (complementarity refuted) — SETTLED s42 / PROVISIONAL (→ 3-seed) |
 
 ---
 
@@ -258,4 +259,27 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Manuscript impact:** report the adaptive L2/L3 collapse as **realistic (frozen: ~49% strict / ~54% pre-adapted / ~57% drop-term)**, not only oracle. Completes the frozen-calibration picture: **templated L1 0% (E-CAL-1) · templated adaptive ~49% (E-CAL-2) · clone-inject L1 88.8% / adaptive 100% (E1-2).**
 - **Affected:** Tables V/VI L2/L3; §VI adaptive-adversary discussion; Limitations.
 
-*(further entries: E4-HH / E5 / E6 / E7 / additional seeds — appended per the Standing rule)*
+### E4-HH · SQUEEZE TEST (SEVA × RAGDefender, templated × clone-inject): complementarity FAILS — clone-inject is a shared blind spot
+- **Added** 2026-05-31 · **Origin** E4-HH squeeze (`whitebox_attack_seva.py squeezegen` [seva env] + `e4hh_ragdefender.py` [ragdefender env]) · **Status** SETTLED (seed 42) / PROVISIONAL (→ 3-seed). **CAUTIONARY — keystone refuted.**
+- **Setup:** SAME clone-inject artifact (provenance); SEVA = frozen gate-p050 L1 (τ_L1=0.5915); RAGDefender v0.2.0 **single_hop** (confirmed via `docs/algorithm.md`: clustering-based, NQ/MS-MARCO/k=5 regime — matches our short factual queries), **embedder = BAAI/bge-large-en-v1.5** (= SEVA's encoder → isolates the *algorithmic* difference, not embedder). Per-query top-K=5. Catch metric = retrieved-poison-NOT-removed (ASR, comparable to SEVA). Provenance: `whitebox_attack_results/squeeze_retrieval_s042.json`, `e4hh_s042.json`.
+- **2×2 (ASR; lower = better defense):**
+  | poison | SEVA frozen-L1 | RAGDefender |
+  |---|---|---|
+  | templated (near-dup) | **0.0%** (DocFPR≈0.6%) | 18.9% |
+  | clone-inject (n=5/query) | **87.7%** | 41.7% |
+  - **RAGDefender benign doc-FPR = 50.4%** — it removes ~half of the *clean* retrieved docs on benign queries (over-fires on legitimately-similar in-domain passages; its poison "catch" is largely indiscriminate removal, not detection). RAGDefender is **not deployable on an in-domain corpus** at this FPR.
+- **Squeeze (clone-inject per-query count n; SURVIVE-BOTH = poison neither SEVA-flagged nor RAGDef-removed):**
+  | n/query | attempts | SEVA-catch | RAGD-catch | **SURVIVE-BOTH ASR** | **q-level survive-both** |
+  |---|---|---|---|---|---|
+  | 1 | 82 | 11.0% | 70.7% | 25.6% | 33% |
+  | 2 | 124 | 12.9% | 63.7% | 29.8% | 56% |
+  | 3 | 145 | 12.4% | 57.2% | 37.2% | 71% |
+  | 5 | 163 | 12.3% | 58.3% | 36.8% | 76% |
+  | 8 | 175 | 12.6% | 57.1% | 37.1% | 80% |
+- **Finding (keystone REFUTED):** at **every** per-query density, clone-inject survives **both** defenses on 26–37% of retrieved poison and on **33–80% of target queries** (rising with n). The attacker is **not squeezed**: clone-inject is corpus-diffuse (evades SEVA cohesion → ~88% ASR, flat in n) **and** evades RAGDefender's per-query clustering (the clones mimic clean docs; and as n rises the poison-majority flips RAGDefender's minority/majority vote → RAGD-catch *drops* 70.7%→57%). **Complementarity / defense-in-depth does NOT hold for realizable clone-inject.**
+- **Silver lining (positive, keep):** against the **templated** threat SEVA **dominates** the SOTA per-query competitor on both axes — templated ASR **0.0% @ ≈0.6% FPR** (SEVA) vs **18.9% ASR @ 50.4% FPR** (RAGDefender).
+- **Manuscript impact (MAJOR):** the E1×E4-HH **complementarity reframe is NOT available** (the honesty-clause fallback fails). Honest framing: SEVA is a clean, low-FPR detector of **templated** corpus poisoning that **beats RAGDefender**, but **realizable clone-and-inject is an open problem that neither doc-level cohesion (SEVA) nor per-query clustering (RAGDefender) solves** — a shared blind spot, stated as a limitation/future-work. Table IX: SEVA > RAGDefender on templated (ASR & FPR); both fail clone-inject.
+- **Caveats:** seed 42; RAGDefender run with bge-large + single_hop (its default embedder is minilm — bge chosen to isolate the algorithm; a minilm run could shift its numbers); RAGDefender's 50% FPR means its "catches" are not at a controlled operating point.
+- **Affected:** §I-C; Limitations (shared blind spot / open problem); Table IX / head-to-head; the complementarity discussion.
+
+*(further entries: E5 / E6 / E7 / 3-seed generalization — appended per the Standing rule)*

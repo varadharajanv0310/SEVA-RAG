@@ -641,6 +641,98 @@ def run_linchpin():
     log(f"  ({_time.perf_counter()-t0:.1f}s) saved linchpin_s042.json")
 
 
+def run_squeezegen():
+    """E4-HH SEVA-side: generate per-query top-K retrieval data + SEVA frozen-L1 flags for the squeeze
+    test. Configs: clone-inject n=1,2,3,5,8 per target query + templated anchor (250) + benign sample
+    (RAGDefender FPR). Exact top-K=5 retrieval; frozen gate-p050 L1 calibration. Output JSON is consumed
+    by the ragdefender-env scorer e4hh_ragdefender.py (same artifact -> provenance)."""
+    import torch, numpy as _np, json as _json, time as _time, importlib.util
+    DEVICE = torch.device("cuda:0"); torch.manual_seed(SYNTH_SEED); _np.random.seed(SYNTH_SEED)
+    t0 = _time.perf_counter()
+    log("=" * 72); log("  E4-HH SEVA-side: squeeze retrieval-data generation".center(72)); log("=" * 72)
+    gp = _json.load(open(os.path.join(CKDIR, "p3_v6.2_s042.json"), encoding="utf-8"))   # frozen gate-p050 templated calibration
+    L1w = gp["L1_weights"]; tau1 = gp["tau_L1"]; flipped = set(gp.get("flipped_signals", [])); norm = gp["norm_config"]
+    log(f"  frozen gate-p050 L1: tau_L1={tau1:.4f}")
+    pe = _np.load(os.path.join(CKDIR, "p2_pe.npy")); corpus = _json.load(open(os.path.join(CKDIR, "p1_corpus.json"), encoding="utf-8"))
+    gq = _json.load(open(os.path.join(CKDIR, "p1_query.json"), encoding="utf-8"))
+    isp = _np.array([bool(d["is_poisoned"]) for d in corpus])
+    clean_emb = _np.ascontiguousarray(pe[~isp]); clean_texts = [corpus[i]["text"] for i in _np.where(~isp)[0]]
+    advq = []; seen = set()
+    for q in gq:
+        if q.get("adv") and q["q"] not in seen: advq.append(q["q"]); seen.add(q["q"])
+    benignq = [q["q"] for q in gq if not q["adv"]][:100]
+    templated_pool = [d["text"] for d in _json.load(open(os.path.join(CWD, "poison_corpus_diverse.json"), encoding="utf-8"))]
+    mod = "seva_sq_42"
+    if mod in sys.modules: del sys.modules[mod]
+    saved = sys.argv[:]; sys.argv = ["seva_benchmark_4060.py", "--corpus", "100000", "--poison-ratio", "0.0025", "--cal-seed", "42", "--corpus-tag", "sq"]
+    try:
+        spec = importlib.util.spec_from_file_location(mod, os.path.join(CWD, "seva_benchmark_4060.py")); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    finally:
+        sys.argv = saved
+    text_features = m.text_features; K = m.K
+    from sentence_transformers import SentenceTransformer
+    enc = SentenceTransformer("BAAI/bge-large-en-v1.5", device="cuda:0")
+    Q = enc.encode(advq, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+    Qb = enc.encode(benignq, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+    clean_t = torch.from_numpy(clean_emb).to(DEVICE)
+    topH = torch.topk(torch.from_numpy(Q).to(DEVICE) @ clean_t.T, 8, dim=1).indices.cpu().numpy()
+
+    def score_l1(fd):
+        return sum(L1w.get(k, 0.0) * ((1.0 - v) if k in flipped else v) for k, v in fd.items() if L1w.get(k, 0.0) > 0)
+
+    def build_config(poison_texts, poison_emb):
+        P = len(poison_texts)
+        corpus_emb = torch.from_numpy(_np.ascontiguousarray(_np.concatenate([poison_emb, clean_emb], 0))).to(DEVICE)
+        centroid = corpus_emb.mean(0); centroid = centroid / centroid.norm()
+        texts_full = poison_texts + clean_texts
+        iu = torch.triu_indices(K, K, offset=1, device=DEVICE)
+        out = []
+        for qi in range(len(advq)):
+            qe = torch.from_numpy(Q[qi:qi + 1]).to(DEVICE)
+            topk = torch.topk((corpus_emb @ qe.T).squeeze(1), K).indices.cpu().numpy().tolist()
+            Rtexts = [texts_full[j] for j in topk]; ppos = [i for i, j in enumerate(topk) if j < P]
+            sflag = []; cohs = []
+            for pos in ppos:
+                j = topk[pos]
+                sims = (corpus_emb @ corpus_emb[j:j + 1].T).squeeze(1); sims[j] = -2.0
+                nn = torch.topk(sims, K).indices; em = corpus_emb[nn]
+                coh = float((em @ em.T)[iu[0], iu[1]].mean())
+                su, ttr, rr, kwd, dl, asl, ps, cts = text_features(texts_full[j], norm)
+                drift = 1.0 - float(corpus_emb[j] @ centroid)
+                fd = {"topic_drift": drift, "sent_unif": su, "ttr_signal": ttr, "repeat_rate": rr, "kw_density": kwd,
+                      "doc_length_signal": dl, "avg_sent_len_signal": asl, "punct_signal": ps, "content_ttr_signal": cts, "cluster_coh": coh}
+                sflag.append(bool(score_l1(fd) > tau1)); cohs.append(round(coh, 4))
+            out.append({"q": advq[qi], "R": Rtexts, "poison_pos": ppos, "seva_flag": sflag, "coh": cohs})
+        del corpus_emb; torch.cuda.empty_cache()
+        return out, P
+
+    configs = {}
+    for n in [1, 2, 3, 5, 8]:
+        pt = []
+        for qi in range(len(advq)):
+            for r in range(n):
+                pt.append(_make_poison(clean_texts[int(topH[qi, r])], _PAYLOADS[(qi * 8 + r) % len(_PAYLOADS)]))
+        pemb = enc.encode(pt, batch_size=64, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+        cfg, P = build_config(pt, pemb); configs[f"cloneinject_n{n}"] = {"queries": cfg, "P": P, "n_per_q": n}
+        log(f"  cloneinject n={n}: P={P}")
+    tt = templated_pool[:250]
+    cfg, P = build_config(tt, enc.encode(tt, batch_size=64, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32))
+    configs["templated"] = {"queries": cfg, "P": P}; log(f"  templated anchor: P={P}")
+    benign = []
+    for qi in range(len(benignq)):
+        qe = torch.from_numpy(Qb[qi:qi + 1]).to(DEVICE)
+        topk = torch.topk((clean_t @ qe.T).squeeze(1), K).indices.cpu().numpy().tolist()
+        benign.append({"q": benignq[qi], "R": [clean_texts[j] for j in topk]})
+    del enc; torch.cuda.empty_cache()
+    _json.dump({"tau_L1": tau1, "K": K, "configs": configs, "benign": benign},
+               open(os.path.join(RESULTS_DIR, "squeeze_retrieval_s042.json"), "w", encoding="utf-8"))
+    log("  --- SEVA frozen-L1 catch (squeezegen sanity) ---")
+    for name, c in configs.items():
+        att = sum(len(q["poison_pos"]) for q in c["queries"]); flg = sum(sum(q["seva_flag"]) for q in c["queries"])
+        log(f"   {name:16}: poison-in-topK={att:4d}  SEVA-flagged={flg:4d}  SEVA-ASR={100*(att-flg)/att if att else 0:5.1f}%")
+    log(f"  ({_time.perf_counter()-t0:.1f}s) saved squeeze_retrieval_s042.json")
+
+
 def run_ecal2():
     """E-CAL-2 (OPEN-CAL-1 re-run #2): adaptive L2/L3 under FROZEN L1, STRICT no-re-adaptation.
     Freeze L1 weights+tau (templated half-A from the linchpin); evaluate held-out templated half-B
@@ -762,5 +854,7 @@ if __name__ == "__main__":
         run_linchpin()
     elif mode == "ecal2":
         run_ecal2()
+    elif mode == "squeezegen":
+        run_squeezegen()
     else:
-        print("modes: probe | cheap | full | fullout | fullfrozen | linchpin | ecal2"); sys.exit(2)
+        print("modes: probe | cheap | full | fullout | fullfrozen | linchpin | ecal2 | squeezegen"); sys.exit(2)
