@@ -641,6 +641,56 @@ def run_linchpin():
     log(f"  ({_time.perf_counter()-t0:.1f}s) saved linchpin_s042.json")
 
 
+def run_seeds3():
+    """E4-HH / E-CAL 3-seed generalization. Seed-varying input = τ_L1(s) only (L1 weights, poison, clean,
+    embeddings, retrieval, RAGDefender, concentration are all seed-invariant — E3-2). Applies each seed's
+    τ_L1 (from the corrected gate p050 p3 files) to the stored per-poison L1 scores (squeezegen) + the
+    per-poison RAGD-removed flags (e4hh) -> per-seed SEVA-ASR + SURVIVE-BOTH for the frozen 2×2 + squeeze.
+    Discloses (E3-2): seeds bound CALIBRATION-sampling variance only."""
+    import numpy as _np, json as _json
+    seeds = [42, 7, 123]; taus = {}
+    for s in seeds:
+        p = os.path.join(CKDIR, f"p3_v6.2_s{s:03d}.json")
+        if not os.path.exists(p):
+            log(f"  MISSING {p} (run the corrected gate for seed {s} first)"); return
+        taus[s] = _json.load(open(p, encoding="utf-8"))["tau_L1"]
+    log("=" * 72); log("  E4-HH/E-CAL 3-seed generalization (calibration variance only, E3-2)".center(72)); log("=" * 72)
+    ta = _np.array([taus[s] for s in seeds])
+    log(f"  tau_L1: s42={taus[42]:.4f} s7={taus[7]:.4f} s123={taus[123]:.4f}  -> mean±std = {ta.mean():.4f} ± {ta.std():.4f}")
+    sq = _json.load(open(os.path.join(RESULTS_DIR, "squeeze_retrieval_s042.json"), encoding="utf-8"))
+    if "seva_l1score" not in sq["configs"]["templated"]["queries"][0]:
+        log("  squeeze_retrieval lacks seva_l1score — re-run `squeezegen` first."); return
+    rf = _json.load(open(os.path.join(RESULTS_DIR, "e4hh_ragd_flags_s042.json"), encoding="utf-8"))
+
+    def rows_of(name):
+        rows = []; ri = 0; rrem = rf[name]
+        for qi, q in enumerate(sq["configs"][name]["queries"]):
+            for k in range(len(q["poison_pos"])):
+                rows.append((q["seva_l1score"][k], bool(rrem[ri]), qi)); ri += 1
+        assert ri == len(rrem), f"{name}: score/flag length mismatch {ri} vs {len(rrem)}"
+        return rows
+
+    def metrics(name):
+        rows = rows_of(name); att = len(rows); nq = len(set(qi for _, _, qi in rows)); res = {}
+        for s in seeds:
+            t = taus[s]
+            res[s] = {"seva_asr": 100.0 * sum(sc <= t for sc, _, _ in rows) / att,
+                      "survive_both": 100.0 * sum((sc <= t) and (not rr) for sc, rr, _ in rows) / att,
+                      "q_survive_both_pct": 100.0 * len(set(qi for sc, rr, qi in rows if (sc <= t) and (not rr))) / nq}
+        return att, res
+
+    log(f"  {'config':15} {'att':>4} | {'SEVA-ASR mean±std (s42/7/123)':>34} | {'SURVIVE-BOTH':>14} | {'q-both':>10}")
+    out = {"taus": taus, "tau_mean": float(ta.mean()), "tau_std": float(ta.std()), "configs": {}}
+    for name in ["templated", "cloneinject_n1", "cloneinject_n2", "cloneinject_n3", "cloneinject_n5", "cloneinject_n8"]:
+        att, res = metrics(name)
+        sa = _np.array([res[s]["seva_asr"] for s in seeds]); sb = _np.array([res[s]["survive_both"] for s in seeds]); qb = _np.array([res[s]["q_survive_both_pct"] for s in seeds])
+        log(f"  {name:15} {att:>4} | {sa.mean():5.1f}±{sa.std():3.1f}% ({res[42]['seva_asr']:.1f}/{res[7]['seva_asr']:.1f}/{res[123]['seva_asr']:.1f}) | {sb.mean():5.1f}±{sb.std():3.1f}% | {qb.mean():3.0f}±{qb.std():2.0f}%")
+        out["configs"][name] = {"seva_asr_mean": float(sa.mean()), "seva_asr_std": float(sa.std()), "survive_both_mean": float(sb.mean()), "survive_both_std": float(sb.std()), "q_survive_both_mean": float(qb.mean()), "per_seed": res}
+    log("  NOTE: RAGDefender catch + the matched-FPR fair-ROC are seed-INVARIANT (no per-seed calibration; concentration = corpus property).")
+    _json.dump(out, open(os.path.join(RESULTS_DIR, "seeds3_s042.json"), "w"), indent=2)
+    log("  saved seeds3_s042.json")
+
+
 def run_squeezegen():
     """E4-HH SEVA-side: generate per-query top-K retrieval data + SEVA frozen-L1 flags for the squeeze
     test. Configs: clone-inject n=1,2,3,5,8 per target query + templated anchor (250) + benign sample
@@ -691,7 +741,7 @@ def run_squeezegen():
             qe = torch.from_numpy(Q[qi:qi + 1]).to(DEVICE)
             topk = torch.topk((corpus_emb @ qe.T).squeeze(1), K).indices.cpu().numpy().tolist()
             Rtexts = [texts_full[j] for j in topk]; ppos = [i for i, j in enumerate(topk) if j < P]
-            sflag = []; cohs = []
+            sflag = []; cohs = []; sscore = []
             for pos in ppos:
                 j = topk[pos]
                 sims = (corpus_emb @ corpus_emb[j:j + 1].T).squeeze(1); sims[j] = -2.0
@@ -701,8 +751,9 @@ def run_squeezegen():
                 drift = 1.0 - float(corpus_emb[j] @ centroid)
                 fd = {"topic_drift": drift, "sent_unif": su, "ttr_signal": ttr, "repeat_rate": rr, "kw_density": kwd,
                       "doc_length_signal": dl, "avg_sent_len_signal": asl, "punct_signal": ps, "content_ttr_signal": cts, "cluster_coh": coh}
-                sflag.append(bool(score_l1(fd) > tau1)); cohs.append(round(coh, 4))
-            out.append({"q": advq[qi], "R": Rtexts, "poison_pos": ppos, "seva_flag": sflag, "coh": cohs})
+                _sc = score_l1(fd)
+                sflag.append(bool(_sc > tau1)); sscore.append(round(_sc, 5)); cohs.append(round(coh, 4))
+            out.append({"q": advq[qi], "R": Rtexts, "poison_pos": ppos, "seva_flag": sflag, "seva_l1score": sscore, "coh": cohs})
         del corpus_emb; torch.cuda.empty_cache()
         return out, P
 
@@ -856,5 +907,7 @@ if __name__ == "__main__":
         run_ecal2()
     elif mode == "squeezegen":
         run_squeezegen()
+    elif mode == "seeds3":
+        run_seeds3()
     else:
-        print("modes: probe | cheap | full | fullout | fullfrozen | linchpin | ecal2 | squeezegen"); sys.exit(2)
+        print("modes: probe | cheap | full | fullout | fullfrozen | linchpin | ecal2 | squeezegen | seeds3"); sys.exit(2)
