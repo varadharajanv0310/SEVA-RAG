@@ -556,6 +556,91 @@ def run_full(out_tag="full", host_source="incorpus", calibration="recal"):
     log(f"  ({_time.perf_counter()-t0:.1f}s) saved full_check_{out_tag}_s042.json")
 
 
+def run_linchpin():
+    """LINCHPIN (OPEN-CAL-1 re-run #1): frozen-reference matched-templated SPLIT. Calibrate weights+tau
+    on templated half-A; evaluate ASR on the HELD-OUT templated half-B, FROZEN (no recal on half-B).
+    Does cluster_coh still catch templated poison at target FPR under realistic (non-oracle) calibration?"""
+    import torch, numpy as _np, json as _json, time as _time, importlib.util
+    DEVICE = torch.device("cuda:0"); torch.manual_seed(SYNTH_SEED); _np.random.seed(SYNTH_SEED)
+    t0 = _time.perf_counter()
+    log("=" * 72); log("  LINCHPIN: frozen matched-templated split (cal half-A, eval held-out half-B)".center(72)); log("=" * 72)
+    pe = _np.load(os.path.join(CKDIR, "p2_pe.npy")); corpus = _json.load(open(os.path.join(CKDIR, "p1_corpus.json"), encoding="utf-8"))
+    gq = _json.load(open(os.path.join(CKDIR, "p1_query.json"), encoding="utf-8"))
+    isp = _np.array([bool(d["is_poisoned"]) for d in corpus])
+    clean_emb = _np.ascontiguousarray(pe[~isp]); clean_dicts = [corpus[i] for i in _np.where(~isp)[0]]
+    pool = _json.load(open(os.path.join(CWD, "poison_corpus_diverse.json"), encoding="utf-8"))
+    texts_all = [d["text"] for d in pool]
+    half_A = texts_all[0::2][:2500]; half_B = texts_all[1::2][:2500]   # disjoint, interleaved (both representative)
+    log(f"  templated pool={len(texts_all)}; half_A={len(half_A)} (calibrate), half_B={len(half_B)} (held-out eval)")
+    from sentence_transformers import SentenceTransformer
+    enc = SentenceTransformer("BAAI/bge-large-en-v1.5", device="cuda:0")
+    embA = enc.encode(half_A, batch_size=64, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+    embB = enc.encode(half_B, batch_size=64, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+    del enc; torch.cuda.empty_cache()
+    mod_name = "seva_linch_42"
+    if mod_name in sys.modules: del sys.modules[mod_name]
+    saved = sys.argv[:]
+    sys.argv = ["seva_benchmark_4060.py", "--corpus", "100000", "--poison-ratio", "0.0025",
+                "--cal-seed", "42", "--benign-q", "2000", "--corpus-tag", "secqawblinch"]
+    try:
+        spec = importlib.util.spec_from_file_location(mod_name, os.path.join(CWD, "seva_benchmark_4060.py"))
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    finally:
+        sys.argv = saved
+    SEVABench = m.SEVABench; _sha = m.sha256; _faiss = m.faiss
+
+    class LinchBench(SEVABench):
+        def __init__(self, ptexts, pemb, ckdir, rf):
+            super().__init__(95000, poison_ratio=0.0025)
+            self._pt = ptexts; self._pe = pemb; self.P = len(ptexts)
+            self.ckdir = ckdir; os.makedirs(ckdir, exist_ok=True); self.rf = rf
+        def phase1(self):
+            self.corpus = [{"id": f"doc_{i}", "text": self._pt[i], "is_poisoned": True} for i in range(self.P)]
+            self.corpus += [{"id": f"doc_{self.P+j}", "text": clean_dicts[j]["text"], "is_poisoned": False}
+                            for j in range(len(clean_dicts))]
+            self.N = len(self.corpus); self.hashes = {d["id"]: _sha(d["text"]) for d in self.corpus}
+            pids = [f"doc_{i}" for i in range(self.P)]
+            self.queries = [{"q": q["q"], "adv": bool(q["adv"]), "pids": (pids if q["adv"] else [])} for q in gq]
+            print(f"  [linch] corpus={self.N} ({self.P} templated poison)")
+        def phase2(self):
+            self.pe = _np.ascontiguousarray(_np.concatenate([self._pe, clean_emb], 0), dtype=_np.float32)
+            self.idx = _faiss.IndexHNSWFlat(m.EMB_DIM, m.INDEX_M, _faiss.METRIC_INNER_PRODUCT)
+            self.idx.hnsw.efConstruction = m.INDEX_EF; self.idx.add(self.pe); self._compute_centroid()
+            print(f"  [linch] pe={self.pe.shape} idx={self.idx.ntotal}")
+
+    log("\n  [STEP A] calibrate weights+tau on templated half-A (the reference attack) ...")
+    bA = LinchBench(half_A, embA, os.path.join(CWD, "seva_checkpoints_4060_100k_secqawblinchA"), os.path.join(RESULTS_DIR, "linch_A_s042.json"))
+    bA.phase1(); bA._compute_corpus_stats(); bA.phase2(); bA._compute_doc_coh(); bA.phase3()
+    if not bA.phase3_ok: log("  STEP A phase3 STOP"); return
+    cohA = bA.snrs.get("cluster_coh", 0.0)
+    log(f"  [STEP A] cluster_coh SNR={cohA:.2f}  tau_L1={bA.tau_L1:.4f}  L1 cluster_coh wt={bA.L1_weights.get('cluster_coh', 0):.3f}")
+    fw1, fw2, fw3 = dict(bA.L1_weights), dict(bA.L2_weights), dict(bA.L3_weights)
+    ft1, ft2, ft3 = bA.tau_L1, bA.tau_L2, bA.tau_L3; ff = set(bA.flipped_signals); fn = dict(bA.norm_config)
+
+    log("\n  [STEP B] evaluate HELD-OUT templated half-B under FROZEN half-A calibration ...")
+    bB = LinchBench(half_B, embB, os.path.join(CWD, "seva_checkpoints_4060_100k_secqawblinchB"), os.path.join(RESULTS_DIR, "linch_B_s042.json"))
+    bB.phase1(); bB.phase2(); bB._compute_doc_coh()
+    bB.L1_weights, bB.L2_weights, bB.L3_weights = fw1, fw2, fw3
+    bB.tau_L1, bB.tau_L2, bB.tau_L3 = ft1, ft2, ft3; bB.flipped_signals = ff; bB.norm_config = fn
+    bB.cal_doc_ids = set(); bB._compute_centroid(); bB._split_queries(); bB.phase3_ok = True
+    R1, R2, R3 = bB.phase4(); out = bB.report(R1, R2, R3)
+    pcohB = float(bB.doc_coh[:bB.P].mean())
+    log("\n" + "=" * 72)
+    log("  LINCHPIN — held-out templated half-B under FROZEN (half-A) calibration:")
+    for L, o in [("L1", out["L1"]), ("L2", out["L2"]), ("L3", out["L3"])]:
+        log(f"   {L}: ASR={o['asr']:.1f}%  DocFPR={o['doc_fpr']:.2f}%  (attempts={o['attacks']['attempts']})")
+    log(f"  held-out templated cluster_coh mean={pcohB:.4f} (expect ~0.99); half-A cal cluster_coh SNR={cohA:.2f}")
+    log(f"  VERDICT: {'cluster_coh STILL CATCHES templated under NON-ORACLE calibration' if out['L1']['asr'] < 5 else 'templated LEAKS even under frozen calibration'}")
+    log("=" * 72)
+    _json.dump({"mode": "linchpin", "half_A": len(half_A), "half_B": len(half_B),
+                "stepA_cluster_coh_snr": cohA, "stepA_tau_L1": bA.tau_L1,
+                "stepA_L1_cluster_coh_wt": bA.L1_weights.get("cluster_coh", 0),
+                "heldout_poison_coh_mean": pcohB, "L1": out["L1"], "L2": out["L2"], "L3": out["L3"],
+                "runtime_s": _time.perf_counter() - t0},
+               open(os.path.join(RESULTS_DIR, "linchpin_s042.json"), "w", encoding="utf-8"), indent=2)
+    log(f"  ({_time.perf_counter()-t0:.1f}s) saved linchpin_s042.json")
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "probe"
     if mode == "probe":
@@ -568,5 +653,7 @@ if __name__ == "__main__":
         run_full("outcorpus", "outcorpus")
     elif mode == "fullfrozen":
         run_full("frozenincorpus", "incorpus", "frozen")
+    elif mode == "linchpin":
+        run_linchpin()
     else:
-        print("modes: probe | cheap | full | fullout | fullfrozen"); sys.exit(2)
+        print("modes: probe | cheap | full | fullout | fullfrozen | linchpin"); sys.exit(2)
