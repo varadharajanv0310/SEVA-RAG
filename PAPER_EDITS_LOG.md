@@ -346,6 +346,15 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **If RED:** keep scoped-A; clone-inject stays a one-line §5 limitation. **No loss.**
 - **Manuscript impact (potential, pending gate):** could remove the §5 clone-inject limitation and add a "near-duplicate detection closes the geometric-detection gap" contribution. Detector change = a NEW validated variant (not a retroactive edit); frozen baseline = the ablation.
 
+### ND-GATE-1 · `s_nd` cheap gate RESULT (steps 1–2) — **RED**; clone-inject stays the §5 boundary (Frame A unchanged)
+- **Added** 2026-05-31 · **Origin** `s_nd_gate.py` (STANDALONE; reuses cached p050 clean embeddings, NO 100k re-embed; frozen detector untouched) · **Status** GATE RESULT — **RED**. Provenance: `whitebox_attack_results/s_nd_gate_s042.json`.
+- **STEP 1 — clone `s_nd`** (1-rep low-prominence, 50 clones, max cos to CLEAN 95k): min/median/max = 0.861 / **0.935** / 0.985. **NOT ~0.99** — the injected payload shifts the clone embedding off its host, so even the minimum-prominence clone is not a pure near-twin.
+- **STEP 2 — clean FPR** (exact, 95k Security-SE, max cos to nearest OTHER clean): pct50/90/99/99.9/max = 0.811 / 0.857 / 0.902 / **0.945** / **0.997**. Security-SE has genuine SEMANTIC near-dups; `build_a1_corpus.py` dedup is **lexical-only** (`x[:300].lower()`), so it does NOT cap semantic `s_nd`.
+- **ROC (clone-catch / clean-FPR):** τ0.90 → 84% / **1.117%**; τ0.93 → 56% / 0.202%; τ0.95 → 36% / 0.076%; τ0.98 → 12% / 0.017%; τ0.99 → 0% / 0.008%. Catching ≥95% of clones needs τ < 0.86 → clean FPR ≫ 2%.
+- **Verdict: RED.** The clone `s_nd` range overlaps the clean near-dup tail → **no τ_nd separates the (cluster_coh-evasive, answer-flipping) low-prominence clone-inject from legitimate Security-SE near-dups at ≤0.69% FPR.** Best partial point (τ0.90: 84% catch @ 1.117% FPR) is both sub-full and above target. **Per the ND-PROPOSAL RED branch: keep scoped-A; clone-inject stays a one-line §5 limitation — no loss. Full E-ND gauntlet NOT specced/run (gated off).**
+- **Honest contingency (NOT pursued):** *semantic* (not lexical) corpus dedup at ~0.90 would cap clean `s_nd` → τ0.90 ≈ 84% clone-catch @ ~0% FPR — but only for low-prominence clones (higher prominence → lower `s_nd` → missed) → partial coverage requiring a corpus-hygiene change; not worth the gauntlet now.
+- **Status:** PRESERVED RECORD (negative gate; Frame A unchanged).
+
 ### NOTE-LAT · Latency: sub-2 ms on Apple Silicon (ARM / unified memory), ~12–16 ms on CUDA — dual-platform headline
 - **Added** 2026-05-31 — verified per-query latency is **~13–16 ms mean / ≤19 ms p95 on CUDA (RTX 5080, in-domain; provenance: result JSONs)**, and **<2 ms on M-series MacBook** (ARM, unified/shared memory; author-reported). Framing: *"the weakest hardware is the fastest"* (PAPER_STRUCTURE_A §0; abstract).
 - **⚠ TODO before the abstract:** locate/confirm the M-series result file for the <2 ms provenance (the CUDA JSONs do not contain it). If no saved file exists, re-measure on the Mac and save. Do **not** put 2 ms in the paper unsourced.
