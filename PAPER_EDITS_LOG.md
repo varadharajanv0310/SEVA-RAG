@@ -72,7 +72,8 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | E1-4 | threat model; attack demo; Limitations | SETTLED s42 (8/8 answer-flips) — demo |
 | **ND-PROPOSAL** | §I-C / §V (potential — closes clone-inject) | **PROPOSED — gate steps 1–2 (KICKOFF_ND_FPR_GATE.md)** |
 | ND-GATE-1 | (gate) s_nd embedding near-dup | RED — clone s_nd overlaps clean semantic near-dups |
-| ND-GATE-2 | (gate) s_lex lexical copy-detection | **GREEN** — 98% clone-catch @ 0.165% FPR; full gauntlet pending |
+| ND-GATE-2 | (gate) s_lex lexical copy-detection | **GREEN (literal)** — 98% @ 0.165% FPR; paraphrase evades it → ND-GATE-3 |
+| ND-GATE-3 | (adaptive gate) paraphrase-clone vs s_lex | **AMBER** — s_lex evaded at no effectiveness cost (control); cluster_coh×prominence gauntlet warranted |
 | NOTE-LAT | Abstract; §IV efficiency | sub-2 ms ARM / ~14 ms CUDA (confirm M-series provenance) |
 
 ---
@@ -371,5 +372,19 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **2D view:** the 74 high-`s_lex` clean docs sit at embedding-cos-to-twin median 0.934 (only 27% verbatim ≥0.97) — same cos band as clones → the 2D refinement does NOT cleanly separate; but 1D `s_lex` is already GREEN, so no refinement is needed.
 - **Caveats / NOT tested (gated off per author):** (a) low-prominence (1-rep) clones only — higher prominence drops Jaccard but `cluster_coh` catches that regime (E1-1) → potentially complementary; (b) the **adaptive escalation** (paraphrase the host to lower Jaccard while keeping the payload) is the real threat to `s_lex`, costlier than the demonstrated literal clone — **deferred**; (c) frozen re-validation (templated-0% + FPR + latency hold with `s_lex` integrated), 3-seed, Wilson CIs — **deferred**. STOP at the gate; the full E-ND gauntlet is NOT specced/run.
 - **Status:** GATE GREEN — pending author decision on the full E-ND gauntlet (ND-PROPOSAL GREEN branch). If pursued and it holds (esp. vs the adaptive paraphrase), clone-inject could move from a §5 limitation to a defended contribution.
+
+### ND-GATE-3 · ADAPTIVE paraphrase-clone gate vs `s_lex` — `s_lex` EVADED at no effectiveness cost (control); clone-inject NOT yet closed — **AMBER**, targeted gauntlet warranted
+- **Added** 2026-05-31 · **Origin** `paraphrase_clone_gate.py` + confound control `paraphrase_clone_control.py` (STANDALONE; frozen detector untouched; offline gpt-oss:20b = attack-generation/demo only, per core-identity invariant). Provenance: `whitebox_attack_results/paraphrase_clone_gate_s042.json`, `..._control_s042.json`.
+- **Question (the obvious reviewer probe):** can a PARAPHRASE-clone (host reworded by an offline LLM, SAME payload) evade `s_lex` while staying an EFFECTIVE attack? `s_lex` keys on shared word-5-grams → paraphrasing should collapse it; the real question is effectiveness.
+- **Setup:** top-1 host per E1/E4-HH target query; paraphrase host (meaning preserved, words changed); inject SAME 1-rep payload → paraphrase-clone; literal clone = control. `tau_lex`=0.30 (ND-GATE-2), `tau_coh`=0.8408 (cluster_coh-only @0.69% FPR), clean coh 0.7502±0.0398, templated 0.9909. 4/50 paraphrases fell back to original (LLM fail) → conservatively NOT counted as evasion.
+- **STEP 2 (joint, n=1):** `s_lex` literal median 0.688 (98% caught ≥0.30 — **ND-GATE-2 reproduced**) vs paraphrase median **0.008** → **paraphrase evades `s_lex` 94%.** `cluster_coh` paraphrase median 0.790 (clean band) → **evades cluster_coh 68%** (catches ~a third). retrievable@K=5: literal 90% vs paraphrase **88%** (paraphrase barely hurts retrieval). **Evades BOTH signals: 64%.**
+- **DECISIVE flip (gpt-oss, 8 evade-both+retrieved):** paraphrase **2/8 flip**. In-script verdict read this as "s_lex survives (paraphrase loses effectiveness)" — **the confound control OVERTURNS that reasoning.**
+- **CONTROL** (`paraphrase_clone_control.py`; same 8 queries, same n=1, same retrieved-rank insertion, LITERAL clone): literal-n1 flips **3/8 ≈ paraphrase-n1 2/8.** → **Paraphrasing does NOT reduce effectiveness; the low flip rate is the n=1 prominence regime, not `s_lex`.** The literal clone (which `s_lex` *catches*) is equally weak at n=1. So `s_lex` is genuinely **EVADED** at no effectiveness cost — it did not "survive."
+- **Honest verdict — AMBER (mixed, leaning open):**
+  1. **`s_lex` closes ONLY the literal variant** — ND-GATE-2 GREEN stands, but the paraphrase fully evades it. The "boundary is literal-only for `s_lex` *alone*" half of branch-2 is CONFIRMED.
+  2. **A residual ~25% (2/8) of paraphrase-clones evade BOTH signals AND flip even at n=1** → clone-inject's paraphrase variant is a real (if modest-rate) residual threat; NOT closed by `s_lex`+`cluster_coh` as tested.
+  3. **Effectiveness ∝ prominence, and prominence is exactly what `cluster_coh` keys on.** So the DECISIVE open question: do *effective-prominence* (n>1) paraphrase-clones — multiple same-meaning rewrites of one host — trip `cluster_coh` (their embeddings should cluster)? Untested here.
+- **Recommendation:** greenlight a TARGETED gauntlet whose pivot is (3) — paraphrase × prominence × `cluster_coh` squeeze. If prominent paraphrase-clones trip `cluster_coh` → the `s_lex`(literal)+`cluster_coh`(prominent) PAIR closes clone-inject → defended contribution. If an effective prominence×paraphrase combo evades both → that is the principled LLM-free frontier (a lone reworded near-dup whose only tell is its payload's falsity) → bank the `s_lex` literal win, keep scoped-A. Either outcome leaves the scoped-positive paper unharmed. STOP at the gate; the gauntlet is the author's call.
+- **Status:** GATE AMBER — `s_lex` evaded by paraphrase (no effectiveness cost); clone-inject not yet closed; decisive experiment (prominent paraphrase vs `cluster_coh`) pending author greenlight.
 
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
