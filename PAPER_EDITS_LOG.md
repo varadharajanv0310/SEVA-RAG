@@ -70,6 +70,8 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | E4-HH | §I-C; Limitations; Table IX / head-to-head | CAUTIONARY (complementarity refuted) — FINAL (3-seed) |
 | SEEDS-1 | 3-seed generalization (all above) | FINAL — calibration variance only (E3-2) |
 | E1-4 | threat model; attack demo; Limitations | SETTLED s42 (8/8 answer-flips) — demo |
+| **ND-PROPOSAL** | §I-C / §V (potential — closes clone-inject) | **PROPOSED — gate steps 1–2 (KICKOFF_ND_FPR_GATE.md)** |
+| NOTE-LAT | Abstract; §IV efficiency | sub-2 ms ARM / ~14 ms CUDA (confirm M-series provenance) |
 
 ---
 
@@ -330,5 +332,22 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Finding:** the clone-inject "retrieved-unflagged" result is a **real, working corpus-poisoning attack** — surviving poison reaches the generator and corrupts the answer on every tested query. Makes the E4-HH shared-blind-spot concrete: an attack that evades **both** SEVA and RAGDefender actually flips RAG outputs.
 - **Manuscript impact:** establishes attack **effectiveness** (not just retrieval/ASR) — the demonstration that the clone-inject boundary is a genuine threat, not a metric artifact. (Demo: single generator/seed; larger query set / multiple generators = optional hardening.)
 - **Affected:** threat model / attack section; Limitations; the clone-inject / boundary discussion.
+
+---
+
+## Entries — Group: ND (beating clone-inject — proposed, gated)
+
+### ND-PROPOSAL · Beat clone-inject with a near-duplicate-to-corpus signal (`s_nd`) — gate = clean FPR
+- **Added** 2026-05-31 · **Origin** post-E4-HH framing discussion · **Status** PROPOSED (steps 1–2 = cheap go/no-go gate; full E-ND gauntlet deferred until GREEN). Execution prompt: **`KICKOFF_ND_FPR_GATE.md`**.
+- **Idea:** clone-inject's defining property = the poison is a **near-duplicate of an in-corpus host** (that is how it inherits a clean `cluster_coh` neighborhood + retrievability). `cluster_coh` = MEAN pairwise cohesion of 5 NN → misses the lone twin, but **`s_nd` = MAX cosine to nearest corpus neighbor ≈ 0.99** flags it. LLM-free, ~free (reuses the index), CPU, <30 ms → preserves core identity. Unifies the threat: templated = *clustered* near-dups (`cluster_coh`), clone-inject = *lone* near-dup twin (`s_nd`). Corpus-level → the per-query SOTA structurally can't replicate it (widens the SEVA edge).
+- **The squeeze:** near-exact clone → `s_nd` catches; concentrated payload → `cluster_coh` catches (E1-1 crossover ~62% prominence); only a narrow *moderate*-prominence window might evade both — the adaptive question (DEFERRED, not in steps 1–2).
+- **Decisive gate (steps 1–2, cheap, reuses cached embeddings):** (1) clone `s_nd` distribution (expect ~0.99 → signal *can* catch); (2) **clean `s_nd` FPR on Security-SE** — the make-or-break number. **GREEN** if a τ_nd catching the clones has clean FPR ≤ ~0.69%; **RED** if Security-SE's legitimate near-dups push it up. (Corpus dedup method in `build_a1_corpus.py` sets the clean-`s_nd` ceiling → matters for interpretation.)
+- **If GREEN:** spec the full **E-ND** gauntlet (ROC; frozen re-validation that templated 0% + FPR + latency hold with `s_nd` integrated; adaptive attack on the augmented detector, Wilson CIs, 3-seed). Best case → clone-inject flips from the paper's biggest weakness to a **headline strength** ("first to identify *and* defend low-prominence clone-inject, LLM-free, <30 ms").
+- **If RED:** keep scoped-A; clone-inject stays a one-line §5 limitation. **No loss.**
+- **Manuscript impact (potential, pending gate):** could remove the §5 clone-inject limitation and add a "near-duplicate detection closes the geometric-detection gap" contribution. Detector change = a NEW validated variant (not a retroactive edit); frozen baseline = the ablation.
+
+### NOTE-LAT · Latency: sub-2 ms on Apple Silicon (ARM / unified memory), ~12–16 ms on CUDA — dual-platform headline
+- **Added** 2026-05-31 — verified per-query latency is **~13–16 ms mean / ≤19 ms p95 on CUDA (RTX 5080, in-domain; provenance: result JSONs)**, and **<2 ms on M-series MacBook** (ARM, unified/shared memory; author-reported). Framing: *"the weakest hardware is the fastest"* (PAPER_STRUCTURE_A §0; abstract).
+- **⚠ TODO before the abstract:** locate/confirm the M-series result file for the <2 ms provenance (the CUDA JSONs do not contain it). If no saved file exists, re-measure on the Mac and save. Do **not** put 2 ms in the paper unsourced.
 
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
