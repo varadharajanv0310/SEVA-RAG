@@ -71,6 +71,8 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | SEEDS-1 | 3-seed generalization (all above) | FINAL — calibration variance only (E3-2) |
 | E1-4 | threat model; attack demo; Limitations | SETTLED s42 (8/8 answer-flips) — demo |
 | **ND-PROPOSAL** | §I-C / §V (potential — closes clone-inject) | **PROPOSED — gate steps 1–2 (KICKOFF_ND_FPR_GATE.md)** |
+| ND-GATE-1 | (gate) s_nd embedding near-dup | RED — clone s_nd overlaps clean semantic near-dups |
+| ND-GATE-2 | (gate) s_lex lexical copy-detection | **GREEN** — 98% clone-catch @ 0.165% FPR; full gauntlet pending |
 | NOTE-LAT | Abstract; §IV efficiency | sub-2 ms ARM / ~14 ms CUDA (confirm M-series provenance) |
 
 ---
@@ -358,5 +360,16 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 ### NOTE-LAT · Latency: sub-2 ms on Apple Silicon (ARM / unified memory), ~12–16 ms on CUDA — dual-platform headline
 - **Added** 2026-05-31 — verified per-query latency is **~13–16 ms mean / ≤19 ms p95 on CUDA (RTX 5080, in-domain; provenance: result JSONs)**, and **<2 ms on M-series MacBook** (ARM, unified/shared memory; author-reported). Framing: *"the weakest hardware is the fastest"* (PAPER_STRUCTURE_A §0; abstract).
 - **⚠ TODO before the abstract:** locate/confirm the M-series result file for the <2 ms provenance (the CUDA JSONs do not contain it). If no saved file exists, re-measure on the Mac and save. Do **not** put 2 ms in the paper unsourced.
+
+### ND-GATE-2 · LEXICAL copy-detection `s_lex` cheap gate (steps 1–2) — **GREEN** (catches the demonstrated clone-inject)
+- **Added** 2026-05-31 · **Origin** `s_lex_gate.py` (STANDALONE; numpy MinHash+LSH, no new deps; reuses cached p050 text+embeddings; frozen detector untouched) · **Status** GATE RESULT — **GREEN** (literal low-prominence clone). Provenance: `whitebox_attack_results/s_lex_gate_s042.json`.
+- **Signal:** `s_lex(doc)` = max word-5-gram Jaccard (MinHash K=128, LSH B=32×R=4) to any other corpus doc. Rationale: clone-inject LITERALLY copies its host → high Jaccard *even though* the payload displaced the embedding — sidestepping both failures that sank `s_nd` (ND-GATE-1).
+- **STEP 1 — clone `s_lex`** (1-rep, 50 clones): MinHash max-Jaccard-to-clean min/median/max = **0.29 / 0.69 / 0.87**; exact Jaccard(clone,host) = 0.32 / 0.70 / 0.85. (Median 0.70 not 0.85 — `_make_poison`'s 300-word truncation + payload drop some host 5-grams; a few clones as low as ~0.30.)
+- **STEP 2 — clean FPR** (MinHash-LSH, 95k): clean `s_lex` pct50/90/99/99.9/max = **0.00 / 0.00 / 0.00 / 0.46 / 0.91**. **>99% of clean docs have NO lexical near-dup** — distinct Security-SE docs do not share word-5-grams (semantic near-dups share *meaning*, not exact phrasing → ~0 Jaccard). This is exactly the separation `s_nd` lacked.
+- **ROC (clone-catch / clean-FPR):** **τ0.30 → 98% / 0.165%**; τ0.40 → 94% / 0.124%; τ0.50 → 86% / 0.078%; τ0.70 → 44% / 0.027%; τ0.85 → 12% / 0.011%.
+- **HEADLINE: GREEN.** Lowest τ_lex catching ≥95% of clones = **0.30 → clean FPR 0.165% < 0.69% target.** Lexical overlap separates literal-copy (clone) from semantic-near-dup (clean) where embedding cosine could not.
+- **2D view:** the 74 high-`s_lex` clean docs sit at embedding-cos-to-twin median 0.934 (only 27% verbatim ≥0.97) — same cos band as clones → the 2D refinement does NOT cleanly separate; but 1D `s_lex` is already GREEN, so no refinement is needed.
+- **Caveats / NOT tested (gated off per author):** (a) low-prominence (1-rep) clones only — higher prominence drops Jaccard but `cluster_coh` catches that regime (E1-1) → potentially complementary; (b) the **adaptive escalation** (paraphrase the host to lower Jaccard while keeping the payload) is the real threat to `s_lex`, costlier than the demonstrated literal clone — **deferred**; (c) frozen re-validation (templated-0% + FPR + latency hold with `s_lex` integrated), 3-seed, Wilson CIs — **deferred**. STOP at the gate; the full E-ND gauntlet is NOT specced/run.
+- **Status:** GATE GREEN — pending author decision on the full E-ND gauntlet (ND-PROPOSAL GREEN branch). If pursued and it holds (esp. vs the adaptive paraphrase), clone-inject could move from a §5 limitation to a defended contribution.
 
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
