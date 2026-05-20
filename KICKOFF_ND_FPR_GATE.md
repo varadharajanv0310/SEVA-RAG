@@ -7,7 +7,46 @@ spec'ing the full gauntlet.*
 
 ---
 
-## 1. The prompt — copy everything in the block as your first message
+> **CONTINUING in the existing execution session?** (the one that ran E1…E4‑HH/SEEDS/E1‑4) —
+> it already has the full experimental context, so **skip the Step‑0 orientation block**; use the
+> short continuation message in §1b instead. The full block in §1 is for a cold/fresh session only.
+> Either way: **re‑read `PAPER_EDITS_LOG.md` before editing it** — the advisory session added the
+> FRAME‑A block, ND‑PROPOSAL, and NOTE‑LAT since the execution session last touched it (avoid the
+> earlier duplicate‑entry collision).
+
+## 1b. Continuation message (paste into the EXISTING execution session)
+
+```
+Framing update (decided since E1-4): the author LOCKED the paper as scoped-positive (identity A) —
+SEVA = a lightweight LLM-free detector of TEMPLATED/near-duplicate corpus poisoning (0% ASR @
+~0.6% FPR frozen held-out, sub-2ms ARM / ~14ms CUDA, beats RAGDefender on deployability). Clone-
+inject is THE BOUNDARY, not the headline. Two new on-disk files capture this (added by the advisory
+session — RE-READ before editing the log to avoid duplicates): the FRAME-A block at the top of
+PAPER_EDITS_LOG.md and PAPER_STRUCTURE_A.md.
+
+New idea — beat clone-inject (the task): clone-inject's defining property is that the poison is a
+NEAR-DUPLICATE of an in-corpus host (that's how it gets a clean cluster_coh neighborhood +
+retrievability). cluster_coh (mean pairwise of 5 NN) misses the lone twin — but s_nd = MAX cosine to
+nearest corpus neighbor is ~0.99 for the clone. A near-dup signal is LLM-free, ~free (reuses your
+index), CPU, <30ms -> keeps SEVA's identity. The whole idea lives or dies on one number: s_nd's
+CLEAN FPR on Security-SE.
+
+Run STEPS 1-2 ONLY (cheap gate; reuse cached embeddings, do NOT re-embed the 100k):
+1. Detection: for the clone-inject poison (your whitebox_attack_results/ artifacts, or regenerate a
+   small low-prominence/1-rep set), compute each clone's s_nd = max cosine to the CLEAN 100k corpus
+   embeddings (cached p2_pe.npy / p2_faiss.index). Expect ~0.98-0.99.
+2. FPR (decisive): for each clean corpus doc, s_nd_clean = cosine to its nearest OTHER clean doc
+   (index top-2, drop self). Report the clean s_nd distribution + ROC (tau_nd in {0.93..0.98}:
+   clone-catch vs clean-FPR). HEADLINE: at the lowest tau_nd catching ~all clones, what's the clean
+   FPR vs the 0.69% target? Check build_a1_corpus.py's dedup threshold (it sets the clean ceiling).
+
+Then STOP at the gate — report clone s_nd, clean FPR + ROC, GREEN/RED/AMBER. Do NOT spec or run the
+full gauntlet (no frozen re-validation, no adaptive attack) until the author sees the FPR. New
+signal = SEPARATE standalone script; do NOT touch the frozen seva_benchmark_4060.py. Commit locally,
+don't push.
+```
+
+## 1. The prompt (COLD/FRESH session only) — copy everything in the block as your first message
 
 ```
 You are resuming the SEVA-RAG project — an LLM-free RAG corpus-poisoning detector being prepared
