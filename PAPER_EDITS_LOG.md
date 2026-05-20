@@ -2,6 +2,28 @@
 
 **Purpose.** The single durable, append-mostly record of **every** change to make to the SEVA manuscript, so the final revision can be applied in **one batch pass** without re-deriving anything across context resets. By author decision, all manuscript edits are batched to the **end** of the project; the paper `.tex` is intentionally **not** in this repo, and prose is **not** edited as we go — only logged here.
 
+## ⚑ FRAME DECISION — identity A (scoped-positive) — LOCKED 2026-05-31
+
+**The paper is SCOPED-POSITIVE (A), not analysis/cautionary (B).** Central claim: *SEVA is a
+lightweight, LLM-free, domain-independent detector of **templated / near-duplicate** corpus
+poisoning — 0% ASR @ ~0.6% FPR under realistic frozen (non-oracle, held-out) calibration, 2–13 ms,
+beating the per-query SOTA on deployability.* Full blueprint + per-entry role mapping in
+**`PAPER_STRUCTURE_A.md`**.
+- **DROP the phrase "resists adaptive adversaries" / unqualified "detects corpus poisoning."** That
+  single overclaim was the only indefensible thing; removing it puts every adverse finding out of
+  the claimed scope — nothing to defend, nothing to hide.
+- **IN the paper (headline):** E2, E-CAL-1, SEEDS-1, E4-HH (fair-comparison), R-1/2/3/5/6/9, latency.
+- **§5 limitations (brief, honest, RobustRAG-style):** scope boundary informed by E1-1 / E-CAL-2 /
+  OPEN-CAL-1 — stated as *scope*, not a demolition.
+- **PRESERVED RECORD (not in the paper):** E1-2 (clone-inject 88.8%), E1-4 (8/8 answer-flip), E1B-1,
+  NOTE-1 — kept in this log + git + `paper_frame_preA_backup_20260531/` as the research record;
+  out of the claimed scope (a scoped claim need not feature attacks the authors invented vs. themselves).
+- **Honesty floor:** scoped §2 threat model + the §5 limitations paragraph + frozen-calibration
+  disclosure + preserved data. Meet these four → stronger AND more honest than the field's norm.
+- Pre-A full record preserved at git `beff46c` and in `paper_frame_preA_backup_20260531/`.
+
+---
+
 ## How to use (final revision pass)
 1. Apply every entry whose **Status = FINAL** to the manuscript, at the stated location, replacing OLD with NEW.
 2. For **PROVISIONAL** entries, wait until the finalizing experiment has landed and the entry has been updated to FINAL (or SUPERSEDED).
@@ -24,6 +46,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 | ID | Paper location | Status |
 |---|---|---|
+| **FRAME-A** | **governs all entries** | **LOCKED — scoped-positive; see top + PAPER_STRUCTURE_A.md** |
 | R-1 | §I-C (C3); §V-E | FINAL |
 | R-2 | Abstract; §I-C (C6); §IX | FINAL |
 | R-3 | §IV-E | FINAL |

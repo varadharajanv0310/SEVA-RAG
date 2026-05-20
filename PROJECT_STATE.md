@@ -18,10 +18,13 @@ SEVA‑RAG: an LLM‑free RAG corpus‑poisoning detector. We are hardening the 
 - **Step 1** (R reframes + RAGDefender stand‑up): **DONE** → `PAPER_REFRAMES_R.md`, `RAGDEFENDER_STANDUP.md`, `PAPER_EDITS_LOG.md`.
 - **Step 2** (E2 in‑domain corpus + E3 query fixes): **DONE** on this branch.
 - **Step 3** (in‑domain baseline, seed 42): **DONE — GATE REACHED.** → `STEP3_GATE_RESULTS.md`, `STEP3_FINDING_AND_DECISION.md`.
-- **PENDING AUTHOR DECISION:** GO to E1/E1b with rescoped framing (see `STEP3_FINDING_AND_DECISION.md`). **Do NOT start E1/E1b/E5 until the author decides.**
+- **E1 / E1b / E-CAL / E4-HH / SEEDS / E1-4: ALL COMPLETE** (3-seed, FINAL — logged in `PAPER_EDITS_LOG.md`).
+- **⚑ PAPER FRAME = identity A (scoped-positive), LOCKED 2026-05-31.** SEVA = lightweight LLM-free detector of **templated/near-dup** poisoning; 0% ASR @ ~0.6% FPR (frozen held-out, 3-seed), 2–13 ms, beats SOTA on deployability. Drop "resists adaptive adversaries." Blueprint: **`PAPER_STRUCTURE_A.md`**. Adverse findings (clone-inject etc.) = preserved research record, **OUT of claimed scope**.
+- **NEXT = manuscript pass** (apply the `IN` entries of `PAPER_EDITS_LOG.md` to the `.tex`, not in this repo). No new experiments required.
+- Pre-A full record backed up: `paper_frame_preA_backup_20260531/` + git `beff46c`.
 
-## 3. The gate outcome in one paragraph
-cluster_coh confound‑kill **CONFIRMED** (gap holds in‑domain, SNR higher). BUT kw_density SNR collapsed 38→~7 in‑domain (was partly domain‑confounded), and the **adaptive L2/L3 ASR exploded to 44–73%** (vs ~0–17% WikiText) — the composite's adaptive robustness was propped up by kw_density. L1 (all signals) still 0% ASR. → E1/E1b are now **decisive**; the multi‑signal adaptive claim must be **narrowed**. Full numbers in `STEP3_GATE_RESULTS.md`.
+## 3. The final picture in one paragraph (post-E1…E4-HH, 3-seed)
+SEVA's **positive core is real and validated**: `cluster_coh` catches **templated/near-duplicate** poison at **0% ASR / ~0.6% FPR** under realistic **frozen, held-out** (non-oracle) calibration, in-domain, stable across 3 seeds (E-CAL-1, SEEDS-1), at **2–13 ms**, beating the per-query SOTA (RAGDefender, ~50% in-domain FPR) on deployability (E4-HH). **Boundary (out of claimed scope, preserved as record):** the geometric signal detects templating, not malice — a low-prominence single-document **clone-inject** evades it (and RAGDefender), and the multi-signal *adaptive* claim does not hold. These are the honest scope limits — NOT featured. The paper claims only what the positive core supports. Numbers: `PAPER_EDITS_LOG.md`, `STEP3_GATE_RESULTS.md`.
 
 ## 4. Environment & invocation (conda NOT on PATH — key gotcha)
 - conda: `C:\Users\varad\miniconda3\Scripts\conda.exe` (NOT on PATH in any shell).
@@ -64,9 +67,9 @@ cluster_coh confound‑kill **CONFIRMED** (gap holds in‑domain, SNR higher). B
 - `KNOWN_ISSUES.md` — original code/paper discrepancy audit (CF‑/W‑ items).
 - Backups (NOT git): `seva_results_5080_baseline_backup_20260529/` (WikiText), `seva_results_5080_secqa_backup_20260530/` (in‑domain).
 
-## 8. NEXT ACTIONS (on author GO)
-1. Author decides per `STEP3_FINDING_AND_DECISION.md` (recommended: GO to E1/E1b with rescoped framing).
-2. (Optional, for tables) run seeds **7, 123** in‑domain (command in §5) → full 3‑seed in‑domain tables + L2/L3 seed‑stability.
-3. **E1** (algorithmic embedding‑space white‑box attack on cluster_coh) + **E1b** (necessity: is retrievability ⊥ low‑inter‑poison‑cohesion fundamental or only correlated?) per `EXPERIMENT_PLAN.md` §E1/E1b — now **decisive**. New module `whitebox_attack_seva.py` (subclass the bench; detector frozen). Wilson 95% CIs on each cost‑curve point.
-4. Then **E4‑HH** (reproduce RAGDefender on the in‑domain corpus; regime‑split low‑per‑query‑density headline), **E5‑CAL** (ensemble calibration). Reach: **E6‑ENC** (e5‑large‑v2), **E7‑SCALE** (500k) — gated on E1b=necessity AND a faculty co‑author.
-5. Keep appending paper‑affecting numbers to `PAPER_EDITS_LOG.md`; checkpoint commit+push around each step.
+## 8. NEXT ACTIONS (manuscript pass — frame A locked; no new experiments)
+1. Read the 2026 corpus-dependent RAG-poisoning papers (Semantic Chameleon, etc.) for §6 positioning/overlap.
+2. Apply the **IN** entries of `PAPER_EDITS_LOG.md` to the manuscript `.tex` (not in this repo), per `PAPER_STRUCTURE_A.md`.
+3. Write the scoped §2 threat model + the single §5 limitations paragraph (honesty floor in `PAPER_STRUCTURE_A.md §3`).
+4. Decide venue from the scoped strength (mid-tier solid; rigor depth supports aiming higher if desired).
+5. **Git/remote decision (author's call):** `exec/step2-e2-corpus` (with experiments) IS on origin. Keep it (good backup), or `git push origin --delete exec/step2-e2-corpus` for local-only. Nothing experiment-side merges to `main` without author go.
