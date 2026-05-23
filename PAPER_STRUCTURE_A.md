@@ -6,6 +6,32 @@ is preserved in `paper_frame_preA_backup_20260531/` and at git commit `beff46c`.
 
 ---
 
+## ⚑ ND-INTEGRATION UPDATE (2026-05-31) — supersedes §0–§1 below
+
+*The ND investigation (gates 1–5, in `PAPER_EDITS_LOG.md`) landed after this blueprint was drafted. It adds a second detection axis (`s_lex`), converts two limitations into caught cases, and turns the clone-inject "weakness" into a rigorously-characterized frontier. Read this block first; it overrides the spine and contributions below where they conflict.*
+
+**Updated spine:** *SEVA detects **injected near-duplication** in RAG corpora along two complementary axes — **semantic** (`cluster_coh`) and **lexical** (`s_lex`) — catching templated poisoning and literal clone-injection, robustly to soft-signal adaptive evasion, at 0% ASR / ~0.6% FPR, sub-2 ms (Apple Silicon) / ~14 ms (CUDA); and it rigorously characterizes the residual frontier — a diffuse paraphrase injection — that no LLM-free corpus-level signal can reach.*
+
+**Two former limitations → now CAUGHT CASES (new positives):**
+- **Literal clone-injection:** `s_lex` (max word-5-gram Jaccard to corpus) catches it at **98% @ 0.165% FPR** (ND-GATE-2). The geometric blind spot of E1-1/E1-2 is closed for the literal variant.
+- **L2/L3 adaptive-templated collapse** (was RESCOPE-1/E-CAL-2, ~49–73% ASR): `s_lex` as a hard pre-filter → **0%** (ND-GATE-5); lexical siblings are immune to soft-signal evasion. *(Hard-thresholding `cluster_coh` alone also helps — templated coh ≈0.99 ≫ τ_coh; report both as the load-bearing fix.)*
+
+**Updated contributions (override §1):**
+- **C1** `cluster_coh` — domain-independent **semantic** near-dup detection (templated). [E2, E-CAL-1, SEEDS-1]
+- **C2 (NEW)** `s_lex` — **lexical** near-dup detection: closes literal clone-injection AND repairs the adaptive-templated collapse, at 0.165% FPR. [ND-GATE-2, ND-GATE-5]
+- **C3** density-agnostic universal-FPR calibration, frozen/non-oracle, held-out validated. [E-CAL-1, OPEN-CAL-1]
+- **C4** LLM-free, CPU, **sub-2 ms ARM / ~14 ms CUDA**, reproducible. [latency JSONs, R-2; confirm M-series provenance per NOTE-LAT]
+- **C5** reproduced head-to-head — beats per-query SOTA; RAGDefender undeployable in-domain (~50% FPR). [E4-HH]
+- **C6 (NEW — the frontier *as* a contribution)** a pre-registered, attacker-best-case characterization of the exact edge of LLM-free corpus-level detection: a **semantically-diffuse, lexically-novel paraphrase injection** (diverse hosts, n≈3) evades **both** signals AND corrupts answers (ND-GATE-4: 67% flip ∧ 59% evade-both) — because its only discriminating signal is the **factual falsity of its payload**, requiring claim-level reasoning the LLM-free paradigm forgoes by design. **Shared by the per-query SOTA** (E4-HH) → a property of the paradigm, not of SEVA.
+
+**§5 limitation (one paragraph, now a *characterized* boundary, not a wound):** state C6 as the precise, demonstrated edge — SEVA defends everything up to it (templated, literal-clone, soft-adaptive); the diffuse paraphrase injection is the irreducible residual of LLM-free corpus-level detection, and it is shared by the SOTA.
+
+**Unified thesis (the spine of the paper):** *SEVA detects injected near-duplication along two complementary axes; the only poisoning it cannot see is precisely that which leaves no duplication footprint and whose sole tell is semantic falsity — the principled frontier of the LLM-free paradigm.*
+
+**Net of the journey:** three ugly limitations (adaptive collapse, geometric blind spot, shared blind spot) → **two new caught cases + one rigorously-demonstrated principled frontier.** Stronger *and* more honest than the pre-ND blueprint.
+
+---
+
 ## 0. The spine (the one claim everything serves)
 
 > **SEVA is a lightweight, LLM-free, domain-independent detector of *templated / near-duplicate*
