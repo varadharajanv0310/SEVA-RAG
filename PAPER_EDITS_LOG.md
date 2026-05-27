@@ -551,7 +551,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | Ckpt | Scope | Status | Result tags populating it |
 |---|---|---|---|
 | 1 | Frontmatter: title, abstract, contributions C1–C6, one-line section outline | **DONE 2026-06-01** | abstract+C: E-CAL-1, SEEDS-1, STEP3, PR-GATE-1, PR-XDOMAIN(-HOTPOT), E-CAL-2, CHEAP-MUST-1, OPEN-CAL-1, E4-HH, LAT-M4 |
-| 2 | §I–III bodies (Intro, Related Work, Threat Model) | pending | field benchmarking; E4-HH; PR-XDOMAIN; E-CAL-2 |
+| 2 | §I–III bodies (Intro, Related Work, Threat Model) | **DONE 2026-06-01** | field benchmarking (PoisonedRAG/RobustRAG/AV-Filter/RAGShield/RAGDefender); E4-HH; PR-XDOMAIN(-HOTPOT); E-CAL-2; OPEN-CAL-1; STEP3/LAT-M4. Boundary sentence in §III-E; "RAGDefender also evaluates an adaptive adversary" (no "first to test adaptive"); forward-refs \ref{sec:eval}/\ref{sec:limits} |
 | 3 | §IV–V bodies + reworked tables (V→in-domain, new 3-corpus cross-domain, IX→real matched-FPR H2H, latency) | pending | E-CAL-1, SEEDS-1, STEP3, PR-XDOMAIN(-HOTPOT), E4-HH, CHEAP-MUST-1, E-CAL-2, OPEN-CAL-1, LAT-M4 |
 | 4 | §VI–VIII bodies (Discussion, Limitations, Conclusion) | pending | LAT-M4, STEP3, E2-2, E-CAL-2, PR-XDOMAIN, E-CAL-1 |
 | audit | claims-audit: every tagged claim ↔ source; confirm no KILLED/SUPERSEDED survived | pending | — |
