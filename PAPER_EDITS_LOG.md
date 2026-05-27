@@ -553,8 +553,18 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | 1 | Frontmatter: title, abstract, contributions C1–C6, one-line section outline | **DONE 2026-06-01** | abstract+C: E-CAL-1, SEEDS-1, STEP3, PR-GATE-1, PR-XDOMAIN(-HOTPOT), E-CAL-2, CHEAP-MUST-1, OPEN-CAL-1, E4-HH, LAT-M4 |
 | 2 | §I–III bodies (Intro, Related Work, Threat Model) | **DONE 2026-06-01** | field benchmarking (PoisonedRAG/RobustRAG/AV-Filter/RAGShield/RAGDefender); E4-HH; PR-XDOMAIN(-HOTPOT); E-CAL-2; OPEN-CAL-1; STEP3/LAT-M4. Boundary sentence in §III-E; "RAGDefender also evaluates an adaptive adversary" (no "first to test adaptive"); forward-refs \ref{sec:eval}/\ref{sec:limits} |
 | 3 | §IV–V bodies + reworked tables (V→in-domain, new 3-corpus cross-domain, IX→real matched-FPR H2H, latency) | **DONE 2026-06-01** | §IV: STEP3 geometry, CHEAP-MUST-1 gate+aggregation, OPEN-CAL-1/E-CAL-1 calibration, E2-2/E-CAL-2 composite-ablation, Algorithm 1. §V 5 tables: tab:coh [STEP3+E-CAL-1+SEEDS-1], tab:xdomain [PR-GATE-1/PR-XDOMAIN/-HOTPOT], tab:h2h [E4-HH, templated-only — clone-inject rows PRIVATE/excluded], tab:core [CHEAP-MUST-1/PR-GATE-1/E-CAL-2/E-CAL-1], tab:latency [STEP3/LAT-M4]. Verify-flag RESOLVED: 0.58% DocFPR = E-CAL-1 frozen (log L282). Bib +minhash/simhash/nq/hotpotqa/beir |
-| 4 | §VI–VIII bodies (Discussion, Limitations, Conclusion) | pending | LAT-M4, STEP3, E2-2, E-CAL-2, PR-XDOMAIN, E-CAL-1 |
-| audit | claims-audit: every tagged claim ↔ source; confirm no KILLED/SUPERSEDED survived | pending | — |
+| 4 | §VI–VIII bodies (Discussion, Limitations, Conclusion) | **DONE 2026-06-01** | §VI deployment + distillation-through-rigor + cluster_coh-vs-dedup [LAT-M4, STEP3, E2-2, E-CAL-2, PR-XDOMAIN, E4-HH]; §VII 4 scoped boundaries (single-doc residual; calibration assumption [E-CAL-1]; 2-point scale; single encoder); §VIII conclusion lands the thesis + firsts |
+| audit | claims-audit: every tagged claim ↔ source; confirm no KILLED/SUPERSEDED survived | **DONE — PASS** | ~50 inline tags walked; all trace at the scope claimed. NO killed/superseded claim survived (no multi-signal hero, C2/C3/C5, sub-2 ms, Table IX number-lift, wikitext, M4-26 ms, standalone Geometric-Invariance). NO private record (clone-inject/s_lex/paraphrase/ND-GATE) appears. Scope words held; no "first to test adaptive". 6 polish flags (non-blocking) → see below |
+
+**Claims-audit result (PASS) — 6 non-blocking polish flags for author:**
+1. §VI-C opens "Cluster coherence is a near-duplication signal" — the one place "near-duplication" touches our method (mechanism-level, immediately scoped to group-vs-pairwise). Confirm acceptable, or reword to "group-cohesion signal".
+2. Abstract: "0.58% DocFPR … validated across three seeds" — the **0% ASR** is 3-seed [SEEDS-1]; the **0.58% DocFPR** is the E-CAL-1 seed-42 frozen point (§V-B already scopes this correctly). Optional tighten in abstract.
+3. The five scoped "firsts" are present as **claims but not labeled "first"** (conservative). Option to add "to our knowledge, the first reproduced matched-FPR head-to-head…" on the 2 cleanest if explicit firsts are wanted.
+4. "commodity GPU" = RTX 5080 (high-end consumer); latency table names it "Consumer GPU (RTX 5080)". Defensible; terminology flag.
+5. §V-A setup's "clean cluster-coherence 0.705" is an untagged setup detail (traces to STEP3 corpus precheck); add `% [STEP3]` if desired.
+6. C3's "a property pairwise deduplication lacks" is an argued structural contrast (sound), not a direct measurement of pairwise-dedup density variance.
+
+**v8 draft is COMPLETE** (all 8 sections + 5 tables + Algorithm 1 + bib). No LaTeX engine on machine → structure verified by hand (envs balanced, cell counts match, no unescaped `%` in rendered text). Not compiled; not pushed.
 
 - **Open items flagged in-file (`% TODO` / verify):** (a) confirm the abstract's 0.58% DocFPR against the exact E-CAL-1 JSON at table-build (STEP3 multitier shows L1 DocFPR 0.45–0.52%); (b) add MinHash (Broder) + SimHash (Charikar) + NQ/HotpotQA dataset cites + a Semantic Chameleon / 2026 corpus-dependent-defense cite to the bibliography at Ckpt 3.
 

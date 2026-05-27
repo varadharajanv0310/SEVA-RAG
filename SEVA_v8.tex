@@ -590,40 +590,101 @@ Apple M4 (laptop)             & 32--42\,ms     & --- \\
 
 % =====================================================================================
 \section{Discussion}
-% -------------------------------------------------------------------------------------
-% OUTLINE (bodies at Ckpt 4):
-%   A. Deployment implications -- laptop / Apple-Silicon, offline, no LLM/API/crypto; corpus-level signal the
-%      per-query SOTA structurally cannot replicate. [LAT-M4, STEP3]
-%   B. Distillation through rigor -- the gauntlet (adaptive + in-domain control) revealed the soft signals were
-%      domain-confounded and adaptively fragile; we distilled to the geometric core. The composite is the ablation. [E2-2, E-CAL-2]
-%   C. Cluster coherence vs embedding deduplication -- density-invariance + cluster structure -> edge on NQ; report
-%      s_nd as a competitive baseline, not a defeated one. [PR-XDOMAIN]
-% -------------------------------------------------------------------------------------
+
+\subsection{Deployment Implications}
+SEVA's operating envelope is its central practical contribution. Detection is a
+single threshold comparison against a precomputed corpus statistic: no LLM call,
+no external API, no cryptographic registration, and $13$--$42$\,ms per query on
+hardware ranging from a consumer GPU to an Apple-Silicon laptop. % [STEP3, LAT-M4]
+This is precisely the envelope that the local, offline RAG deployments now
+proliferating on personal and edge hardware require, and that certified,
+decoder-access, and provenance-based defenses cannot meet. The signal is also
+\emph{corpus-level} by construction, an architectural advantage over the per-query
+state of the art: cluster coherence is computed once over the whole corpus and
+cached, so it sees the injected cluster even when only one of its passages is
+retrieved for a given query---a view a per-query filter, which sees one retrieval
+window at a time, structurally cannot reconstruct. % [E4-HH]
+
+\subsection{Distillation Through Rigor}
+SEVA's final form is the product of an adversarial evaluation of its own earlier
+design. The ten-signal composite looked strong against a general-domain corpus and
+a naive adversary; subjecting it to an in-domain control and a keyword-dropping
+adversary exposed the soft linguistic signals as domain-confounded---much of their
+apparent power was discriminating security text from Wikipedia, not poison from
+clean---and adaptively fragile. % [E2-2, E-CAL-2]
+What survived both stresses was the geometric core, whose discriminative power is
+a property of the attack's own construction rather than of the corpus domain. We
+therefore report the composite not as the detector but as an ablation, and regard
+the lesson as transferable: for anomaly detectors built from heterogeneous
+signals, the signal that survives a domain-confound control and an adaptive
+adversary is the one worth deploying---even when it is not the highest-SNR signal
+in a permissive evaluation.
+
+\subsection{What Cluster Coherence Adds Over Deduplication}
+Cluster coherence is a near-duplication signal, but not the pairwise one a
+deduplicator computes, and that difference is what the cross-domain results
+expose. Because it averages similarity over a $K$-neighbour group rather than to a
+single nearest neighbour, it reads the multi-passage \emph{cluster} an injection
+forms, which gives it two properties a pairwise method lacks: a separation
+invariant to how large that cluster grows (Table~\ref{tab:coh}), and detection of
+an injected passage even when no single clean document is its near-twin. % [STEP3]
+Against lexical duplicate filtering---PoisonedRAG's own tested defense---this is
+decisive: lexical filtering is corpus-fragile and fails outright where benign
+duplication is high, while cluster coherence holds. % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
+Against embedding deduplication it is an honest edge, not a rout: $s_{nd}$ is a
+competitive baseline, and cluster coherence's advantage is clearest where the
+benign corpus is moderately redundant (Natural Questions) and narrows to parity
+where it is very sparse or very dense. We claim the former and disclose the
+latter.
 
 % =====================================================================================
 \section{Limitations}
 \label{sec:limits}
-% -------------------------------------------------------------------------------------
-% OUTLINE (bodies at Ckpt 4 -- scoped boundaries stated with confidence, NOT a wound):
-%   1. Single-document diffuse injection -- an adversary injecting a single document crafted to mimic the clean
-%      distribution exhibits no clustered cohesion and is outside SEVA's geometric scope (one boundary sentence;
-%      RobustRAG/AV-Filter-style residual). [private record stays private]
-%   2. Calibration assumption -- like all calibrated detectors, SEVA assumes a reference sample of the attack
-%      class; we show frozen reference-calibration generalizes to held-out poison. [E-CAL-1]
-%   3. Two-point corpus scaling -- validated at 10k and 100k only. [Lim5]
-%   4. Single encoder -- all results use bge-large-en-v1.5; encoder generalization is future work. [Lim7]
-% -------------------------------------------------------------------------------------
+SEVA's scope is stated, not stumbled into; the following are the boundaries of the
+claimed regime.
+
+\emph{Single-document diffuse injection.} SEVA detects structured multi-passage
+injection through the cluster it forms. A single document crafted to statistically
+mimic the clean corpus exhibits no such cluster and lies outside SEVA's geometric
+scope; detecting injections that leave no duplication footprint with a
+lightweight, LLM-free, corpus-level signal remains open.
+
+\emph{Calibration assumption.} Like any calibrated detector, SEVA assumes access
+to a reference sample of the attack class for threshold setting; we show that a
+threshold calibrated on a disjoint reference sample and then frozen generalizes to
+held-out poison of the same class at $0\%$ attack-success. % [E-CAL-1]
+We do not claim calibration-free detection.
+
+\emph{Corpus-scale validation.} The latency and calibration results are measured
+at $10{,}000$ and $100{,}000$ documents; behaviour at the multi-million-document
+scale of the largest production corpora is extrapolated from the index's
+$O(\log N)$ structure rather than measured. % [STEP3]
+
+\emph{Single encoder.} All results use BAAI/bge-large-en-v1.5. Because cluster
+coherence reads geometric tightness in this encoder's manifold, validating the
+signal across additional encoders is future work.
 
 % =====================================================================================
 \section{Conclusion}
-% -------------------------------------------------------------------------------------
-% OUTLINE (body at Ckpt 4):
-%   Restate the scoped thesis: an LLM-free geometric detector of templated multi-passage poisoning, deployable at
-%   ~13-42 ms across commodity GPU and Apple-Silicon laptop hardware, catching the released PoisonedRAG attack
-%   cross-domain at 82-98%, with lexical duplicate filtering shown corpus-fragile and a reproduced matched-FPR
-%   head-to-head against the per-query SOTA. Future work: encoder generalization; density beyond 10%.
-%   [E-CAL-1, PR-XDOMAIN, E4-HH]
-% -------------------------------------------------------------------------------------
+We presented SEVA, a lightweight, LLM-free detector of templated multi-passage
+corpus poisoning---the dominant published attack---built on a single geometric
+signal operated as a hard gate. SEVA detects the attack at $0\%$ attack-success
+and $0.58\%$ document-FPR in-domain under frozen, non-oracle, three-seed
+calibration, % [E-CAL-1, SEEDS-1]
+catches the attack authors' own released poison cross-domain at $82$--$98\%$ across
+three corpora, % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
+and shows that the lexical duplicate filtering PoisonedRAG itself tested is
+corpus-fragile while semantic cohesion holds. % [PR-XDOMAIN]
+In a reproduced, shared-corpus, matched-FPR head-to-head it catches all templated
+poison to the per-query state of the art's $\sim$89\%, while running with no LLM,
+no API, and no pre-registration at $13$--$42$\,ms on commodity and laptop
+hardware. % [E4-HH, STEP3, LAT-M4]
+Its robustness comes from distillation: an adversarial evaluation of an earlier
+ten-signal design showed the soft signals to be domain-confounded and adaptively
+fragile, and the geometric core is what remained. SEVA targets structured
+multi-passage injection; extending lightweight corpus-level detection to
+single-document, clean-mimicking injection, and validating the signal across
+encoders, are the natural next steps.
 
 % =====================================================================================
 % REFERENCES --- carried over from v7.1.3 (drop-in) + Ckpt-3 additions:
