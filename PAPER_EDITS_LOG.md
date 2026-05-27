@@ -83,6 +83,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | **PR-XDOMAIN** | (cross-domain) RELEASED PoisonedRAG on NQ @matched FPR | **PRIMARY WIN** — cluster_coh **82%** @0.69% DocFPR on NQ (cross-domain, non-oracle); **§7.3 lexical-dedup rebuttal LANDS** (MinHash **0%** vs coh 82% on near-dup-rich NQ); honest: s_nd (embedding dedup) 52% — coh edges, doesn't dominate |
 | CHEAP-MUST-1 | cluster_coh hard-gate headline + query-FPR fix | hard gate: templated 100% / PoisonedRAG 98% / L2-L3-adaptive 100% catch @0.69% DocFPR (vs composite's L2/L3 49–57% collapse); ≥2 aggregation cuts query-FPR 3.15%→0.90% @ zero catch cost |
 | PR-XDOMAIN-HOTPOT | (cross-domain replication) RELEASED PoisonedRAG on HotpotQA | **PRIMARY ECHO** cluster_coh **97%** @0.69% DocFPR; **§7.3 lexical rebuttal LANDS harder** (MinHash 0% at all FPRs; HotpotQA near-dup-rich 9.06%); honest: s_nd 98% (embedding dedup edges coh here — no edge vs embedding) |
+| **RECONCILE-v713** | **governs the rewrite** | v7.1.3 ↔ disk reckoning: multi-signal/C2/C3/C5/Table I·IX KILLED/SUPERSEDED; M4 26 ms + sub-2 ms DEAD (→32–42 ms); C1/C6 reword to in-domain; finalized cluster_coh-centric claim set |
 
 ---
 
@@ -495,5 +496,46 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **UNIFIED CROSS-DOMAIN STORY (3 corpora):** `cluster_coh` catches released PoisonedRAG at deployable non-oracle FPR — **Security-SE 98% · NQ 82% · HotpotQA 97%** (robust). Lexical dedup is **corpus-fragile**: catches on sparse Security-SE (98%, s_lex>0 0.24%), FAILS on near-dup-rich NQ (0%, 1.15%) **and** HotpotQA (0%, 9.06%) at matched FPR → §7.3 lexical rebuttal replicated on BOTH field benchmarks. Embedding dedup (`s_nd`) is competitive (SecSE 98% · NQ 52% · HotpotQA 98%): `cluster_coh` cleanly beats it only on NQ; parity elsewhere.
 - **Manuscript:** CLAIM (cross-domain, replicated) — SEVA catches PoisonedRAG's released poison on NQ (82%) AND HotpotQA (97%) @ 0.69% non-oracle DocFPR (C2). CLAIM (§7.3, matched-FPR, vs lexical dedup, replicated) — semantic cohesion catches PoisonedRAG where lexical duplicate filtering fails on near-dup-rich corpora (MinHash 0% on both). DISCLOSE — embedding-kNN dedup is competitive (`s_nd` 52–98%); `cluster_coh` does NOT generally dominate it (clean edge only on NQ). Frame the contribution vs **lexical** duplicate filtering (§7.3's actual target), not "all near-dup methods."
 - **Status:** PRIMARY ECHO + §7.3-lexical rebuttal — FINAL (run/seed 42; RELEASED poison). Cross-domain C2 replicated on a 2nd benchmark; §7.3 lexical rebuttal confirmed on both NQ and HotpotQA.
+
+---
+
+## RECONCILE-v713 · v7.1.3 draft ↔ on-disk evidence reckoning + finalized claim set
+- **Added** 2026-06-01 · **Origin** full reconciliation of `SEVA_Paper_v7_1_3.pdf` (pre-reckoning draft) against the campaign (PR-GATE-1/2, PR-XDOMAIN(-HOTPOT), CHEAP-MUST-1, E2/E-CAL/SEEDS/E4-HH/ND-GATE). · **Status** GOVERNS the rewrite.
+- **The v7.1.3 draft is PRE-RECKONING. Its multi-signal/composite headline, wikitext numbers, M4 26 ms latency, C2/C3/C5, Table I/IX, and several Limitations are KILLED or SUPERSEDED. Build the rewrite only on the SURVIVES + reworded set below.**
+
+**Reconciliation (every major v7.1.3 claim → verdict · deciding result):**
+| v7.1.3 claim | verdict | deciding on-disk result |
+|---|---|---|
+| Title/abstract "multi-signal / ten-signal composite" hero | **SUPERSEDED** | CHEAP-MUST-1: composite collapses L2/L3 49–57% under adaptation; **cluster_coh hard gate holds 0%**. Composite = ablation. |
+| C1 Geometric Invariance (cluster_coh gap, density-invariance 1–10%) | **SURVIVES (numbers→in-domain; reframe to detector)** | cluster_coh gap **holds in-domain** +0.235/+0.238/+0.247, SNR 5.99/6.00/5.78 (> wikitext 4.7) [E2-2/STEP3]. Survives the very confound Lim 2 named. Replace wikitext gap 0.2569 with in-domain. |
+| C2 Signal Phase Transition (avg_sent_len synergy) | **KILLED** | Built on soft linguistic signals; in-domain they collapse (kw_density SNR 38→8) [E2-2], composite collapses [E-CAL-2]. Wikitext artifact. |
+| C3 Asymmetric Degradation (100:1, L3 17.07%) | **KILLED** | In-domain L2/L3 explodes 44–73% [E2-2, RESCOPE-1, SEEDS-1]; "graceful degradation" is a wikitext/domain-confound artifact. |
+| C4 latency (RTX 4060 43 ms; **M4 26 ms**) | **NEEDS-REWORD (M4 number WRONG)** | M4 files show **~32–42 ms**, not 26 ms; **sub-2 ms is also dead.** Correct to RTX 5080 ~13–16 ms CUDA / M4 ~32–42 ms. |
+| C5 Density-Semantic Threshold (topic_drift) | **KILLED** | Soft semantic signal we drop; not in cluster_coh-centric detector. |
+| C6 production multi-platform (L1 0%, FPR 0.77%) | **NEEDS-REWORD** | L1 0% survives (in-domain frozen [E-CAL-1]); FPR 0.77% (wikitext) → in-domain 0.58% DocFPR; reframe to cluster_coh hard gate + cross-domain. |
+| Table I (signal SNRs, kw_density 38) | **SUPERSEDED** | In-domain kw_density SNR ~8 [E2-2]; soft signals dropped. Relegate to ablation. |
+| Table II (cluster_coh wikitext) | **SUPERSEDED** | Use in-domain [E2-2]. |
+| Table IV/X (M4 26 ms; M4 L3 0%) | **NEEDS-REWORD / artifact** | M4 latency wrong (→32–42 ms); M4 L3-0% is a **calibration artifact** [R-7], not "better." |
+| Table V L1 ASR 0% | **SURVIVES** | E-CAL-1 frozen held-out 0%; SEEDS-1 3-seed 0%. (Scope: templated; on real PoisonedRAG 98% catch / 2% ASR.) |
+| Table V L2/L3 ASR (0.53%/17%) | **SUPERSEDED** | In-domain 44–73% [E2-2/SEEDS-1]; cluster_coh hard gate holds 0% [CHEAP-MUST-1]. |
+| Table VIII adaptive_diverse 0% | **SURVIVES (scoped)** | Real result (cluster_coh robust to diversity-injection); scope to that attack, not "defeats all adaptive." |
+| Table IX number-lifted comparison | **SUPERSEDED** | Replaced by **real matched-FPR RAGDefender head-to-head** [E4-HH] + **§7.3 cross-domain dedup rebuttal** [PR-XDOMAIN]. |
+| Lim 1 "white-box untested, critical gap" | **NEEDS-REWORD** | Tested (private clone-inject); out of *claimed* scope → one boundary sentence (single-doc diffuse injection), RobustRAG/AV-Filter-style. |
+| Lim 2 Domain-Contrast Confound | **RESOLVED→strength** | Fixed with in-domain Security-SE [E2] + NQ/HotpotQA [PR-XDOMAIN]. |
+| Lim 3/4 L3 floor/sensitivity | **SUPERSEDED** | L3 reframed (composite collapses; hard gate holds). |
+| Lim 5 two-point scaling | **SURVIVES (minor)** | Still 10k/100k only. |
+| Lim 6 No head-to-head | **RESOLVED→strength** | E4-HH reproduced head-to-head done. |
+| Lim 7 single encoder | **SURVIVES** | bge-large only; encoder-generalization = future work. |
+
+**Finalized claim set (rewrite is built ONLY on these — all traceable, none from the killed set):**
+- **Hero:** single geometric signal `cluster_coh` as a **hard near-duplication gate** — no-LLM, CPU, **~13–16 ms CUDA / ~32–42 ms Apple M4**, laptop-deployable, offline. [CHEAP-MUST-1; latency files; M4 corrected]
+- **Detection:** **0% ASR on templated multi-passage poison** @ 0.58% DocFPR (frozen, non-oracle, 3-seed) [E-CAL-1, SEEDS-1]; **catches real released PoisonedRAG cross-domain: Security-SE 98% / NQ 82% / HotpotQA 97%** @ 0.69% DocFPR, non-oracle [PR-GATE-1, PR-XDOMAIN(-HOTPOT)].
+- **§7.3 rebuttal (lexical-scoped):** lexical duplicate filtering is corpus-fragile — **MinHash 0% at matched FPR on near-dup-rich NQ/HotpotQA** where cluster_coh catches 82–97%; embedding-dedup competitive (s_nd 52% NQ / 98% HotpotQA) → claim **cluster_coh ≥ embedding-dedup** (edge NQ, parity elsewhere), NOT "beats all dedup." [PR-XDOMAIN(-HOTPOT)]
+- **Adaptive (reframed):** the soft composite collapses 49–57% under keyword-dropping; the **geometric hard gate holds 0%** (immune by construction) [E-CAL-2, CHEAP-MUST-1] — the composite is the ablation that proves the dilution thesis ("our gauntlet showed the soft signals are domain-confounded and adaptively fragile; we distilled to the geometric core").
+- **vs SOTA:** **reproduced matched-FPR head-to-head** — SEVA 100% vs RAGDefender ~89% templated; RAGDefender native ~51% DocFPR (no no-attack gate) [E4-HH].
+- **Calibration:** density-agnostic, **non-oracle**, held-out validated [E-CAL-1, OPEN-CAL-1]; evaluated at **1–10% density** with per-seed FPR [SEEDS-1].
+- **Deployability fix:** **≥2-per-query aggregation** cuts query-FPR 3.15%→0.90% at zero catch cost [CHEAP-MUST-1].
+- **Boundary (one sentence):** single-document diffuse injection that mimics the clean distribution is out of scope (private clone-inject record stays private). **NEVER** use "near-duplicate" as the umbrella claim word.
+- **Latency correction logged:** **sub-2 ms ARM is DEAD** (NOTE-LAT retired); M4 is ~32–42 ms.
 
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
