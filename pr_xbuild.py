@@ -9,18 +9,19 @@ normalized, chunked + resumable). NO LLM (uses RELEASED poison). Passage repr = 
 """
 import os, sys, json, zipfile, random, time
 import numpy as np
-REPO = r"D:\SEVA-RAG\poisonedrag_repo"; OUT = r"D:\SEVA-RAG\a1_corpus_nqxd"; os.makedirs(OUT, exist_ok=True)
-NQZIP = os.path.join(REPO, "datasets", "nq.zip"); NQDIR = os.path.join(REPO, "datasets", "nq")
+DATASET = sys.argv[1] if len(sys.argv) > 1 else "nq"           # nq | hotpotqa
+REPO = r"D:\SEVA-RAG\poisonedrag_repo"; OUT = rf"D:\SEVA-RAG\a1_corpus_{DATASET}xd"; os.makedirs(OUT, exist_ok=True)
+DSZIP = os.path.join(REPO, "datasets", f"{DATASET}.zip"); DSDIR = os.path.join(REPO, "datasets", DATASET)
 TOPN = 50; TARGET_CLEAN = 150000; ADV_PER_Q = 5; SEED = 42
-CORPUS_OUT = os.path.join(OUT, "nq_clean_subsample.json"); POISON_OUT = os.path.join(OUT, "nq_poison.json")
+CORPUS_OUT = os.path.join(OUT, f"{DATASET}_clean_subsample.json"); POISON_OUT = os.path.join(OUT, f"{DATASET}_poison.json")
 
-if not os.path.exists(os.path.join(NQDIR, "corpus.jsonl")):
-    print("unzipping nq.zip ...")
-    with zipfile.ZipFile(NQZIP) as z: z.extractall(os.path.join(REPO, "datasets"))
-    print("unzipped ->", NQDIR)
+if not os.path.exists(os.path.join(DSDIR, "corpus.jsonl")):
+    print(f"unzipping {DATASET}.zip ...")
+    with zipfile.ZipFile(DSZIP) as z: z.extractall(os.path.join(REPO, "datasets"))
+    print("unzipped ->", DSDIR)
 
-poison_raw = json.load(open(os.path.join(REPO, "results", "adv_targeted_results", "nq.json"), encoding="utf-8"))
-retr = json.load(open(os.path.join(REPO, "results", "beir_results", "nq-contriever.json"), encoding="utf-8"))
+poison_raw = json.load(open(os.path.join(REPO, "results", "adv_targeted_results", f"{DATASET}.json"), encoding="utf-8"))
+retr = json.load(open(os.path.join(REPO, "results", "beir_results", f"{DATASET}-contriever.json"), encoding="utf-8"))
 tq = [(poison_raw[k]["id"], poison_raw[k]["question"], poison_raw[k]["adv_texts"][:ADV_PER_Q]) for k in poison_raw]
 neigh = set()
 for qid, _, _ in tq:
@@ -31,7 +32,7 @@ if os.path.exists(CORPUS_OUT):
     clean = json.load(open(CORPUS_OUT, encoding="utf-8")); print(f"resumed clean subsample: {len(clean)}")
 else:
     rng = random.Random(SEED); neigh_txt = {}; reservoir = []; n_rand = TARGET_CLEAN - len(neigh); seen_total = 0; t0 = time.time()
-    with open(os.path.join(NQDIR, "corpus.jsonl"), encoding="utf-8") as f:
+    with open(os.path.join(DSDIR, "corpus.jsonl"), encoding="utf-8") as f:
         for line in f:
             try: d = json.loads(line)
             except Exception: continue
@@ -58,7 +59,7 @@ for c in clean:
     k = c["text"][:300].lower()
     if k in seen: nd += 1
     else: seen.add(k)
-print(f"NQ clean subsample near-dup rate (x[:300] prefix): {nd}/{len(clean)} = {100*nd/len(clean):.2f}%  (vs Security-SE 0.02%)")
+print(f"{DATASET} clean subsample near-dup rate (x[:300] prefix): {nd}/{len(clean)} = {100*nd/len(clean):.2f}%  (vs Security-SE 0.02%)")
 
 if os.path.exists(POISON_OUT):
     poison = json.load(open(POISON_OUT, encoding="utf-8")); print(f"resumed poison: {len(poison)}")

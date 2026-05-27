@@ -9,7 +9,8 @@ import numpy as np, torch, importlib.util
 from collections import defaultdict
 from whitebox_attack_seva import CWD
 DEV = torch.device("cpu"); K = 5; FPRS = [0.1, 0.5, 0.69, 1.0, 2.0]
-OUT = r"D:\SEVA-RAG\a1_corpus_nqxd"; NQDIR = r"D:\SEVA-RAG\poisonedrag_repo\datasets\nq"
+DATASET = sys.argv[1] if len(sys.argv) > 1 else "nq"           # nq | hotpotqa
+OUT = rf"D:\SEVA-RAG\a1_corpus_{DATASET}xd"; DSDIR = rf"D:\SEVA-RAG\poisonedrag_repo\datasets\{DATASET}"
 PRIME = (1 << 31) - 1; KH = 128
 _rng = np.random.default_rng(1337); MA = _rng.integers(1, PRIME, KH, dtype=np.uint64); MB = _rng.integers(0, PRIME, KH, dtype=np.uint64)
 def shingles(t):
@@ -19,14 +20,14 @@ def shingles(t):
 def minhash(sh):
     s = np.fromiter(sh, dtype=np.uint64, count=len(sh)); return ((MA[:, None]*s[None, :] + MB[:, None]) % PRIME).min(axis=1).astype(np.int64)
 
-clean = json.load(open(os.path.join(OUT, "nq_clean_subsample.json"), encoding="utf-8"))
-poison = json.load(open(os.path.join(OUT, "nq_poison.json"), encoding="utf-8"))
+clean = json.load(open(os.path.join(OUT, f"{DATASET}_clean_subsample.json"), encoding="utf-8"))
+poison = json.load(open(os.path.join(OUT, f"{DATASET}_poison.json"), encoding="utf-8"))
 pe_c = np.load(os.path.join(OUT, "pe_clean.npy")); pe_p = np.load(os.path.join(OUT, "pe_poison.npy")); Qe = np.load(os.path.join(OUT, "pe_query.npy"))
 ctexts = [c["text"] for c in clean]; ptexts = [p["text"] for p in poison]; Nc = len(clean); Pn = len(poison)
 pqid = [p["qid"] for p in poison]; tqids = []
 for p in poison:
     if p["qid"] not in tqids: tqids.append(p["qid"])
-print(f"PR-XDOMAIN | NQ clean {Nc} | poison {Pn} | target queries {len(tqids)}")
+print(f"PR-XDOMAIN [{DATASET}] | clean {Nc} | poison {Pn} | target queries {len(tqids)}")
 
 mod = "seva_prx"
 if mod in sys.modules: del sys.modules[mod]
@@ -68,7 +69,7 @@ for d in range(Nc):
     cs = cand.get(d)
     if cs: cs = list(cs); clean_slex[d] = (clean_mh[d][None, :] == clean_mh[cs]).mean(axis=1).max()
 ndrate = 100*np.mean(clean_slex > 0)
-print(f"  clean MinHash/s_nd in {time.time()-t0:.0f}s | NQ clean s_lex>0 rate = {ndrate:.2f}% (Security-SE was 0.24%) | clean s_nd p99.31 {np.percentile(clean_snd,99.31):.3f}")
+print(f"  clean MinHash/s_nd in {time.time()-t0:.0f}s | {DATASET} clean s_lex>0 rate = {ndrate:.2f}% (Security-SE was 0.24%) | clean s_nd p99.31 {np.percentile(clean_snd,99.31):.3f}")
 p_mh = np.array([minhash(shingles(t)) for t in ptexts]); pe_p_t = torch.from_numpy(pe_p); pe_c_t = torch.from_numpy(pe_c)
 sib = defaultdict(list)
 for i in range(Pn): sib[pqid[i]].append(i)
@@ -89,7 +90,7 @@ reach = sum(1 for qid in tqids if retr[qid]); print(f"  poison reach@K = {100*re
 benign_qfpr = {}
 try:
     bq = []
-    with open(os.path.join(NQDIR, "queries.jsonl"), encoding="utf-8") as f:
+    with open(os.path.join(DSDIR, "queries.jsonl"), encoding="utf-8") as f:
         for line in f:
             d = json.loads(line); qid = d.get("_id") or d.get("id")
             if qid not in set(tqids): bq.append(d.get("text", ""))
@@ -108,7 +109,7 @@ def catch(ps, thr):
     return 100.0*(len(tqids) - att)/len(tqids)
 def docfpr(cs, thr): return 100.0*np.mean(cs > thr)
 SIG = [("cluster_coh", pcoh, ccoh), ("MinHash/s_lex", p_slex, clean_slex), ("s_nd", p_snd, clean_snd)]
-print(f"\n=== MATCHED-FPR catch (NQ, non-oracle; reach {100*reach/len(tqids):.0f}%). poison median coh={np.median(pcoh):.3f} s_lex={np.median(p_slex):.3f} s_nd={np.median(p_snd):.3f} ===")
+print(f"\n=== MATCHED-FPR catch ({DATASET}, non-oracle; reach {100*reach/len(tqids):.0f}%). poison median coh={np.median(pcoh):.3f} s_lex={np.median(p_slex):.3f} s_nd={np.median(p_snd):.3f} ===")
 print("  DocFPR% | " + " | ".join(f"{n:>13}" for n, _, _ in SIG))
 table = {}
 for fpr in FPRS:
@@ -125,13 +126,13 @@ for n, ps, cs in SIG:
 
 coh69 = table[0.69]["cluster_coh"]["catch"]; mh69 = table[0.69]["MinHash/s_lex"]["catch"]; snd69 = table[0.69]["s_nd"]["catch"]
 primary = coh69 >= 75; bonus = primary and mh69 <= 40 and snd69 <= 40
-if bonus: VV = f"BONUS WIN — cluster_coh {coh69:.0f}% catches released PoisonedRAG on NQ @0.69% DocFPR where MinHash {mh69:.0f}% AND s_nd {snd69:.0f}% MISS: semantic detection beats lexical/embedding dedup on a near-dup-rich corpus (NQ clean s_lex>0 {ndrate:.1f}%)."
-elif primary: VV = f"PRIMARY WIN — cluster_coh {coh69:.0f}% catches released PoisonedRAG on NQ @0.69% DocFPR (cross-domain confirmed). Dedup also catches (MinHash {mh69:.0f}%, s_nd {snd69:.0f}%) -> no bonus separation (NQ clean s_lex>0 {ndrate:.1f}%)."
-else: VV = f"NULL — cluster_coh {coh69:.0f}% < 75% @0.69% DocFPR -> cross-domain NOT confirmed; scope C2 to Security-SE (no weakness disclosed, bigger claim not made)."
+if bonus: VV = f"BONUS WIN — cluster_coh {coh69:.0f}% catches released PoisonedRAG on {DATASET} @0.69% DocFPR where MinHash {mh69:.0f}% AND s_nd {snd69:.0f}% MISS: semantic detection beats lexical/embedding dedup on a near-dup-rich corpus ({DATASET} clean s_lex>0 {ndrate:.1f}%)."
+elif primary: VV = f"PRIMARY ECHO — cluster_coh {coh69:.0f}% catches released PoisonedRAG on {DATASET} @0.69% DocFPR (cross-domain confirmed). MinHash {mh69:.0f}%, s_nd {snd69:.0f}% ({DATASET} clean s_lex>0 {ndrate:.1f}%); §7.3-lexical rebuttal {'LANDS' if mh69<=40 else 'does NOT land'} (MinHash {mh69:.0f}%)."
+else: VV = f"NULL — cluster_coh {coh69:.0f}% < 75% @0.69% DocFPR on {DATASET} -> cross-domain echo NOT confirmed; the NQ result stands, do not claim {DATASET}."
 print(f"\nVERDICT: {VV}")
-json.dump({"corpus": "NQ subsample", "Nc": Nc, "Pn": Pn, "n_queries": len(tqids), "reach_pct": 100*reach/len(tqids),
+json.dump({"corpus": f"{DATASET} subsample", "Nc": Nc, "Pn": Pn, "n_queries": len(tqids), "reach_pct": 100*reach/len(tqids),
            "nq_clean_slex_gt0_pct": ndrate, "poison_medians": {"coh": float(np.median(pcoh)), "s_lex": float(np.median(p_slex)), "s_nd": float(np.median(p_snd))},
            "matched_fpr_table": {str(f): table[f] for f in FPRS}, "query_fpr_at_0.69": {k: qf[k] for k in qf},
            "coh69": coh69, "mh69": mh69, "snd69": snd69, "verdict": VV},
-          open(os.path.join(r"D:\SEVA-RAG\SEVA-RAG\whitebox_attack_results", "pr_xgate_s042.json"), "w", encoding="utf-8"), indent=2)
-print("saved pr_xgate_s042.json")
+          open(os.path.join(r"D:\SEVA-RAG\SEVA-RAG\whitebox_attack_results", f"pr_xgate_{DATASET}_s042.json"), "w", encoding="utf-8"), indent=2)
+print(f"saved pr_xgate_{DATASET}_s042.json")
