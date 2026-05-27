@@ -81,6 +81,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | PR-GATE-2 (A) | (diagnostic) matched-FPR ROC | AMBER persists — coh/MinHash/s_nd all 98% @≥0.5% FPR; SimHash genuinely misses; SimHash fix confirmed |
 | PR-GATE-2 (B) | (prereq) Security-SE near-dup rate | **0.02%** → near-dup-sparse → **pre-dedup confound REFUTED, AMBER is REAL**; §7.3 rebuttal needs a near-dup-rich corpus (separate) → see PR-XDOMAIN |
 | **PR-XDOMAIN** | (cross-domain) RELEASED PoisonedRAG on NQ @matched FPR | **PRIMARY WIN** — cluster_coh **82%** @0.69% DocFPR on NQ (cross-domain, non-oracle); **§7.3 lexical-dedup rebuttal LANDS** (MinHash **0%** vs coh 82% on near-dup-rich NQ); honest: s_nd (embedding dedup) 52% — coh edges, doesn't dominate |
+| CHEAP-MUST-1 | cluster_coh hard-gate headline + query-FPR fix | hard gate: templated 100% / PoisonedRAG 98% / L2-L3-adaptive 100% catch @0.69% DocFPR (vs composite's L2/L3 49–57% collapse); ≥2 aggregation cuts query-FPR 3.15%→0.90% @ zero catch cost |
 
 ---
 
@@ -462,5 +463,25 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **UNIFIED STORY (PR-GATE-1/2 + PR-XDOMAIN):** `cluster_coh` catches PoisonedRAG cross-domain at deployable FPR (Security-SE 98%, NQ 82%). Lexical dedup's success is **corpus-dependent** — catches on lexically-sparse Security-SE (98%), FAILS on near-dup-richer NQ (0%) at matched FPR. So lexical dedup is NOT robust across corpora; `cluster_coh` (semantic) is. This **RESOLVES the PR-GATE-2 open question**: the §7.3 rebuttal HOLDS on the field's own near-dup-rich benchmark.
 - **Manuscript:** CLAIM (cross-domain) — SEVA catches PoisonedRAG's released poison on NQ at **82% @ 0.69% non-oracle DocFPR** (C2). CLAIM (§7.3, matched-FPR, vs lexical dedup) — semantic cohesion catches PoisonedRAG where lexical duplicate filtering fails on near-dup-rich corpora (NQ MinHash 0% vs coh 82%). DISCLOSE — embedding-kNN dedup is competitive (`s_nd` 52%); `cluster_coh` edges but does not dominate it.
 - **Status:** PRIMARY WIN + §7.3-lexical rebuttal — FINAL (run/seed 42; RELEASED poison). Resolves PR-GATE-2's open question; cross-domain C2 supported.
+
+### CHEAP-MUST-1 · `cluster_coh` HARD-GATE headline (the robust core, MEASURED) + per-query aggregation cuts query-FPR
+- **Added** 2026-06-01 · **Origin** `cheap_must1.py` (Security-SE; reuses cached clean embeddings + existing poison; NO regen, NO LLM; GPU embed; frozen detector untouched — measures a `cluster_coh`-HARD-GATE *variant*, the SNR composite remains the ablation). Provenance: `whitebox_attack_results/cheap_must1_s042.json`. τ set NON-oracle @0.69% DocFPR on CLEAN (no tune-to-test).
+- **PART A — `cluster_coh` HARD GATE (flag if coh > τ_coh≈0.84; NOT the SNR composite) @ 0.69% DocFPR:**
+  | case | poison coh med | reach | catch | ASR | benign query-FPR(≥1) |
+  |---|---|---|---|---|---|
+  | templated (E-CAL-1 half_B) | 0.993 | 50% | **100.0%** | **0.0%** | 3.65% |
+  | black-box PoisonedRAG (PR-GATE-1) | 0.903 | 98% | **98.0%** | 2.0% | 3.15% |
+  | L2/L3-adaptive (E-CAL-2) | = templated | — | **100.0%** | **0.0%** | — |
+  → The geometric core as a HARD gate catches templated (100%) + PoisonedRAG (98%) + L2/L3-adaptive (100%) @0.69% DocFPR, non-oracle. **KEY:** on L2/L3 the hard `cluster_coh` gate holds **0% ASR where the SOFT 10-signal composite COLLAPSED to ~49–57%** (E-CAL-2) — the composite DILUTES the robust core (PR-GATE-1: composite 72% vs coh-alone 98% on PoisonedRAG); the hard gate recovers it. (L2/L3 = templated by construction: a coh-only gate is invariant to E-CAL-2's feature-value neutralization, which swaps kw_density/avg_sent_len VALUES, not the text/embedding.)
+- **PART B — per-query aggregation (PoisonedRAG corpus, same τ): flag query if ≥k retrieved docs flagged.**
+  | rule | benign query-FPR | poison catch |
+  |---|---|---|
+  | ≥1 flagged | 3.15% | 98.0% |
+  | **≥2 flagged** | **0.90%** | **98.0%** |
+  mean poison retrieved/query 4.7, flagged/query 4.7 → **≥2 aggregation (attack-faithful: PoisonedRAG injects ≥5/query) cuts benign query-FPR 3.5× (3.15%→0.90%) at ZERO catch cost.**
+- **COMBINED deployable operating point (LLM-free, geometric core):** ~98–100% catch on templated / real PoisonedRAG / L2-L3-adaptive at **0.69% DocFPR / 0.90% query-FPR** (≥2 aggregation).
+- **Caveats (actuals, straight):** (a) templated reach 50% (half_B = held-out half; among reached, 100% caught / 0% ASR); (b) PoisonedRAG ASR 2% = 1/50 queries has a poison with coh<τ (evades); (c) ≥2 query-FPR still 0.90% (non-zero) but 3.5× lower at no catch cost; (d) this is a `cluster_coh`-hard-gate VARIANT — the deployed paper detector is the SNR composite; present the hard gate as the robust-core recommended operating mode / ablation.
+- **Manuscript:** lead the detection headline with the `cluster_coh` HARD GATE (robust core), not the diluting composite: catches templated + real PoisonedRAG + L2/L3-adaptive at ~98–100% @0.69% DocFPR / 0.90% query-FPR (≥2 aggregation), LLM-free. The composite L2/L3 collapse (E-CAL-2) becomes an ABLATION showing why a hard geometric gate beats soft SNR weighting under adaptive evasion.
+- **Status:** MEASURED (run 42; reused caches/poison). `cluster_coh`-centric headline + query-FPR fix both confirmed.
 
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
