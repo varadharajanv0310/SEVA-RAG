@@ -84,6 +84,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | CHEAP-MUST-1 | cluster_coh hard-gate headline + query-FPR fix | hard gate: templated 100% / PoisonedRAG 98% / L2-L3-adaptive 100% catch @0.69% DocFPR (vs composite's L2/L3 49–57% collapse); ≥2 aggregation cuts query-FPR 3.15%→0.90% @ zero catch cost |
 | PR-XDOMAIN-HOTPOT | (cross-domain replication) RELEASED PoisonedRAG on HotpotQA | **PRIMARY ECHO** cluster_coh **97%** @0.69% DocFPR; **§7.3 lexical rebuttal LANDS harder** (MinHash 0% at all FPRs; HotpotQA near-dup-rich 9.06%); honest: s_nd 98% (embedding dedup edges coh here — no edge vs embedding) |
 | **RECONCILE-v713** | **governs the rewrite** | v7.1.3 ↔ disk reckoning: multi-signal/C2/C3/C5/Table I·IX KILLED/SUPERSEDED; M4 26 ms + sub-2 ms DEAD (→32–42 ms); C1/C6 reword to in-domain; finalized cluster_coh-centric claim set |
+| **V8-DRAFT** | manuscript rewrite from the reconciled set | `SEVA_v8.tex` drafted at checkpoints; built ONLY on RECONCILE-v713 SURVIVES+reworded set; every quantitative claim carries a `% [TAG]` provenance marker; Ckpt 1 = frontmatter+abstract+C1-C6+section outline |
 
 ---
 
@@ -537,5 +538,24 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Deployability fix:** **≥2-per-query aggregation** cuts query-FPR 3.15%→0.90% at zero catch cost [CHEAP-MUST-1].
 - **Boundary (one sentence):** single-document diffuse injection that mimics the clean distribution is out of scope (private clone-inject record stays private). **NEVER** use "near-duplicate" as the umbrella claim word.
 - **Latency correction logged:** **sub-2 ms ARM is DEAD** (NOTE-LAT retired); M4 is ~32–42 ms.
+
+---
+
+## V8-DRAFT · manuscript rewrite (`SEVA_v8.tex`) from the reconciled claim set
+- **Added** 2026-06-01 · **Origin** drafting `SEVA_v8.tex` (IEEE conference, drop-in for v7.1.3) section-by-section at author checkpoints. · **Governs** the manuscript; **governed by** RECONCILE-v713.
+- **Discipline (enforced in-file):** every quantitative/empirical claim carries a `% [TAG]` margin marker keyed to a result entry here; strip before submission. Built ONLY on the RECONCILE-v713 SURVIVES + reworded set — nothing from the KILLED/SUPERSEDED pile (no multi-signal hero, no C2/C3/C5 soft-signal theory, no §V "Theoretical Analysis" observations, no sub-2 ms latency, no number-lifted Table IX, no wikitext headline; the geometric property is a *detector property*, not a standalone theoretical contribution).
+- **Scope words held exactly:** attack scope = "templated / multi-passage / clustered injection (PoisonedRAG family)"; **never** "near-duplicate corpus poisoning" as an umbrella claim. Dedup claims scoped to LEXICAL filtering; `s_nd` reported as a competitive embedding-dedup baseline (`cluster_coh ≥ s_nd`: edge NQ 82% vs 52%, parity elsewhere). Latency only ~13–16 ms GPU / ~32–42 ms M4.
+- **Structure (8 sections):** I Introduction (+ Contributions C1–C6) · II Related Work · III Threat Model · IV SEVA Architecture · V Evaluation · VI Discussion · VII Limitations · VIII Conclusion. (v7.1.3's §V Theoretical Analysis / 5 Observations is dropped; the surviving geometric property folds into §IV/§V as a detector property.)
+
+**Checkpoint log:**
+| Ckpt | Scope | Status | Result tags populating it |
+|---|---|---|---|
+| 1 | Frontmatter: title, abstract, contributions C1–C6, one-line section outline | **DONE 2026-06-01** | abstract+C: E-CAL-1, SEEDS-1, STEP3, PR-GATE-1, PR-XDOMAIN(-HOTPOT), E-CAL-2, CHEAP-MUST-1, OPEN-CAL-1, E4-HH, LAT-M4 |
+| 2 | §I–III bodies (Intro, Related Work, Threat Model) | pending | field benchmarking; E4-HH; PR-XDOMAIN; E-CAL-2 |
+| 3 | §IV–V bodies + reworked tables (V→in-domain, new 3-corpus cross-domain, IX→real matched-FPR H2H, latency) | pending | E-CAL-1, SEEDS-1, STEP3, PR-XDOMAIN(-HOTPOT), E4-HH, CHEAP-MUST-1, E-CAL-2, OPEN-CAL-1, LAT-M4 |
+| 4 | §VI–VIII bodies (Discussion, Limitations, Conclusion) | pending | LAT-M4, STEP3, E2-2, E-CAL-2, PR-XDOMAIN, E-CAL-1 |
+| audit | claims-audit: every tagged claim ↔ source; confirm no KILLED/SUPERSEDED survived | pending | — |
+
+- **Open items flagged in-file (`% TODO` / verify):** (a) confirm the abstract's 0.58% DocFPR against the exact E-CAL-1 JSON at table-build (STEP3 multitier shows L1 DocFPR 0.45–0.52%); (b) add MinHash (Broder) + SimHash (Charikar) + NQ/HotpotQA dataset cites + a Semantic Chameleon / 2026 corpus-dependent-defense cite to the bibliography at Ckpt 3.
 
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
