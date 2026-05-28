@@ -568,4 +568,21 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 - **Open items flagged in-file (`% TODO` / verify):** (a) confirm the abstract's 0.58% DocFPR against the exact E-CAL-1 JSON at table-build (STEP3 multitier shows L1 DocFPR 0.45–0.52%); (b) add MinHash (Broder) + SimHash (Charikar) + NQ/HotpotQA dataset cites + a Semantic Chameleon / 2026 corpus-dependent-defense cite to the bibliography at Ckpt 3.
 
+---
+
+## V8-EXPAND · full-length build-out to ACSAC density (reconciled claim set)
+- **Added** 2026-06-02 · **Origin** expanding `SEVA_v8.tex` from ~7 pp to 10–11 body pp at v7.1.3's table density, reconciled claims only. · **Governed by** RECONCILE-v713 (re-confirmed: nothing from the KILLED/SUPERSEDED set re-enters — no soft-signal theory/phase-transition/asymmetric-degradation/topic-drift, no wikitext-invariance framing, no number-lifted comparison).
+- **JSON-exact numbers pulled** from the 9 in-domain result JSONs (`seva_v6_2_results_100k_secqa_p{010,050,100}_s{042,007,123}.json`, repo root; RTX 5080). Per-cell ASR + Doc-FPR + full confusion counts (TP/FN/FP/TN) + per-seed latency read directly. Stds computed **ddof=1 (sample)** to match v7.1.3's stated convention (so 5%/10% stds differ slightly from SEEDS-1's ddof=0 logging; means identical).
+
+**Primary in-domain results table (`tab:main`) — 3-seed mean ± sample std, the centerpiece:**
+| Tier | 1% ASR | 5% ASR | 10% ASR | 1%/5%/10% Doc-FPR |
+|---|---|---|---|---|
+| L1 (naive) | 0.0±0.0 | 0.0±0.0 | 0.0±0.0 | 0.54±0.17 / 0.63±0.18 / 0.52±0.15 |
+| L2 (adaptive) | 44.0±1.4 | 57.0±6.7 | 72.4±1.1 | 0.53 / 0.59 / 0.52 |
+| L3 (adaptive) | 42.4±2.8 | 57.0±6.7 | 72.4±1.1 | 0.58 / 0.59 / 0.52 |
+- L1 pooled 0/1257 poison encounters → ASR 0%, 95% Wilson upper 0.30%; grand-mean L1 Doc-FPR 0.56% (consistent with E-CAL-1 frozen 0.58%). L2/L3 = the **composite ablation** (adaptive collapse), framed as the dilution finding that motivates the hard gate — NOT "graceful degradation" (killed).
+
+**§V rebuilt to full depth — 8 tables:** `tab:main` (NEW primary), `tab:coh` (geometry/density-invariance, reframed in-domain + SNR>general-domain), `tab:xdomain` (3-corpus @0.69%), `tab:roc` (NEW matched-FPR sweep 0.5–2% × 3 signals × NQ/HotpotQA), `tab:h2h` (reproduced head-to-head), `tab:core` (gate vs composite), `tab:agg` (NEW ≥1 vs ≥2 aggregation), `tab:latency` (corrected per-density 13.4–15.7 ms / 32–42 ms). Prose expanded to v7.1.3 depth (setup with corpora/attacks/protocol; per-result "what it rules out"; the distillation thesis made quantitative). All new numbers tagged.
+- **PENDING (next):** §IV architecture/calibration mechanics at depth + signal-inventory ablation table; §VI deployment scenarios + cost-of-attack + distillation lesson; appendix (per-seed confusion matrices [JSONs], attack construction, τ-value table, `adaptive_diverse` table [Table VIII SURVIVES-scoped], requirements/capabilities comparison [reworked Table IX, NOT number-lifted]). Target 10–11 body pp + ≤5 appendix pp.
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
