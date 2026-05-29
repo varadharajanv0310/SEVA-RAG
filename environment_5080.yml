@@ -1,0 +1,47 @@
+name: seva
+# RTX 5080 (Blackwell, compute capability sm_120) environment.
+# Derived from environment.yml (RTX 4060 / CUDA 12.4). Only CUDA-linked packages
+# changed; all other pins are identical to the original.
+#
+# Channels: original used [pytorch, nvidia, conda-forge, defaults].
+#   - pytorch/nvidia dropped: torch now comes from pip (cu128 wheel bundles CUDA).
+#   - defaults dropped (nodefaults): conda 26.x ToS-gates repo.anaconda.com; not needed
+#     because conda-forge supplies python/pip/numpy/faiss-cpu.
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+
+  # FAISS — CPU build (was: conda-forge::faiss-gpu=1.7.4).
+  # The benchmark uses faiss.IndexHNSWFlat with omp_set_num_threads(1): a CPU-only
+  # index that is never moved to the GPU. No sm_120/Blackwell GPU-FAISS wheel exists
+  # (faiss-gpu-cu12 1.14.1 supports only CC 7.0-8.9), and it would be unused anyway.
+  # Version held at 1.7.4 (== original) to preserve HNSW retrieval behavior.
+  - conda-forge::faiss-cpu=1.7.4
+
+  # Numerics (unchanged)
+  - conda-forge::numpy=1.26.4
+
+  # pip-only packages
+  - pip:
+    # PyTorch with CUDA 12.8 wheels (was: conda pytorch=2.3.1 / torchvision=0.18.1 /
+    # pytorch-cuda=12.4). Blackwell sm_120 kernels first shipped in the 2.7.0 line.
+    # 2.11.0 is the newest torch published on the cu128 (CUDA 12.8) index for
+    # cp311/win_amd64; torch 2.12.0 ships only on cu130 (CUDA 13.0). The explicit
+    # "+cu128" local version is REQUIRED: it forces the CUDA wheel from this index.
+    # Without it, pip resolves the CPU-only wheel from PyPI (CUDA unavailable).
+    - --index-url https://download.pytorch.org/whl/cu128
+    - --extra-index-url https://pypi.org/simple
+    - torch==2.11.0+cu128
+    - torchvision==0.26.0+cu128
+    # Non-CUDA packages — pinned exactly as in the original environment.yml
+    - sentence-transformers==3.0.1
+    - transformers==4.41.2
+    - huggingface-hub==0.24.2
+    - tokenizers==0.19.1
+    - datasets==2.20.0
+    - fsspec==2024.5.0
+    - scipy==1.13.1
+    - tqdm==4.66.4
