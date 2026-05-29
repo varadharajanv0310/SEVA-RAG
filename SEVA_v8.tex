@@ -70,10 +70,9 @@ that local AI increasingly demands. We present SEVA, a fully local, LLM-free
 detector built on a single geometric signal---per-document $K$-nearest-neighbour
 cluster coherence (\texttt{cluster\_coh})---operated as a hard gate. SEVA detects
 templated multi-passage poisoning, the dominant published attack pattern
-(PoisonedRAG), at 0\% attack-success and 0.58\% document-level false-positive
-rate % [E-CAL-1, SEEDS-1]  (0.58% = E-CAL-1 frozen held-out DocFPR, log line 282; STEP3 0.45-0.52% is the multitier baseline -- RESOLVED Ckpt 3)
-under density-agnostic, non-oracle (frozen, held-out) calibration, validated
-across three seeds and 1--10\% contamination density. % [E-CAL-1, SEEDS-1, STEP3]
+(PoisonedRAG), at 0\% attack-success across three seeds and 0.58\% document-level
+false-positive rate under frozen, non-oracle calibration, % [E-CAL-1, SEEDS-1]  (0% is 3-seed [SEEDS-1]; 0.58% is the E-CAL-1 seed-42 frozen held-out point, log L282)
+evaluated at 1--10\% contamination density. % [SEEDS-1]
 On the attack authors' own released PoisonedRAG poison, SEVA catches the attack
 cross-domain at 82--98\% (Security Stack Exchange, Natural Questions, and
 HotpotQA) under non-oracle calibration. % [PR-GATE-1, PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
@@ -84,7 +83,7 @@ holds. % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
 Against a keyword-dropping adaptive adversary, a multi-signal composite collapses
 to 49--57\% attack-success while the geometric hard gate holds 0\%; % [E-CAL-2, CHEAP-MUST-1]
 distilling to the geometric core is what makes SEVA both robust and deployable.
-SEVA runs in approximately 13--16\,ms on a commodity GPU and 32--42\,ms on an
+SEVA runs in approximately 13--16\,ms on a consumer GPU and 32--42\,ms on an
 Apple-Silicon laptop, % [STEP3, LAT-M4]
 with no LLM, API, or pre-registration; in a reproduced, shared-corpus,
 matched-FPR head-to-head it catches 100\% of templated poison versus the
@@ -136,13 +135,13 @@ RAGShield~\cite{ragshield} require re-registration of the entire corpus. The
 closest peer to our setting, RAGDefender~\cite{ragdefender}, is an LLM-free
 post-retrieval filter, and is the baseline we reproduce head-to-head. As local
 and laptop-class RAG proliferates, a defense must increasingly run where the
-corpus lives---on commodity or Apple-Silicon hardware, offline, with no LLM in
+corpus lives---on consumer or Apple-Silicon hardware, offline, with no LLM in
 the loop and no per-query model call.
 
 SEVA meets exactly that envelope. It detects the templated multi-passage attack
 with a single per-document geometric signal---the local $K$-nearest-neighbour
 cluster coherence of the corpus---operated as a hard gate, with no LLM call, no
-external API, and no corpus pre-registration. On commodity GPU hardware it runs
+external API, and no corpus pre-registration. On consumer GPU hardware it runs
 in approximately 13--16\,ms per query, and on an Apple-Silicon laptop in
 32--42\,ms. % [STEP3, LAT-M4]
 The geometric core is what survives an adaptive adversary: a multi-signal
@@ -168,7 +167,7 @@ released result and scoped exactly to what was measured.
 
 \begin{itemize}
 \item \textbf{C1 --- Deployability.} A fully local, LLM-free corpus-poisoning
-detector that runs in approximately 13--16\,ms on a commodity GPU and 32--42\,ms
+detector that runs in approximately 13--16\,ms on a consumer GPU and 32--42\,ms
 on an Apple-Silicon laptop, % [STEP3, LAT-M4]
 with no LLM call, external API, or cryptographic pre-registration---a deployment
 profile that LLM-based, decoder-access, and cryptographic defenses cannot match.
@@ -182,7 +181,8 @@ HotpotQA). % [PR-GATE-1, PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
 
 \item \textbf{C3 --- What cluster coherence adds over embedding deduplication.}
 The detection signal is a single geometric gate that (i)~is density-invariant
-across 1--10\% contamination---a property pairwise deduplication lacks; % [STEP3]
+across 1--10\% contamination---a property a pairwise deduplicator, comparing two
+documents at a time, structurally cannot provide; % [STEP3]
 (ii)~matches or beats embedding near-duplicate detection (an edge on Natural
 Questions, 82\% vs.\ 52\%; parity elsewhere) by keying on the multi-passage
 cluster rather than a single nearest neighbour; % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
@@ -200,16 +200,17 @@ geometric core.
 density-agnostic, non-oracle (frozen, held-out) calibration % [OPEN-CAL-1, E-CAL-1]
 at 1--10\% contamination density with complete per-seed false-positive
 reporting, % [SEEDS-1]
-and against a reproduced---not number-lifted---matched-FPR head-to-head with the
-LLM-free per-query state of the art (SEVA 100\% vs.\ 89\% on templated poison; the
-baseline's native operating point removes roughly half of clean documents
-in-domain). % [E4-HH]
+and against what is, to our knowledge, the first \emph{reproduced}---not
+number-lifted---matched-FPR head-to-head with the LLM-free per-query state of the
+art (SEVA 100\% vs.\ 89\% on templated poison; the baseline's native operating
+point removes roughly half of clean documents in-domain). % [E4-HH]
 
-\item \textbf{C6 --- Lexical deduplication is corpus-fragile.} We report a new
-finding: lexical duplicate filtering---the defense PoisonedRAG itself tested---is
-effective only on lexically sparse corpora and fails at matched false-positive
-rate on duplicate-dense standard benchmarks, where semantic cohesion continues to
-detect the attack. % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
+\item \textbf{C6 --- Lexical deduplication is corpus-fragile.} We report what is,
+to our knowledge, the first demonstration that lexical duplicate filtering---the
+defense PoisonedRAG itself tested---is corpus-fragile: effective only on lexically
+sparse corpora, and failing entirely at matched false-positive rate on
+duplicate-dense standard benchmarks, where semantic cohesion continues to detect
+the attack. % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
 \end{itemize}
 
 % =====================================================================================
@@ -339,6 +340,10 @@ cluster}, whatever fraction of the corpus is poisoned. In-domain we observe clea
 coherence $\approx 0.75$ and templated-poison coherence $\approx 0.99$, a gap of
 $+0.235$ to $+0.247$ (SNR $5.8$--$6.0$) that is essentially flat across $1$--$10\%$
 contamination (Table~\ref{tab:coh}). % [STEP3]
+Computing the statistic is a one-time $O(NK)$ pass over the corpus index, amortized
+across all subsequent queries; because embeddings are $\ell_2$-normalized, each
+cosine is an inner product, and the marginal cost at detection time is a
+constant-size threshold test over the documents the RAG system already retrieves.
 
 \subsection{The Hard Gate and Per-Query Aggregation}
 SEVA flags a document when its cluster coherence exceeds a calibrated threshold
@@ -370,34 +375,92 @@ threshold $\tau$; aggregation $k$
 \end{algorithm}
 
 \subsection{Density-Agnostic, Non-Oracle Calibration}
-SEVA's threshold is calibrated with no knowledge of the poison. Benign queries
-are issued against the (possibly poisoned) corpus, and $\tau$ is set to the
-$(1-\mathrm{FPR}_{\mathrm{TARGET}})$ quantile of the resulting clean
-cluster-coherence distribution by 50-iteration binary search, with
-$\mathrm{FPR}_{\mathrm{TARGET}}=0.69\%$. No labeled poison and no oracle knowledge
-of the contamination density enter calibration, and documents seen during
-calibration are excluded from false-positive accounting. We validate the
-realistic protocol directly: a threshold (and, for the composite ablation,
-weights) calibrated on a \emph{disjoint} reference sample of the templated attack
-class and then \emph{frozen} generalizes to held-out poison of the same class,
-holding $0\%$ attack-success at $0.58\%$ document-FPR (Section~\ref{sec:eval}). % [OPEN-CAL-1, E-CAL-1]
+SEVA's threshold is calibrated with no knowledge of the poison, in two phases over
+a fixed pool of benign queries. In the \emph{calibration} phase, benign queries are
+issued against the (possibly poisoned) corpus; for every retrieved document the
+detection score is computed, and $\tau$ is set to the
+$(1-\mathrm{FPR}_{\mathrm{TARGET}})$ quantile of the resulting clean-score
+distribution by 50-iteration binary search, with
+$\mathrm{FPR}_{\mathrm{TARGET}}=0.69\%$. In-domain this places the geometric gate at
+$\tau\approx0.84$---far below templated poison's $\approx\!0.99$ coherence and well
+above clean documents' $\approx\!0.75$. In the \emph{evaluation} phase, the
+remaining benign queries and all adversarial queries are scored against the frozen
+$\tau$; documents seen during calibration are excluded from false-positive
+accounting (decontamination), so a document cannot improve the measured rate by
+having been calibrated on.
+
+Two assumptions are explicit. First, calibration uses \emph{no labeled poison and
+no oracle knowledge of the contamination density}: $\tau$ is a function of the
+clean-score quantile alone. This is what makes the protocol deployable---an operator
+sets a target false-positive rate, not a guess at how poisoned the corpus is.
+Second, calibration assumes the benign query stream is itself uncontaminated, which
+holds under the threat model of Section~\ref{sec:threat}: the adversary has
+corpus-write access, not control of the operator's own calibration queries. SEVA
+exploits exactly this asymmetry between a contaminable corpus and a clean query
+channel.
+
+We validate the protocol under its hardest version. Rather than calibrate on the
+same poison we evaluate, we fit the threshold (and, for the composite ablation, the
+signal weights) on a \emph{disjoint reference half} of the templated attack,
+\emph{freeze} it, and deploy unchanged on a held-out half. The frozen detector
+catches the held-out poison at $0\%$ attack-success and $0.58\%$ document-FPR
+(Section~\ref{subsec:main}), establishing that detection is not an oracle artifact
+of tuning on the test poison. % [OPEN-CAL-1, E-CAL-1]
 
 \subsection{The Multi-Signal Composite as Ablation}
 SEVA began as a ten-signal detector that combined cluster coherence with soft
-linguistic and structural statistics---keyword density, sentence-length and
-type--token statistics, topic drift---through SNR-weighted, log-capped fusion. Our
-evaluation gauntlet, an in-domain corpus that removes the domain shortcut plus an
-adaptive adversary, revealed that the soft signals are domain-confounded:
-in-domain, keyword density's separation collapses from an SNR of $38$ to about
-$8$, % [E2-2]
-and a keyword-dropping adversary drives the composite's attack-success to
-$49$--$57\%$, because cluster coherence carries too little of the fused weight to
-hold the score on its own. % [E-CAL-2]
-We therefore distilled SEVA to its geometric core and report the composite as an
-\emph{ablation} (Section~\ref{sec:eval}, Table~\ref{tab:core}) that measures
-exactly what the soft signals cost under adaptation. The deployed detector is the
-hard cluster-coherence gate: it requires no LLM, runs on CPU, and reads a single
-precomputed statistic.
+linguistic and structural statistics through SNR-weighted, log-capped fusion:
+weights $w_i \propto \min\!\big(\log(1+|\mathrm{SNR}_i|),\,c\big)$ over the nine
+signals that clear an $|\mathrm{SNR}|\geq0.5$ gate, with automatic polarity
+inversion for signals (such as type--token ratio) that run lower on poison.
+Table~\ref{tab:signals} gives the inventory and its in-domain separation. The
+design held up against a general-domain corpus and a naive adversary; the
+evaluation gauntlet---an in-domain corpus that removes the domain shortcut, plus an
+adaptive adversary---is what exposed it.
+
+Two failures, both visible in Table~\ref{tab:signals}. First, the soft signals are
+\emph{domain-confounded}: keyword density, the strongest of them, separates poison
+from clean at an SNR of $38$ against a general-domain background but only
+$\approx\!8$ in-domain, because much of its apparent power was discriminating
+security text from Wikipedia, not poison from clean. % [E2-2]
+Second, they are \emph{normalizable}: a keyword-dropping adversary neutralizes them
+at the feature level, driving the composite's attack-success to $49$--$57\%$
+(Section~\ref{subsec:core}), because cluster coherence carries too little of the
+fused weight ($\approx\!0.15$) to hold the score alone. % [E-CAL-2]
+Only cluster coherence is both domain-robust---its SNR \emph{rises} in-domain---and
+adaptation-robust, reading geometry an adversary cannot normalize without
+sacrificing the retrievability the attack needs. We therefore distilled SEVA to
+this single signal and report the composite as the ablation that quantifies what
+the soft signals cost. The deployed detector is the hard cluster-coherence gate: no
+LLM, CPU-only, one precomputed statistic.
+
+\begin{table}[t]
+\centering
+\caption{In-domain signal inventory (Security Stack Exchange, seed~42, $1\%$
+density). Only cluster coherence combines a high SNR with robustness to both the
+domain-confound control and adaptive normalization; the soft signals are weak
+in-domain, and the strongest of them (keyword density) is both confounded
+(SNR~$38.4\!\to\!8.1$ against a general-domain corpus) and adversary-normalizable.
+SEVA deploys the geometric signal alone; the rest are the ablation.}
+\label{tab:signals}
+\begin{tabular}{llcl}
+\toprule
+Signal & Type & In-domain SNR & Status \\
+\midrule
+\texttt{cluster\_coh}  & geometric  & $5.99$  & \textbf{deployed} \\
+\texttt{kw\_density}   & keyword    & $8.10$  & confounded, normalizable \\
+\texttt{sent\_unif}    & structural & $1.40$  & ablated \\
+\texttt{topic\_drift}  & semantic   & $1.18$  & ablated \\
+\texttt{punct}         & structural & $1.04$  & ablated \\
+\texttt{doc\_length}   & structural & $0.92$  & ablated \\
+\texttt{avg\_sent\_len} & structural & $0.53$  & normalizable (L3) \\
+\texttt{content\_ttr}  & lexical    & $-1.09$ & ablated \\
+\texttt{ttr}           & lexical    & $-1.12$ & ablated \\
+\texttt{repeat\_rate}  & lexical    & $-0.48$ & excluded \\
+\bottomrule
+\end{tabular}
+\end{table}
+% [STEP3 / JSON snrs p010_s042]
 
 % =====================================================================================
 \section{Evaluation}
@@ -479,7 +542,7 @@ spending false positives.
 \begin{table}[t]
 \centering
 \caption{Primary in-domain results: Security Stack Exchange, $100{,}000$
-documents, three calibration seeds, mean\,$\pm$\,sample std (ddof\,$=$\,1). L1 is
+documents, mean\,$\pm$\,sample std ($n=3$ seeds, ddof\,$=$\,1). L1 is
 the full signal set (naive adversary); L2/L3 ablate the soft keyword and structure
 signals to model the keyword-dropping adaptive adversary. SEVA catches \emph{all}
 templated poison at L1 ($0\%$ ASR) across every density and seed; the L2/L3 rise
@@ -585,7 +648,7 @@ HotpotQA          & 9.06\% & \textbf{97\%} & 0\%  & 98\% \\
 
 \subsection{Lexical Duplicate Filtering Is Corpus-Fragile}
 \label{subsec:lex}
-Table~\ref{tab:xdomain} also answers the sharpest objection to a near-duplication
+Table~\ref{tab:xdomain} also answers the sharpest objection to a cohesion-based
 detector: that it merely reimplements the duplicate filtering PoisonedRAG itself
 tested and dismissed (\S7.3 of~\cite{poisonedrag}). It does not, and the
 cross-corpus sweep in Table~\ref{tab:roc} shows why. Lexical near-duplicate
@@ -799,6 +862,17 @@ cached, so it sees the injected cluster even when only one of its passages is
 retrieved for a given query---a view a per-query filter, which sees one retrieval
 window at a time, structurally cannot reconstruct. % [E4-HH]
 
+Three settings make the envelope concrete. \emph{On-device RAG}: a developer
+running a local retrieval corpus on a laptop can screen ingested documents in tens
+of milliseconds without shipping data to an API or loading a second model beside
+the generator. \emph{Offline and air-gapped systems}: because detection needs no
+network and no LLM, it runs where certified and provenance defenses---which assume
+a served LLM or a registration authority---cannot. \emph{Regulated, no-egress
+environments}: SEVA inspects the corpus in place, so no document leaves the
+deployment boundary. In each case the only standing cost is the corpus-level
+precompute; per-query detection is a threshold test, and re-screening after an
+ingestion batch touches only the new documents and their neighbourhoods.
+
 \subsection{Distillation Through Rigor}
 SEVA's final form is the product of an adversarial evaluation of its own earlier
 design. The ten-signal composite looked strong against a general-domain corpus and
@@ -815,9 +889,9 @@ adversary is the one worth deploying---even when it is not the highest-SNR signa
 in a permissive evaluation.
 
 \subsection{What Cluster Coherence Adds Over Deduplication}
-Cluster coherence is a near-duplication signal, but not the pairwise one a
-deduplicator computes, and that difference is what the cross-domain results
-expose. Because it averages similarity over a $K$-neighbour group rather than to a
+Cluster coherence is a group-cohesion signal---not the pairwise near-duplicate
+score a deduplicator computes---and that difference is what the cross-domain
+results expose. Because it averages similarity over a $K$-neighbour group rather than to a
 single nearest neighbour, it reads the multi-passage \emph{cluster} an injection
 forms, which gives it two properties a pairwise method lacks: a separation
 invariant to how large that cluster grows (Table~\ref{tab:coh}), and detection of
@@ -830,6 +904,26 @@ competitive baseline, and cluster coherence's advantage is clearest where the
 benign corpus is moderately redundant (Natural Questions) and narrows to parity
 where it is very sparse or very dense. We claim the former and disclose the
 latter.
+
+\subsection{The Cost of Evading the Geometric Gate}
+What must an adversary do to defeat the deployed detector? The gate fires on one
+property: that the passages injected for a target query form a tight neighbourhood
+in embedding space. Evading it therefore means injecting poison that does
+\emph{not} cluster---passages for the same target that are mutually dissimilar in
+the encoder's geometry---and that is in direct tension with the attack's own
+objective. PoisonedRAG-style poison must be retrieved for the target query, which
+requires semantic proximity to it; passages all close to one query are, in cosine
+geometry, close to one another. The more reliably the poison is retrieved, the more
+tightly it clusters, and the more visible it is to the gate. We observe this
+tension directly: a diversity-injection adaptive attack that deliberately spreads
+poison across multiple semantic frames, perturbing each passage to lower its
+cohesion, reduces poison cohesion only marginally and leaves every injected passage
+above the gate---SEVA holds $0\%$ attack-success against it. % [adaptive_diverse: cluster_coh robust to diversity injection; Table VIII, scoped]
+The adversary cannot cheaply purchase retrievability and dispersion at once; the
+cost-of-attack floor the geometry imposes is exactly what the soft, normalizable
+signals never had. The regime where this tension finally relaxes---single-document
+injection that mimics the clean distribution and forgoes the multi-passage cluster
+altogether---is the stated boundary of Section~\ref{sec:limits}.
 
 % =====================================================================================
 \section{Limitations}
@@ -871,7 +965,7 @@ and shows that the lexical duplicate filtering PoisonedRAG itself tested is
 corpus-fragile while semantic cohesion holds. % [PR-XDOMAIN]
 In a reproduced, shared-corpus, matched-FPR head-to-head it catches all templated
 poison to the per-query state of the art's $\sim$89\%, while running with no LLM,
-no API, and no pre-registration at $13$--$42$\,ms on commodity and laptop
+no API, and no pre-registration at $13$--$42$\,ms on consumer and laptop
 hardware. % [E4-HH, STEP3, LAT-M4]
 Its robustness comes from distillation: an adversarial evaluation of an earlier
 ten-signal design showed the soft signals to be domain-confounded and adaptively
@@ -879,6 +973,149 @@ fragile, and the geometric core is what remained. SEVA targets structured
 multi-passage injection; extending lightweight corpus-level detection to
 single-document, clean-mimicking injection, and validating the signal across
 encoders, are the natural next steps.
+
+% =====================================================================================
+\appendix
+
+\section{Per-Seed Confusion Matrices}
+\label{app:confusion}
+We report complete confusion counts for every in-domain condition, the per-seed
+reporting that the primary results (Table~\ref{tab:main}) summarize. Table~\ref{tab:confL1}
+gives the L1 (full signal set) matrices: every cell has $\mathrm{FN}=0$---no
+templated poison passage evades detection at any density or seed---which is the
+basis for the $0\%$ L1 attack-success. Table~\ref{tab:confL23} gives L2 and L3, the
+ablated composite, where $\mathrm{FN}>0$ is the adaptive collapse the geometric hard
+gate (Table~\ref{tab:core}) eliminates.
+
+\begin{table}[t]
+\centering
+\caption{Complete per-seed confusion matrices at L1 (full signal set), in-domain
+Security corpus. Every cell has $\mathrm{FN}=0$: the $0\%$ L1 attack-success of
+Table~\ref{tab:main} is exact, not rounded.}
+\label{tab:confL1}
+\begin{tabular}{llcccc}
+\toprule
+Density & Seed & TP & FN & FP & TN \\
+\midrule
+\multirow{3}{*}{1\%}  & 42  & 125 & 0 & 15 & 3287 \\
+                      & 7   & 125 & 0 & 24 & 3255 \\
+                      & 123 & 125 & 0 & 14 & 3222 \\
+\midrule
+\multirow{3}{*}{5\%}  & 42  & 138 & 0 & 17 & 3244 \\
+                      & 7   & 138 & 0 & 27 & 3231 \\
+                      & 123 & 138 & 0 & 17 & 3197 \\
+\midrule
+\multirow{3}{*}{10\%} & 42  & 156 & 0 & 13 & 3202 \\
+                      & 7   & 156 & 0 & 22 & 3196 \\
+                      & 123 & 156 & 0 & 15 & 3183 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Per-seed confusion at L2 and L3 (soft signals ablated), in-domain---the
+composite's adaptive collapse. The geometric hard gate (Table~\ref{tab:core})
+recovers $0\%$ ASR on these same conditions.}
+\label{tab:confL23}
+\begin{tabular}{llcccc}
+\toprule
+ & & \multicolumn{2}{c}{L2} & \multicolumn{2}{c}{L3} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Density & Seed & TP & FN & TP & FN \\
+\midrule
+\multirow{3}{*}{1\%}  & 42  & 71 & 54  & 70 & 55  \\
+                      & 7   & 71 & 54  & 76 & 49  \\
+                      & 123 & 68 & 57  & 70 & 55  \\
+\midrule
+\multirow{3}{*}{5\%}  & 42  & 54 & 84  & 54 & 84  \\
+                      & 7   & 70 & 68  & 70 & 68  \\
+                      & 123 & 54 & 84  & 54 & 84  \\
+\midrule
+\multirow{3}{*}{10\%} & 42  & 42 & 114 & 42 & 114 \\
+                      & 7   & 45 & 111 & 45 & 111 \\
+                      & 123 & 42 & 114 & 42 & 114 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Attack Construction}
+\label{app:attack}
+\emph{Templated poison (in-domain).} For each target query we inject multiple
+passages generated from a shared security-domain template, so the injected set for
+a query is internally homogeneous; contamination is swept at $1\%$, $5\%$, and
+$10\%$ of the corpus. \emph{Released PoisonedRAG (cross-domain).} We use the attack
+authors' published adversarial passages~\cite{poisonedrag} for Natural Questions
+and HotpotQA ($100$ target queries, $5$ passages each), following their released
+construction in which each passage prepends the target question to an LLM-crafted
+payload satisfying both retrieval and generation objectives; we add no
+re-implementation of our own. \emph{Adaptive adversary (L2/L3).} We model the
+keyword-dropping adversary by normalizing the soft signals at the feature
+level---keyword density at L2, keyword density and sentence-length structure at
+L3---without embedding-space optimization, which is the capability the geometric
+gate is built to withstand.
+
+\section{Calibration Thresholds and Reproducibility}
+\label{app:repro}
+Table~\ref{tab:tau} lists the calibrated thresholds. The deployed geometric gate
+sits well below poison coherence ($\approx\!0.99$) and above clean
+($\approx\!0.75$) on every corpus. All results use BAAI/bge-large-en-v1.5
+($1024$-d, $\ell_2$-normalized) with a FAISS HNSW index ($M=32$,
+$\mathrm{efConstruction}=200$); cluster coherence uses $K=5$ with
+$K_{\mathrm{FETCH}}=20$ over-fetch. In-domain runs use calibration seeds $42$, $7$,
+$123$ over $2{,}000$ benign queries split $60/40$ between calibration and
+evaluation, at a $0.0069$ false-positive target throughout. Detection is measured
+on an RTX 5080 (CUDA) and an Apple M4; the geometric statistic is deterministic
+given the index, and detection results are stable across CUDA GPUs. Per-condition
+artifacts (confusion counts, thresholds, latencies) are recorded per seed and
+density.
+
+\begin{table}[t]
+\centering
+\caption{Calibrated thresholds. The geometric gate (deployed) and the composite
+tiers (ablation), in-domain ranges shown across $1$--$10\%$ density.}
+\label{tab:tau}
+\begin{tabular}{lc}
+\toprule
+Detector / corpus & $\tau$ \\
+\midrule
+Geometric gate --- Security (in-domain) & $\approx 0.84$ \\
+Geometric gate --- Natural Questions    & $0.832$ \\
+Geometric gate --- HotpotQA             & $0.804$ \\
+Composite L1 --- Security ($1\%\!\to\!10\%$) & $0.58 \to 0.64$ \\
+Composite L2 --- Security               & $0.67 \to 0.77$ \\
+Composite L3 --- Security               & $0.69 \to 0.77$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Defense Capability Comparison}
+\label{app:compare}
+Table~\ref{tab:caps} positions SEVA against the defenses PoisonedRAG and its
+successors evaluate, by deployment capability rather than by lifted attack-success
+numbers (which the head-to-head of Section~\ref{subsec:h2h} replaces with a
+reproduced measurement). SEVA is the only entry that is simultaneously LLM-free,
+decoder-free, registration-free, corpus-level, and evaluated across the $1$--$10\%$
+density band.
+
+\begin{table}[t]
+\centering
+\caption{Deployment-capability comparison (factual properties of each defense, per
+its publication; not lifted ASR numbers). $\checkmark$ = property held.}
+\label{tab:caps}
+\begin{tabular}{lccccc}
+\toprule
+Defense & \rotatebox{90}{LLM-free\,} & \rotatebox{90}{No decoder\,} &
+\rotatebox{90}{No pre-reg.\,} & \rotatebox{90}{Corpus-level\,} & Density \\
+\midrule
+RobustRAG~\cite{robustrag}    & $\times$\,($5\times$) & $\checkmark$ & $\checkmark$ & $\times$ & $\sim$0.001\% \\
+AV Filter~\cite{avfilter}     & $\times$ & $\times$ & $\checkmark$ & $\times$ & $\sim$0.001\% \\
+RAGShield~\cite{ragshield}    & $\checkmark$ & $\checkmark$ & $\times$ & --- & $\sim$0.001\% \\
+RAGDefender~\cite{ragdefender}& $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & $\sim$1\% \\
+\textbf{SEVA (ours)}          & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & \textbf{1--10\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % =====================================================================================
 % REFERENCES --- carried over from v7.1.3 (drop-in) + Ckpt-3 additions:
