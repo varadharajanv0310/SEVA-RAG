@@ -630,4 +630,12 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Held (rejected-for-risk):** "beats embedding dedup" (s_nd parity on HotpotQA), "first LLM-free detector" (RAGDefender is), drop single-doc boundary, "defeats adaptive" (general), Semantic-Chameleon 13–62× (unverified), remove the idealized-RAGDefender caveat, round NQ 82% up, wikitext Table-VIII. All 8 HELD.
 - **Post-checks:** bibliography **27→30**; citation integrity **0 orphans / 0 dangling** (all 30 cited); percent-escaping clean; **13 tables + Algorithm 1 balanced** (tab:xdomain now 6 cols). **No KILLED/SUPERSEDED claim re-entered.** `% [TAG]` provenance markers **intact — NOT stripped** (needed for the final claims-audit).
 
+---
+
+## V8-AUDIT · venue verification + final claims-audit (tags retained)
+- **Added** 2026-06-02 · **Venues (web-verified):** RAGShield → **arXiv:2604.00387, 2026** (was bare "2026"; verified preprint, K. Patil). CatPoison → **verified REAL** (IEEE Xplore doc 11354808, IEEE conf.) but "TrustCom"/authors not web-confirmable (Xplore HTTP 418) → in-file `% CONFIRM` flag, author to verify. AutoTPA → **UNVERIFIABLE** (4 web searches incl. exact title + HCEA/IVRG terms found NO trace; carried from v7.1.3) → in-file `% UNVERIFIED` flag, **author: confirm exact cite or CUT** (non-load-bearing breadth cite, only use = §II "95.5% retrieval success").
+- **Final claims-audit:** walked all ~60 `% [TAG]` markers against the source JSONs (9× `seva_v6_2_...`), STEP3, and the E-CAL/SEEDS/CHEAP-MUST/PR-GATE/PR-XDOMAIN/E4-HH log entries. **Every quantitative claim traces cleanly.** **NO killed/superseded claim survived** (no multi-signal hero, no C2/C3/C5 soft-signal theory, no sub-2 ms, no number-lifted comparison, no wikitext-invariance, no M4-26 ms, no "graceful degradation").
+- **Audit caught 3 residual instances of approved F1/F2 fixes** in non-enumerated locations (intro §I-B + conclusion) — the same "released/cross-domain 82–98%" (F1) and "0.58%/three-seed" (F2) issues — **applied to match** so abstract/intro/conclusion are now consistent ("82–98% across three corpora, provenance split"; "0% across three seeds, 0.58% frozen"). Plus 1 minor precision: §V-D "up to 2%"→"below 2%" (NQ MinHash = 100% at exactly 2% per tab:roc).
+- **`% [TAG]` markers RETAINED — NOT stripped.** Tag-strip is the deferred final step (author's call).
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*

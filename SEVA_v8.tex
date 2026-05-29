@@ -159,10 +159,11 @@ domain shortcut most defense evaluations enjoy; contamination densities of
 released PoisonedRAG poison across three corpora; and a reproduced,
 shared-corpus, matched-FPR head-to-head against the per-query state of the
 art. % [E-CAL-1, SEEDS-1, PR-XDOMAIN, E4-HH]
-Across this protocol SEVA holds 0\% attack-success on templated poison in-domain
-and catches the released attack cross-domain at 82--98\%, while lexical
+Across this protocol SEVA catches templated poison in-domain at 0\% attack-success,
+and PoisonedRAG's own poison at 82--98\% across three corpora (released on Natural
+Questions and HotpotQA, a faithful black-box on the Security corpus), while lexical
 duplicate filtering---the defense PoisonedRAG itself tested---fails entirely at
-matched false-positive rate on duplicate-dense corpora. % [E-CAL-1, PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
+matched false-positive rate on duplicate-dense corpora. % [E-CAL-1, PR-GATE-1, PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
 
 \subsection{Contributions}
 SEVA makes the following contributions. Each empirical claim is traceable to a
@@ -706,7 +707,7 @@ injected passages' shared $n$-grams. But on Natural Questions and HotpotQA---who
 benign passage duplication is $5\times$ and $38\times$ higher---holding the same
 $0.69\%$ false-positive rate forces the lexical threshold \emph{above} the
 injected passages' overlap, and the filter catches \emph{nothing} ($0\%$ at every
-deployable FPR up to $2\%$) while cluster coherence still catches
+deployable FPR below $2\%$) while cluster coherence still catches
 $82$--$97\%$. % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
 Lexical filtering's effectiveness is thus a property of the corpus, not of the
 attack---the fragility that makes it unreliable, and that \S7.3 of PoisonedRAG
@@ -1008,10 +1009,11 @@ signal across additional encoders is future work.
 We presented SEVA, a lightweight, LLM-free detector of templated multi-passage
 corpus poisoning---the dominant published attack---built on a single geometric
 signal operated as a hard gate. SEVA detects the attack at $0\%$ attack-success
-and $0.58\%$ document-FPR in-domain under frozen, non-oracle, three-seed
+across three seeds and $0.58\%$ document-FPR in-domain under frozen, non-oracle
 calibration, % [E-CAL-1, SEEDS-1]
-catches the attack authors' own released poison cross-domain at $82$--$98\%$ across
-three corpora, % [PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
+catches PoisonedRAG's poison at $82$--$98\%$ across three corpora (released on
+Natural Questions and HotpotQA; a faithful black-box on the in-domain Security
+corpus), % [PR-GATE-1, PR-XDOMAIN, PR-XDOMAIN-HOTPOT]
 and shows that the lexical duplicate filtering PoisonedRAG itself tested is
 corpus-fragile while semantic cohesion holds. % [PR-XDOMAIN]
 In a reproduced, shared-corpus, matched-FPR head-to-head it catches all templated
@@ -1183,9 +1185,9 @@ RAGDefender~\cite{ragdefender}& $\checkmark$ & $\checkmark$ & $\checkmark$ & $\t
 \bibitem{avfilter} S. Choudhary, N. Palumbo, A. Hooda, K. Dvijotham, and S. Jha, ``Through the stealth lens: Rethinking attacks and defenses in RAG,'' 2025.
 \bibitem{robustrag} C. Xiang, T. Wu, Z. Zhong, D. Wagner, D. Chen, and P. Mittal, ``Certifiably robust RAG against retrieval corruption,'' in \emph{Proc. International Conference on Machine Learning (ICML)}, 2024.
 \bibitem{ragdefender} M. Kim, H. Lee, and H. Koo, ``Rescuing the unpoisoned: Efficient defense against knowledge corruption attacks on RAG systems,'' in \emph{Annual Computer Security Applications Conference (ACSAC)}, 2025.
-\bibitem{catpoison} H. Mei, Z. Du, C. Cai, C. Cheng, and J. Chen, ``CatPoison: Category-oriented knowledge poisoning attacks in retrieval-augmented generation systems,'' in \emph{IEEE TrustCom}, 2025.
-\bibitem{autotpa} C. Jin, J. Ma, X. Chen, Y. Ma, and Z. Zhou, ``AutoTPA: Automated and efficient trigger-targeted data poisoning in retrieval-augmented generation,'' in \emph{IEEE ICPADS}, 2025.
-\bibitem{ragshield} K. Patil, ``RAGShield: Provenance-verified defense-in-depth against knowledge base poisoning in government retrieval-augmented generation systems,'' 2026.
+\bibitem{catpoison} H. Mei, Z. Du, C. Cai, C. Cheng, and J. Chen, ``CatPoison: Category-oriented knowledge poisoning attacks in retrieval-augmented generation systems,'' in \emph{IEEE TrustCom}, 2025. % CONFIRM venue: paper verified real (IEEE Xplore doc 11354808, IEEE conf.); TrustCom/authors not web-confirmable (Xplore page bot-blocked, HTTP 418) -- author verify before submission
+\bibitem{autotpa} C. Jin, J. Ma, X. Chen, Y. Ma, and Z. Zhou, ``AutoTPA: Automated and efficient trigger-targeted data poisoning in retrieval-augmented generation,'' in \emph{IEEE ICPADS}, 2025. % UNVERIFIED -- 4 web searches (incl. exact title + HCEA/IVRG terms) found NO trace; carried from v7.1.3. Author: CONFIRM exact citation or CUT (non-load-bearing breadth cite, only use = Sec II "95.5% retrieval success")
+\bibitem{ragshield} K. Patil, ``RAGShield: Provenance-verified defense-in-depth against knowledge base poisoning in government retrieval-augmented generation systems,'' arXiv preprint arXiv:2604.00387, 2026.
 \bibitem{regain} S. Shajarian, K. Marsh, J. Benson, S. Khorsandroo, and M. Abdelsalam, ``ReGAIN: Retrieval-grounded AI framework for network traffic analysis,'' 2025.
 \bibitem{bge} S. Xiao, Z. Liu, P. Zhang, and N. Muennighoff, ``C-Pack: Packed resources for general Chinese embeddings,'' 2023.
 \bibitem{faiss} M. Douze, A. Guzhva, C. Deng, J. Johnson, G. Szilvasy, P.-E. Mazar\'{e}, M. Lomeli, L. Hosseini, and H. J\'{e}gou, ``The FAISS library,'' 2024.
