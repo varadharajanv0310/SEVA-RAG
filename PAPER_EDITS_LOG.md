@@ -587,4 +587,36 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **6 polish flags applied** (author-directed): (1) "near-duplication signal/detector"→"group-cohesion"/"cohesion-based" (the 2 places it *named* our method; descriptive uses kept); (2) abstract scoped — 0% across 3 seeds, 0.58% = frozen E-CAL-1 point (no blur); (3) explicit "to our knowledge, the first" on the 2 clean firsts only (reproduced H2H = C5; lexical corpus-fragility = C6); (4) "commodity GPU"→"consumer GPU" (RTX 5080 is high-end consumer); (5) `0.705` tagged `% [STEP3]`; (6) C3 "pairwise dedup lacks"→framed as structural ("comparing two documents at a time, structurally cannot provide"). ddof=1 kept (caption now states `n=3 seeds, ddof=1` as v7.1.3 did).
 - **Reconciliation re-confirmed:** nothing from KILLED/SUPERSEDED re-entered. The signal-inventory table is the prescribed "relegate Table I to ablation"; the capability table is the prescribed non-number-lifted replacement for Table IX; adaptive_diverse kept qualitative to avoid wikitext-number re-entry.
 
+---
+
+## V8-REFS · reference-completeness + final-polish pass
+- **Added** 2026-06-02 · **Origin** reference completeness pass on `SEVA_v8.tex`. Bibliography **20 → 27** refs; every \bibitem cited, every \cite resolved (cross-checked, **0 orphans, 0 dangling**).
+- **Verification discipline:** every NEW ref verified against the live web (WebSearch + arXiv WebFetch for exact title/authors/year/ID) before citing — **none fabricated**. Author lists pulled from arXiv, not memory.
+
+**5 orphaned v7.1.3 refs repurposed (not pruned) — each now cited where its content is used:**
+| Ref | Now cited at | Engagement |
+|---|---|---|
+| `wikitext` (Merity'17) | §V-C geometry | the general-domain corpus in the SNR 5.8–6.0 vs ~4.7 contrast |
+| `gcg` (Zou'23) | App. B attack construction | optimization-based embedding attacks the gate withstands |
+| `autodan` (Liu'24) | App. B attack construction | same (gradient/jailbreak optimization) |
+| `shap` (Lundberg'17) | §VI-B distillation | why ablation, not learned feature attribution, under adaptation |
+| `regain` (Shajarian'25) | §I-B deployment motivation | retrieval in security-critical/network settings |
+
+**7 NEW refs added (web-verified) — cited where engaged:**
+| Ref | arXiv / venue | Placement |
+|---|---|---|
+| `thornton2026` Semantic Chameleon (S. Thornton) | 2603.18034, 2026 | NEW §II "Corpus-Dependent Detection" + corroborates in-domain control. **CLOSEST related work** (uses Security-SE too, finds corpus-dependent detection) |
+| `trustrag` (H. Zhou et al.) | 2501.00879, 2025 | §II defenses — clustering + **LLM self-assessment** (cost SEVA avoids) |
+| `poisoncraft` (Y. Shao et al.) | 2505.06579, 2025 | §II attacks — query-agnostic retrieval |
+| `corruptrag` (B. Zhang et al.) | 2504.03957, 2025 | §II attacks + **§VII boundary** (single-injection = our out-of-scope regime) |
+| `garag` (S. Cho et al.) | Findings of EMNLP 2024 | §II attacks — perturbation/genetic |
+| `mutedrag` (P. Suo et al.) | 2504.21680, 2025 | §II attacks — DoS/guardrail (scope delineation) |
+| `ragpoisonbench` (B. Zhang et al.) | 2505.18543, 2025 | §II — 13-attack/7-defense benchmark consolidating the field |
+- **FLAG for author:** Semantic Chameleon's specific "**13–62× technical-vs-general**" figure was NOT surfaced in verification (web confirmed only the *qualitative* corpus-dependent finding + 0% FEVER vs 38% Security-SE ASR). I cite the verified qualitative claim and left an in-file `% CONFIRM` note; **do not state 13–62× numerically until confirmed against the paper.**
+- **Confirmed already-cited where used:** minhash, simhash (§II, §V-E), nq, hotpotqa, beir, bge, faiss, hnsw (§V-A setup).
+
+**Item 3 — polish confirmations (both IN):** (a) "near-duplication signal"→"**group-cohesion signal**" at §VI-C (line 892) ✓; (b) "**to our knowledge, the first**" on exactly the two cleanest firsts — C5 reproduced matched-FPR head-to-head (line 203) and C6 lexical-dedup corpus-fragility (line 209) ✓.
+
+**Item 4 — primary-table L2/L3 verification:** L2=L3 at 5%/10% is **GENUINE, not a paste error**, confirmed against the 9 source JSONs. At 5%/10% the L2 and L3 result blocks are byte-identical because `avg_sent_len` already falls below the SNR gate and is excluded from L2 at those densities, so L3's extra ablation has no effect; at **1% they DO diverge** (L2 44.0±1.4 vs L3 42.4±2.8) because L2 still carries `avg_sent_len` there. Added a clarifying note to the `tab:main` caption so no reviewer reads it as a copy-paste error.
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*

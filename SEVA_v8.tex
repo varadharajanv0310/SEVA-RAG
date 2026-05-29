@@ -134,9 +134,10 @@ adaptive adversary. Cryptographic provenance schemes such as
 RAGShield~\cite{ragshield} require re-registration of the entire corpus. The
 closest peer to our setting, RAGDefender~\cite{ragdefender}, is an LLM-free
 post-retrieval filter, and is the baseline we reproduce head-to-head. As local
-and laptop-class RAG proliferates, a defense must increasingly run where the
-corpus lives---on consumer or Apple-Silicon hardware, offline, with no LLM in
-the loop and no per-query model call.
+and laptop-class RAG proliferates---reaching security-critical workflows from
+compliance to network-traffic analysis~\cite{regain}---a defense must increasingly
+run where the corpus lives: on consumer or Apple-Silicon hardware, offline, with no
+LLM in the loop and no per-query model call.
 
 SEVA meets exactly that envelope. It detects the templated multi-passage attack
 with a single per-document geometric signal---the local $K$-nearest-neighbour
@@ -224,9 +225,19 @@ attack-success with five injected passages in corpora of up to millions of
 documents. CatPoison~\cite{catpoison} lifts instance-level attacks to the
 category level by anchoring poisoned embeddings near category-query centroids
 (mean 80.1\% attack-success). AutoTPA~\cite{autotpa} automates trigger-targeted
-poisoning, reporting 95.5\% retrieval success. SEVA targets the templated,
-multi-passage family these attacks define---the regime in which poison enters
-the corpus as a cluster of mutually similar passages.
+poisoning, reporting 95.5\% retrieval success. More recent attacks shrink the
+attacker's footprint: PoisonCraft~\cite{poisoncraft} achieves retrieval without
+access to the target query, and CorruptRAG~\cite{corruptrag} succeeds with a
+\emph{single} injected text per target, trading the multi-passage cluster for
+stealth. Others move the threat elsewhere---GARAG~\cite{garag} degrades retrieval
+through low-level document perturbations, and MutedRAG~\cite{mutedrag} induces
+denial of service by tripping LLM safety guardrails rather than corrupting
+answers; a recent benchmark consolidates thirteen such attacks against seven
+defenses~\cite{ragpoisonbench}. SEVA targets the templated, multi-passage family
+PoisonedRAG defines---the regime in which poison enters the corpus as a cluster of
+mutually similar passages. Single-injection attacks that forgo that cluster
+(Section~\ref{sec:limits}) and availability attacks such as denial of service lie
+outside this scope.
 
 \subsection{Defenses and Their Deployment Cost}
 Detectors that do not call an LLM have been limited in power: perplexity-based
@@ -240,7 +251,10 @@ Filter~\cite{avfilter} requires decoder attention access and reaches 35\%
 attack-success under an adaptive GCG-Poison adversary. RAGShield~\cite{ragshield}
 achieves 0\% attack-success against external injection but requires cryptographic
 re-registration of the corpus and still exhibits 17.5\% insider attack-success.
-RAGDefender~\cite{ragdefender} is the closest peer to SEVA---an LLM-free
+TrustRAG~\cite{trustrag} pairs $k$-means clustering of retrieved documents with an
+LLM self-assessment stage: the clustering is LLM-free, but the second stage
+reintroduces exactly the per-query LLM call that on-device deployment is trying to
+avoid. RAGDefender~\cite{ragdefender} is the closest peer to SEVA---an LLM-free
 post-retrieval ML filter reporting roughly 7.5--12.5\% attack-success at about
 1\% density, and, like SEVA, it evaluates an adaptive adversary of its own. We
 take RAGDefender as our head-to-head baseline and reproduce it on a shared corpus
@@ -264,6 +278,20 @@ the cluster-coherence signal continues to detect it. % [PR-XDOMAIN, PR-XDOMAIN-H
 We additionally report embedding-based near-duplicate detection (maximum cosine
 to the nearest corpus neighbour) as a competitive baseline; cluster coherence
 matches or exceeds it, with a clear edge on Natural Questions. % [PR-XDOMAIN]
+
+\subsection{Corpus-Dependent Detection}
+Closest to our methodology is the concurrent work of Thornton~\cite{thornton2026},
+who studies gradient-optimized corpus poisoning on, among others, a Security Stack
+Exchange corpus and finds detection to be strongly \emph{corpus-dependent}:
+technical corpora absorb the attack's vocabulary and blunt keyword-based
+detection, while general-domain corpora expose it as a vocabulary anomaly. This
+independently corroborates the choice at the center of our evaluation---an
+in-domain control corpus (Section~\ref{subsec:main})---and the collapse of the
+soft keyword signal we ablate (Table~\ref{tab:signals}): a detector validated only
+against a general-domain background can mistake domain contrast for poison
+detection. Our result is complementary, and the constructive answer to that
+difficulty: a single geometric signal whose separation \emph{rises} in-domain,
+deployed as an LLM-free hard gate. % [thornton2026 corroborates domain-confound; the specific "13-62x technical-vs-general" figure is AUTHOR-SUPPLIED and not surfaced in verification -- CONFIRM before stating it numerically]
 
 % =====================================================================================
 \section{Threat Model}
@@ -547,7 +575,10 @@ the full signal set (naive adversary); L2/L3 ablate the soft keyword and structu
 signals to model the keyword-dropping adaptive adversary. SEVA catches \emph{all}
 templated poison at L1 ($0\%$ ASR) across every density and seed; the L2/L3 rise
 is the multi-signal composite's adaptive collapse---the ablation of
-\S\ref{subsec:core}, which the geometric hard gate eliminates ($0\%$, Table~\ref{tab:core}).}
+\S\ref{subsec:core}, which the geometric hard gate eliminates ($0\%$, Table~\ref{tab:core}).
+L2 and L3 coincide at $5$--$10\%$ density because \texttt{avg\_sent\_len} falls
+below the SNR gate and is already excluded from L2 there, so L3's further ablation
+has no effect; they diverge at $1\%$, where L2 still carries it.}
 \label{tab:main}
 \begin{tabular}{llcc}
 \toprule
@@ -575,8 +606,9 @@ The signal underlying the L1 result is the cluster-coherence gap
 and templated poison at $\approx 0.99$---a separation of $+0.235$ to $+0.247$ at
 an SNR of $5.8$--$6.0$. % [STEP3]
 Two facts matter. First, the separation is \emph{larger} in-domain than against a
-general-domain corpus, where the same signal measures an SNR near $4.7$: cluster
-coherence is not a domain-contrast artifact: it reads the internal homogeneity of
+general-domain corpus (WikiText-103~\cite{wikitext}), where the same signal
+measures an SNR near $4.7$: cluster coherence is not a domain-contrast artifact---%
+it reads the internal homogeneity of
 the injected cluster, a property of the templating process, not of the topic.
 Second, the gap is essentially flat across $1$--$10\%$ contamination (range
 $0.009$). The mechanism is that $K=5$ is tiny against $100{,}000$ documents, so a
@@ -886,7 +918,10 @@ therefore report the composite not as the detector but as an ablation, and regar
 the lesson as transferable: for anomaly detectors built from heterogeneous
 signals, the signal that survives a domain-confound control and an adaptive
 adversary is the one worth deploying---even when it is not the highest-SNR signal
-in a permissive evaluation.
+in a permissive evaluation. We reached the geometric core by ablation rather than
+by learned feature attribution such as SHAP~\cite{shap}; attribution computed on a
+permissive evaluation would have rewarded precisely the high-SNR soft signals an
+adaptive adversary then strips away.
 
 \subsection{What Cluster Coherence Adds Over Deduplication}
 Cluster coherence is a group-cohesion signal---not the pairwise near-duplicate
@@ -933,8 +968,9 @@ claimed regime.
 
 \emph{Single-document diffuse injection.} SEVA detects structured multi-passage
 injection through the cluster it forms. A single document crafted to statistically
-mimic the clean corpus exhibits no such cluster and lies outside SEVA's geometric
-scope; detecting injections that leave no duplication footprint with a
+mimic the clean corpus---as in single-injection attacks~\cite{corruptrag}---exhibits
+no such cluster and lies outside SEVA's geometric scope; detecting injections that
+leave no duplication footprint with a
 lightweight, LLM-free, corpus-level signal remains open.
 
 \emph{Calibration assumption.} Like any calibrated detector, SEVA assumes access
@@ -1052,7 +1088,8 @@ payload satisfying both retrieval and generation objectives; we add no
 re-implementation of our own. \emph{Adaptive adversary (L2/L3).} We model the
 keyword-dropping adversary by normalizing the soft signals at the feature
 level---keyword density at L2, keyword density and sentence-length structure at
-L3---without embedding-space optimization, which is the capability the geometric
+L3---without embedding-space optimization---gradient-based methods such as
+GCG~\cite{gcg} or AutoDAN~\cite{autodan}, which is the capability the geometric
 gate is built to withstand.
 
 \section{Calibration Thresholds and Reproducibility}
@@ -1147,6 +1184,13 @@ RAGDefender~\cite{ragdefender}& $\checkmark$ & $\checkmark$ & $\checkmark$ & $\t
 \bibitem{nq} T. Kwiatkowski, J. Palomaki, O. Redfield, M. Collins, A. Parikh, C. Alberti, D. Epstein, I. Polosukhin, J. Devlin, K. Lee \emph{et al.}, ``Natural Questions: A benchmark for question answering research,'' \emph{Trans. Assoc. Comput. Linguistics}, vol. 7, pp. 453--466, 2019.
 \bibitem{hotpotqa} Z. Yang, P. Qi, S. Zhang, Y. Bengio, W. W. Cohen, R. Salakhutdinov, and C. D. Manning, ``HotpotQA: A dataset for diverse, explainable multi-hop question answering,'' in \emph{Proc. Conf. on Empirical Methods in Natural Language Processing (EMNLP)}, 2018.
 \bibitem{beir} N. Thakur, N. Reimers, A. R\"{u}ckl\'{e}, A. Srivastava, and I. Gurevych, ``BEIR: A heterogeneous benchmark for zero-shot evaluation of information retrieval models,'' in \emph{NeurIPS Datasets and Benchmarks Track}, 2021.
+\bibitem{thornton2026} S. Thornton, ``Semantic Chameleon: Corpus-dependent poisoning attacks and defenses in RAG systems,'' arXiv preprint arXiv:2603.18034, 2026.
+\bibitem{trustrag} H. Zhou, K.-H. Lee, Z. Zhan, Y. Chen, Z. Li, Z. Wang, H. Haddadi, and E. Yilmaz, ``TrustRAG: Enhancing robustness and trustworthiness in retrieval-augmented generation,'' arXiv preprint arXiv:2501.00879, 2025.
+\bibitem{poisoncraft} Y. Shao, X. Lin, H. Luo, C. Hou, G. Xiong, J. Yu, and J. Shi, ``PoisonCraft: Practical poisoning of retrieval-augmented generation for large language models,'' arXiv preprint arXiv:2505.06579, 2025.
+\bibitem{corruptrag} B. Zhang, Y. Chen, Z. Liu, L. Nie, T. Li, Z. Liu, and M. Fang, ``Practical poisoning attacks against retrieval-augmented generation,'' arXiv preprint arXiv:2504.03957, 2025.
+\bibitem{garag} S. Cho, S. Jeong, J. Seo, T. Hwang, and J. C. Park, ``Typos that broke the RAG's back: Genetic attack on RAG pipeline by simulating documents in the wild via low-level perturbations,'' in \emph{Findings of the Association for Computational Linguistics: EMNLP}, 2024.
+\bibitem{mutedrag} P. Suo, Y.-M. Shang, S.-C. Guo, and X. Zhang, ``Hoist with his own petard: Inducing guardrails to facilitate denial-of-service attacks on retrieval-augmented generation of LLMs,'' arXiv preprint arXiv:2504.21680, 2025.
+\bibitem{ragpoisonbench} B. Zhang, H. Xin, J. Li, D. Zhang, M. Fang, Z. Liu, L. Nie, and Z. Liu, ``Benchmarking poisoning attacks against retrieval-augmented generation,'' arXiv preprint arXiv:2505.18543, 2025.
 \end{thebibliography}
 
 \end{document}
