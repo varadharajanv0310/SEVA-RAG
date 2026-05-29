@@ -619,4 +619,15 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 **Item 4 — primary-table L2/L3 verification:** L2=L3 at 5%/10% is **GENUINE, not a paste error**, confirmed against the 9 source JSONs. At 5%/10% the L2 and L3 result blocks are byte-identical because `avg_sent_len` already falls below the SNR gate and is excluded from L2 at those densities, so L3's extra ablation has no effect; at **1% they DO diverge** (L2 44.0±1.4 vs L3 42.4±2.8) because L2 still carries `avg_sent_len` there. Added a clarifying note to the `tab:main` caption so no reviewer reads it as a copy-paste error.
 
+---
+
+## V8-POLISH · adversarial polish pass — findings F1–F16 applied
+- **Added** 2026-06-02 · **Origin** full two-pass adversarial read of `SEVA_v8.tex` (Strength×Risk matrix); all 16 approved findings applied. · 8 rejected-for-risk items HELD; A1/A2 awareness items left as-is.
+- **F1 (CRITICAL — provenance):** fixed the "released"/"cross-domain" mislabel of the **in-domain Security corpus** in abstract, C2, §V-C, + a new §V-A sentence. Security-SE = **faithful black-box PoisonedRAG (authors' attack code)**; the **released** poison is **NQ + HotpotQA only**. Also fixed the in-file TAG LEGEND PR-GATE-1 "RELEASED"→"BLACK-BOX" so the error can't regenerate. *(PoisonedRAG ships released poison only for general-domain benchmarks — Security-SE has none, so claiming "released" there was falsifiable from PoisonedRAG's public repo.)*
+- **F2** C2 0.58%/3-seed scoping (mirror the abstract fix). **F3** 89%→~89% (abstract, C5). **F4** §V "44–73%"→"42–72%" (match tab:main means). **F5** appendix-B em-dash closed. **F9** RobustRAG venue NeurIPS-2025→**ICML-2024** (web-verified, arXiv 2405.15556). **F10** Thornton "concurrent"→"recent" (arXiv Mar 2026).
+- **F6/F7/F8 (foundational cites, web-verified):** `lewis2020` (RAG, §I-A), `contriever` (Izacard TMLR 2022, §V-A), `lof` (Breunig SIGMOD 2000, §IV-A — frames cluster_coh as an *inverted* local-outlier signal: poison is anomalous by being *more* locally cohesive).
+- **F11** abstract head-to-head deployability kicker (RAGDefender reaches ~89% only at a FPR discarding ~half the clean corpus) [E4-HH 50.4%]. **F12** tab:xdomain + **Resid.-ASR column** (100→2/18/3%). **F13** %-convention standardized across tab:xdomain/tab:roc. **F14** tab:signals kw_density "(L2)". **F15** C-Pack title corrected. **F16** SNR expanded at first use (C4).
+- **Held (rejected-for-risk):** "beats embedding dedup" (s_nd parity on HotpotQA), "first LLM-free detector" (RAGDefender is), drop single-doc boundary, "defeats adaptive" (general), Semantic-Chameleon 13–62× (unverified), remove the idealized-RAGDefender caveat, round NQ 82% up, wikitext Table-VIII. All 8 HELD.
+- **Post-checks:** bibliography **27→30**; citation integrity **0 orphans / 0 dangling** (all 30 cited); percent-escaping clean; **13 tables + Algorithm 1 balanced** (tab:xdomain now 6 cols). **No KILLED/SUPERSEDED claim re-entered.** `% [TAG]` provenance markers **intact — NOT stripped** (needed for the final claims-audit).
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
