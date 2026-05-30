@@ -115,4 +115,14 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 ---
 
 ## Entries — Group: Experiment-driven edits
-*(none yet — appended per the Standing rule as E1 / E1b / E2 / E3 / E4-HH / E5 / E6 / E7 complete)*
+
+### E2-1 · In-domain clean corpus (domain-confound fix, Limitation 2)
+- **Added:** 2026-05-30 · **Origin:** E2 / Limitation 2
+- **Location:** dataset/corpus section (wherever clean = WikiText-103 is described); Limitation 2; method §III.
+- **OLD:** clean corpus = WikiText-103 (general domain); poison = security-domain templates → domain-confounded (clean and poison differ in BOTH domain and templating).
+- **NEW:** clean corpus = **Security Stack Exchange Q&A** (in-domain, diverse human-written; source `flax-sentence-embeddings/stackexchange_title_body_jsonl :: security.stackexchange.com`, CC-BY-SA). Poison stays security-templated → **domain controlled**; the only distinguishing feature of poison becomes templating/near-duplication. Add the clean-cohesion precheck as a validity control.
+- **Precheck result (provenance: `precheck_cohesion.py`, 8000-doc sample):** clean cohesion **mean = 0.6973** (median 0.6974, p90 0.752; 0 near-duplicates) vs WikiText clean ~0.73 and poison ~0.99 → in-domain clean is at least as diverse as WikiText; confound-kill premise confirmed.
+- **Provenance:** `precheck_cohesion.py` (sample). Final Table I/II/V/VI/VII numbers (incl. R-4 ratio) → Step-3 E2 baseline run.
+- **Status:** PROVISIONAL (→ Step 3 baseline) — corpus methodology + diversity validated; the new baseline numbers come from the 100k 3-seed run.
+
+*(further entries appended per the Standing rule as E1 / E1b / E3 / E4-HH / E5 / E6 / E7 complete)*
