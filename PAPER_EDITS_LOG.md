@@ -638,4 +638,14 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Audit caught 3 residual instances of approved F1/F2 fixes** in non-enumerated locations (intro §I-B + conclusion) — the same "released/cross-domain 82–98%" (F1) and "0.58%/three-seed" (F2) issues — **applied to match** so abstract/intro/conclusion are now consistent ("82–98% across three corpora, provenance split"; "0% across three seeds, 0.58% frozen"). Plus 1 minor precision: §V-D "up to 2%"→"below 2%" (NQ MinHash = 100% at exactly 2% per tab:roc).
 - **`% [TAG]` markers RETAINED — NOT stripped.** Tag-strip is the deferred final step (author's call).
 
+---
+
+## V8-FINAL · CatPoison confirmed · AutoTPA cut · all internal markers stripped — submission-clean `.tex`
+- **Added** 2026-06-02 · final pre-submission pass on `SEVA_v8.tex`.
+- **CatPoison:** TrustCom 2025 **CONFIRMED by author** (IEEE 24th Intl. Conf. on Trust, Security and Privacy in Computing and Communications, Guiyang, Nov 2025, DOI 10.1109/Trustcom66490.2025.00254). `% CONFIRM` flag removed; bibitem kept as ``in IEEE TrustCom, 2025'' (accurate).
+- **AutoTPA:** **CUT** (unverifiable after 4 web searches incl. exact title + HCEA/IVRG terms) — removed the bibitem **and** the §II sentence citing it (was the only use). Non-load-bearing breadth cite; paper loses nothing.
+- **STRIP (final):** removed ALL internal markers from `SEVA_v8.tex` via a line-based pass — the header tag-legend/scope/checkpoint block, every inline `% [TAG]` marker (~50), the two long bracketed notes (thornton CONFIRM, adaptive_diverse), the `% CONFIRM`/`% UNVERIFIED` flags, the bibliography TODO block, and all `% ====` dividers + label comments. **58 lines removed.** Functional `---%` line-continuations (×3) and all escaped `\%` **preserved** (strip required a space before `%`, so typesetting `%` untouched). LF endings, no BOM.
+- **Final checks (all PASS):** bibliography **30→29** (autotpa cut); **citation integrity 0 orphans / 0 dangling** (all 29 cited; no `\cite{autotpa}`); **0 unescaped percents**; **13 tables + Algorithm 1 balanced** (54 env tokens); file opens at `\documentclass`, closes at `\end{document}`. **SUBMISSION-CLEAN** (no internal annotations remain in the `.tex`).
+- *Note:* `PAPER_EDITS_LOG.md` retains the full `[TAG]` provenance record — that is the internal research ledger, intentionally kept; only the `.tex` was stripped.
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
