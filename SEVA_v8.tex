@@ -515,7 +515,10 @@ clean and poison are drawn from the \emph{same} security domain, $0\%$ cannot be
 domain-contrast artifact---the very confound that flatters linguistic detectors
 when poison is security text on a general-domain background (\S\ref{subsec:geom}).
 Second, it is not a single lucky split: the $0\%$ is identical at all three seeds
-and every density.
+and every density. The complete per-condition breakdown---all nine
+density$\times$seed cells, with document- and query-level false-positive rates and
+$95\%$ Wilson upper bounds on the $0\%$ attack-success---is given in
+Table~\ref{tab:percond} (Appendix~\ref{app:confusion}).
 
 Tiers L2 and L3 ablate the soft keyword and sentence-structure signals to model
 the keyword-dropping adaptive adversary (\S\ref{sec:threat}). Here the multi-signal
@@ -567,26 +570,52 @@ Tier & Density & ASR (\%) & Doc-FPR (\%) \\
 \subsection{Density-Invariant Geometry}
 \label{subsec:geom}
 The signal underlying the L1 result is the cluster-coherence gap
-(Table~\ref{tab:coh}). In-domain, clean documents sit at coherence $\approx 0.75$
-and templated poison at $\approx 0.99$---a separation of $+0.235$ to $+0.247$ at
-an SNR of $5.8$--$6.0$.
-Two facts matter. First, the separation is \emph{larger} in-domain than against a
-general-domain corpus (WikiText-103~\cite{wikitext}), where the same signal
-measures an SNR near $4.7$: cluster coherence is not a domain-contrast artifact---%
-it reads the internal homogeneity of
-the injected cluster, a property of the templating process, not of the topic.
-Second, the gap is essentially flat across $1$--$10\%$ contamination (range
-$0.009$). The mechanism is that $K=5$ is tiny against $100{,}000$ documents, so a
-poison passage's nearest neighbours are almost always its own injected siblings
-whatever the poison fraction; the gap reflects between-sibling similarity, not
-population statistics, and would erode only at contamination far above the
-$1$--$10\%$ band a realistic injection occupies. This is a property a pairwise
-deduplicator cannot offer: comparing two documents at a time, it has no notion of
-the cluster a multi-passage injection forms, and no reason for its separation to
-stay stable as that cluster grows. Frozen, non-oracle, held-out calibration
-confirms the operational consequence: a threshold fit on a disjoint reference half
-of the attack and frozen catches the held-out half at $0\%$ ASR and $0.58\%$
-document-FPR.
+(Table~\ref{tab:coh}): in-domain, clean documents sit at coherence $\approx 0.75$
+and templated poison at $\approx 0.99$, and the separation does not move with
+contamination density. We state this as a formal property of the attack geometry.
+
+\smallskip
+\noindent\textbf{Observation~1 (Geometric Invariance of Cluster Coherence).}
+\emph{For templated, multi-passage corpus injection in a $100{,}000$-document
+corpus scored with $K=5$ nearest neighbours, the per-document cluster-coherence gap
+(poison mean $-$ clean mean) is invariant to contamination density across the
+evaluated $1$--$10\%$ range.}
+
+\emph{Evidence.} The gap is $+0.235$, $+0.238$, and $+0.247$ at $1\%$, $5\%$, and
+$10\%$ density---a total spread of $0.012$---at an SNR of $5.99$, $6.00$, and $5.78$
+(Table~\ref{tab:coh}); neither quantity shows systematic density dependence. It is
+equally seed-invariant: the gap is identical across calibration seeds $42$, $7$, and
+$123$, because it is a property of the corpus and the injected cluster, not of the
+benign calibration split.% [STEP3, SEEDS-1]
+
+\emph{Mechanism.} Cluster coherence measures a local geometric property of the
+injection itself---the tightness of the embedding region the templated passages
+occupy. Because $K=5$ is tiny relative to $100{,}000$ documents, a poison document's
+$K$ nearest neighbours are almost exclusively its own injected siblings, whatever
+fraction of the corpus is poisoned; the gap therefore reflects between-sibling
+template homogeneity, not relative population statistics. This is exactly what a
+pairwise deduplicator cannot see: comparing two documents at a time, it has no
+notion of the cluster a multi-passage injection forms, and no reason for its
+separation to stay stable as that cluster grows.
+
+\emph{Intrinsic, not domain-induced.} The in-domain SNR ($5.8$--$6.0$) \emph{exceeds}
+the $\approx\!4.7$ the same signal records against a general-domain corpus
+(WikiText-103~\cite{wikitext}). Cluster coherence is therefore not a domain-contrast
+artifact: in-domain, where the soft linguistic signals lose most of their apparent
+power (Table~\ref{tab:signals}), the geometric gap is if anything \emph{wider}. The
+very domain confound that inflates the linguistic signals is, for the geometric one,
+evidence that the separation is a property of the templating process rather than of
+the topic.% [STEP3, E2-2]
+
+\emph{Scope.} The invariance is established over the evaluated $1$--$10\%$ range. By
+the mechanism it holds while a poison document's $K$-neighbourhood stays dominated by
+its siblings, and would degrade only once clean documents come to form the majority
+of that neighbourhood---a regime far above the contamination any realistic
+multi-passage injection occupies, which we neither evaluate nor extrapolate to.
+
+Frozen, non-oracle, held-out calibration confirms the operational consequence: a
+threshold fit on a disjoint reference half of the attack and then frozen catches the
+held-out half at $0\%$ ASR and $0.58\%$ document-FPR.% [E-CAL-1]
 
 \begin{table}[t]
 \centering
@@ -988,7 +1017,9 @@ gives the L1 (full signal set) matrices: every cell has $\mathrm{FN}=0$---no
 templated poison passage evades detection at any density or seed---which is the
 basis for the $0\%$ L1 attack-success. Table~\ref{tab:confL23} gives L2 and L3, the
 ablated composite, where $\mathrm{FN}>0$ is the adaptive collapse the geometric hard
-gate (Table~\ref{tab:core}) eliminates.
+gate (Table~\ref{tab:core}) eliminates. Table~\ref{tab:percond} converts these
+counts into per-condition detection rates---attack-success with Wilson upper bounds,
+and document- and query-level false-positive rates---for all nine conditions.
 
 \begin{table}[t]
 \centering
@@ -1038,6 +1069,44 @@ Density & Seed & TP & FN & TP & FN \\
 \multirow{3}{*}{10\%} & 42  & 42 & 114 & 42 & 114 \\
                       & 7   & 45 & 111 & 45 & 111 \\
                       & 123 & 42 & 114 & 42 & 114 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Per-condition in-domain detection rates---all nine density$\times$seed
+conditions, the full breakdown the primary table (Table~\ref{tab:main}) summarizes,
+for the full signal set (tier~L1). The ASR column gives the templated-poison
+attack-success rate with its $95\%$ Wilson upper bound in parentheses, computed from
+the per-condition poison-encounter count $n$; Doc-FPR and query-FPR are the
+document- and query-level false-positive rates at the $0.69\%$ non-oracle operating
+point. Attack-success is $0\%$ at every condition (each cell has $\mathrm{FN}=0$,
+Table~\ref{tab:confL1}); on the templated attack the deployed geometric hard gate
+coincides with the full signal set at $0\%$ ASR, their divergence under adaptation
+being the subject of Table~\ref{tab:core}. The pooled row aggregates all nine
+conditions ($n=1{,}257$). All quantities in \%.}
+\label{tab:percond}
+% [SEEDS-1, STEP3] per-cell asr/doc_fpr/query_fpr from the L1 block of
+% seva_v6_2_results_100k_secqa_p{010,050,100}_s{042,007,123}.json; Wilson upper
+% z^2/(n+z^2), z=1.96, n = poison encounters (TP+FN) per cell.
+\begin{tabular}{llrccc}
+\toprule
+Density & Seed & $n$ & ASR (95\% Wilson) & Doc-FPR & query-FPR \\
+\midrule
+\multirow{3}{*}{1\%}  & 42  & 125 & $\mathbf{0.0}$\,(3.0) & 0.45 & 1.88 \\
+                      & 7   & 125 & $\mathbf{0.0}$\,(3.0) & 0.73 & 2.75 \\
+                      & 123 & 125 & $\mathbf{0.0}$\,(3.0) & 0.43 & 1.75 \\
+\midrule
+\multirow{3}{*}{5\%}  & 42  & 138 & $\mathbf{0.0}$\,(2.7) & 0.52 & 2.00 \\
+                      & 7   & 138 & $\mathbf{0.0}$\,(2.7) & 0.83 & 3.38 \\
+                      & 123 & 138 & $\mathbf{0.0}$\,(2.7) & 0.53 & 2.13 \\
+\midrule
+\multirow{3}{*}{10\%} & 42  & 156 & $\mathbf{0.0}$\,(2.4) & 0.40 & 1.63 \\
+                      & 7   & 156 & $\mathbf{0.0}$\,(2.4) & 0.68 & 2.75 \\
+                      & 123 & 156 & $\mathbf{0.0}$\,(2.4) & 0.47 & 1.88 \\
+\midrule
+\multicolumn{2}{l}{Pooled} & $1{,}257$ & $\mathbf{0.0}$\,(0.30) & 0.56 & 2.24 \\
 \bottomrule
 \end{tabular}
 \end{table}
