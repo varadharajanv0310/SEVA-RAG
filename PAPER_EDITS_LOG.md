@@ -125,4 +125,38 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Provenance:** `precheck_cohesion.py` (sample). Final Table I/II/V/VI/VII numbers (incl. R-4 ratio) → Step-3 E2 baseline run.
 - **Status:** PROVISIONAL (→ Step 3 baseline) — corpus methodology + diversity validated; the new baseline numbers come from the 100k 3-seed run.
 
-*(further entries appended per the Standing rule as E1 / E1b / E3 / E4-HH / E5 / E6 / E7 complete)*
+### E2-2 / E3-1 · Step-3 in-domain baseline results (seed 42, 100k security SE corpus)
+- **Added:** 2026-05-30 · **Origin:** E2 (Lim 2) + E3 (CF-007/008/009)
+- **Provenance:** `seva_v6_2_results_100k_secqa_p{010,050,100}_s042.json` (repo root, gitignored; produced on this machine, run `step3_baseline_secqa_s42.log`, 47.9 min).
+- **Status:** seed-42 only → PROVISIONAL (final tables need seeds 7,123). The *direction* of every finding below is clear at seed 42.
+
+**(a) `cluster_coh` HOLDS in-domain (clean/poison/gap/SNR) — vs WikiText baseline:**
+| density | in-domain | WikiText |
+|---|---|---|
+| 1% | 0.7518 / 0.9871 / **+0.2353** / SNR 5.99 | 0.7302/0.9871/+0.2569/4.72 |
+| 5% | 0.7526 / 0.9909 / **+0.2384** / SNR 6.00 | 0.7322/0.9909/+0.2587/4.79 |
+| 10% | 0.7466 / 0.9939 / **+0.2474** / SNR 5.78 | 0.7286/0.9939/+0.2654/4.66 |
+→ Limitation-2 PRIMARY concern resolved: cluster_coh is domain-independent (gap holds, SNR *higher* in-domain). **Paper edit: report in-domain cluster_coh; the confound critique is answered for cluster_coh.**
+
+**(b) Linguistic signals were PARTLY domain-confounded (SNR collapse, in-domain vs WikiText):**
+| signal SNR | 1% | 5% | 10% |
+|---|---|---|---|
+| kw_density | **8.10** (was 38.42) | **6.52** (34.80) | **6.57** (32.85) |
+| avg_sent_len | 0.53 (1.55) | 0.40 (1.38) | 0.37 (1.39) |
+| ttr_signal | -1.12 (-1.77) | -1.10 (-1.90) | -1.09 (-1.70) |
+| content_ttr | -1.09 (-1.96) | -1.05 (-2.18) | -1.08 (-1.92) |
+→ confirms Limitation-2's premise *for the linguistic signals*: kw_density/TTR separation partly reflected security-vs-Wikipedia domain. **Paper edit: disclose that the linguistic-signal SNRs are domain-sensitive; kw_density SNR is ~8 in-domain, not ~38.**
+
+**(c) ⚠ MAJOR FINDING — L2/L3 (adaptive-adversary) ASR explodes in-domain; L1 holds:**
+| layer ASR | 1% | 5% | 10% |
+|---|---|---|---|
+| L1 (all signals) | 0.0% | 0.0% | 0.0% (WikiText 0/0/0) |
+| L2 (evades kw_density) | **43.2%** | **60.9%** | **73.1%** (WikiText 0/1.6/0) |
+| L3 (evades kw_density+avg_sent_len) | **44.0%** | **60.9%** | **73.1%** (WikiText 1.6/17.6/15.2) |
+→ With ALL signals (L1) the in-domain detector still catches everything (ASR 0). But once the adaptive adversary evades kw_density, cluster_coh alone cannot hold the line in-domain → ASR 44–73%. The paper's adaptive-adversary robustness (Table V/VI L2/L3) was **substantially propped up by the domain-confounded kw_density signal.** **Paper edit (MAJOR, decision pending author): Table V/VI L2/L3 numbers change dramatically in-domain; the adaptive-robustness claim must be re-framed. This also strengthens the case that E1's white-box attack (targeting cluster_coh) is the decisive test.**
+
+**(d) DocFPR (E3 independent benign queries, CF-008) — near/below target:** L1 0.45/0.52/0.40%, L2 0.45/0.46/0.31%, L3 0.48/0.46/0.31% (target 0.69%). FPR did NOT balloon with independent benign queries → the original FPR was not (heavily) propped by query-corpus coupling. **Paper edit: report honest in-domain FPR (still ≤0.7%).**
+
+**(e) E3 methodology (paper Methods + eval):** benign queries = held-out security question titles (independent, CF-008); 50 unique adversarial templates (CF-007); benign pool seeded per cal_seed (CF-009). **Paper edit: describe the corrected eval protocol.**
+
+*(further entries appended per the Standing rule as E1 / E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
