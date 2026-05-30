@@ -1,0 +1,61 @@
+{
+  "experiment": "B-high-encounter-CI",
+  "n_encounters": 25000,
+  "evasions": 0,
+  "asr_pct": 0.0,
+  "wilson_upper_pct": 0.015364039100295693,
+  "wilson_z": 1.96,
+  "tau_coh": 0.8423294363915919,
+  "tau_coh_source": "FROZEN non-oracle: (1-FPR_TARGET) pctile of PURE 100k clean coh (deployment calibration)",
+  "tau_recal_on_poisoned_corpus": 0.9766824861109247,
+  "tau_recal_note": "if tau were (wrongly) re-derived on the 25%-poisoned corpus's clean docs it inflates to this, because the dense poison contaminates nearby clean neighbourhoods; the gate does NOT recalibrate post-attack, so the frozen tau above is the correct gate.",
+  "poison_coh_min": 0.8905037641525269,
+  "poison_coh_mean": 0.9950731992721558,
+  "clean_coh_pure_mean": 0.7509967684745789,
+  "clean_coh_poisoned_mean": 0.7484620809555054,
+  "density_pct": 25.0,
+  "corpus": {
+    "canonical_sha256": "28ec38114ee64e6010ec489d01e6d3ee13d9b3758fd30a169c99ed078732f8a9",
+    "hash_match": true,
+    "fingerprint_check": {
+      "ok": true,
+      "n_corpus": 100000,
+      "n_fingerprint": 100000,
+      "first_divergent_index": null,
+      "divergent_text_preview": null
+    },
+    "n_docs": 100000
+  },
+  "detector": {
+    "type": "cluster_coh_hard_gate",
+    "composite_used": false,
+    "calibration": "NON-ORACLE: tau=(1-FPR_TARGET) pctile of clean coh",
+    "FPR_TARGET": 0.0069,
+    "frozen_math": true
+  },
+  "poison": {
+    "count": 25000,
+    "ordered_sha256": "f9caba677d6e80c48370bb1f3914df61217438b966dd0de97e99412f35d0d979",
+    "source": "xplat_poison_gen.generate_corpus(25000) deterministic"
+  },
+  "encounter_def": "each of 25k templated-poison docs scored by the frozen hard gate (coh<=tau=evasion); injected at corpus[0:25000] of the 100k canonical corpus; tau from clean remainder.",
+  "retrieval_context": {
+    "targeted_queries": 50,
+    "poison_retrieved_in_topk": 187,
+    "note": "context only; the n=25k CI is over per-doc gate evaluations"
+  },
+  "env": {
+    "python": "3.11.15",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "numpy": "1.26.4",
+    "torch": "2.11.0+cu128",
+    "detected_device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 5080",
+    "backend": "cuda",
+    "sentence_transformers": "3.0.1",
+    "faiss": "1.7.4",
+    "huggingface_hub": "0.24.2"
+  },
+  "finished_unix": 1780405235
+}

@@ -41,11 +41,16 @@ def main():
     clean_emb, _ = C.embed_resumable(clean_texts, os.path.join(cache, "clean_emb.npy"), dev, label="clean")     # reuse Exp-A cache
     poison_emb, _ = C.embed_resumable(poison_texts, os.path.join(cache, "poison_emb_25k.npy"), dev, label="poison25k")
     P = N_ENC
+    # FROZEN non-oracle tau: calibrated on the CLEAN corpus (NO poison), as in deployment -- NOT re-derived
+    # on the poisoned corpus (at 25% density the poison contaminates clean neighbourhoods and inflates tau).
+    C.log("Exp B: doc_coh over PURE 100k clean for the frozen non-oracle tau ...")
+    clean_coh_pure, _ = C.doc_coh_full(np.ascontiguousarray(clean_emb, dtype=np.float32))
+    tau = float(np.percentile(clean_coh_pure, 100 - C.FPR_TARGET * 100))  # frozen gate tau (~0.84)
     full = np.ascontiguousarray(np.concatenate([poison_emb[:P], clean_emb[P:]], axis=0), dtype=np.float32)
-    C.log(f"Exp B: doc_coh over {len(full)} docs (P={P} poison, {len(full)-P} clean)")
+    C.log(f"Exp B: doc_coh over {len(full)} docs (P={P} poison, {len(full)-P} clean); frozen tau={tau:.4f}")
     coh, idx = C.doc_coh_full(full)
     pcoh, ccoh = coh[:P], coh[P:]
-    tau = float(np.percentile(ccoh, 100 - C.FPR_TARGET * 100))            # FROZEN non-oracle tau (clean only)
+    tau_recal_on_poisoned = float(np.percentile(ccoh, 100 - C.FPR_TARGET * 100))   # reported for transparency (25%-density-inflated)
     evasions = int(np.sum(pcoh <= tau)); n = int(P)
     asr = 100.0 * evasions / n; wu = wilson_upper(evasions, n)
     # retrieval reach (context): poison retrieved in top-K by the 50 TQ
@@ -58,7 +63,10 @@ def main():
     retr_poison = int(sum(1 for tk in adv_topk for di in tk if di < P))
     out_j = {"experiment": "B-high-encounter-CI", "n_encounters": n, "evasions": evasions, "asr_pct": asr,
              "wilson_upper_pct": wu, "wilson_z": 1.96, "tau_coh": tau,
-             "poison_coh_min": float(pcoh.min()), "poison_coh_mean": float(pcoh.mean()), "clean_coh_mean": float(ccoh.mean()),
+             "tau_coh_source": "FROZEN non-oracle: (1-FPR_TARGET) pctile of PURE 100k clean coh (deployment calibration)",
+             "tau_recal_on_poisoned_corpus": tau_recal_on_poisoned,
+             "tau_recal_note": "if tau were (wrongly) re-derived on the 25%-poisoned corpus's clean docs it inflates to this, because the dense poison contaminates nearby clean neighbourhoods; the gate does NOT recalibrate post-attack, so the frozen tau above is the correct gate.",
+             "poison_coh_min": float(pcoh.min()), "poison_coh_mean": float(pcoh.mean()), "clean_coh_pure_mean": float(clean_coh_pure.mean()), "clean_coh_poisoned_mean": float(ccoh.mean()),
              "density_pct": 100.0 * P / len(full),
              "corpus": {"canonical_sha256": chash, "hash_match": chash == CANON, "fingerprint_check": fp, "n_docs": ndocs},
              "detector": {"type": "cluster_coh_hard_gate", "composite_used": False,
