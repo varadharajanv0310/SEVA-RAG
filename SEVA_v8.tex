@@ -1167,9 +1167,17 @@ sits well below poison coherence ($\approx\!0.99$) and above clean
 $\mathrm{efConstruction}=200$); cluster coherence uses $K=5$ with
 $K_{\mathrm{FETCH}}=20$ over-fetch. In-domain runs use calibration seeds $42$, $7$,
 $123$ over $2{,}000$ benign queries split $60/40$ between calibration and
-evaluation, at a $0.0069$ false-positive target throughout. Detection is measured
-on an RTX 5080 (CUDA) and an Apple M4; the geometric statistic is deterministic
-given the index, and detection results are stable across CUDA GPUs. Per-condition
+evaluation, at a $0.0069$ false-positive target throughout. Detection is reproduced
+on three platforms---an RTX 5080 and an RTX 4060 (CUDA), and an Apple M4 (MPS)---each
+rebuilding the corpus from pinned sources and re-embedding locally against the same
+order-sensitive SHA-256 corpus hash and per-document fingerprint. Across all three the
+cluster-coherence gap is density-invariant in the $+0.236$ to $+0.245$ range and
+templated attack-success is $0\%$ on every density and seed; the two independently
+re-embedded external platforms agree to within $10^{-6}$. The geometric statistic is
+therefore deterministic across hardware and accelerator backends, not specific to one
+GPU.
+% [XPLAT-4060, XPLAT-M4] result_4060.json / result_M4.json (hash-gated CONFIRMS)
+Per-condition
 artifacts (confusion counts, thresholds, latencies) are recorded per seed and
 density.
 

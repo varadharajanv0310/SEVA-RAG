@@ -87,6 +87,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | SCALE-1 | (calibration scale + hi-encounter CI; PREREG_SCALE) | 100k: gap-invariant + ASR 0% + DocFPR 0.674%. 10k: DocFPR convergence CONFIRMED (dev 0.075 vs 0.016, O(1/√N)) but **PRIVATE NEGATIVE** at 10k×1% (P=100): gap 0.141<0.15, ASR 4%. B: **0/25k evasions, Wilson upper 0.0154%** at frozen τ=0.8423 |
 | ENCODER-GEN-1 | (encoder-generalization) cluster_coh under e5-large-v2 | **e5 PASS** — ASR 0% all 9, SNR_min 6.43 (≥3.0), gap-range 3.5%, DocFPR 0.68%; SNR preserved/stronger vs bge (geometry, not manifold); bge harness-gate reproduced `scale100k` exactly. gte (3rd lineage) pending author go |
 | **V8-OBS2** | §V `subsec:calib` (Obs. 2); `subsec:main` + `tab:percond` (ASR bound); Obs. 1 `Scope` | FINAL — Obs 2 applied; templated-ASR bound → [0, 0.0154%]; **P=100 boundary NON-DISCLOSED** (author call); Obs 1 Scope speculative sentence deleted (ruling a) |
+| **XPLAT-4060/M4** | App. C (`app:repro`) reproducibility | FINAL — 3-platform repro (5080/4060 CUDA, M4 MPS), hash-identical corpus, gap ~1e-6 cross-backend agreement, ASR 0% on all 27 cells |
 | **RECONCILE-v713** | **governs the rewrite** | v7.1.3 ↔ disk reckoning: multi-signal/C2/C3/C5/Table I·IX KILLED/SUPERSEDED; M4 26 ms + sub-2 ms DEAD (→32–42 ms); C1/C6 reword to in-domain; finalized cluster_coh-centric claim set |
 | **V8-DRAFT** | manuscript rewrite from the reconciled set | `SEVA_v8.tex` drafted at checkpoints; built ONLY on RECONCILE-v713 SURVIVES+reworded set; every quantitative claim carries a `% [TAG]` provenance marker; Ckpt 1 = frontmatter+abstract+C1-C6+section outline |
 
@@ -691,5 +692,16 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - e5 gap **0.1223/0.1246/0.1266** — LOWER absolute than bge (~0.24) because e5's clean manifold is more concentrated (clean_coh 0.866 vs bge 0.751); but **SNR** (the scale-normalized cross-encoder measure the prereg fixed as the fair one) is PRESERVED/stronger, and poison_coh ≈0.99 under both → **`cluster_coh` detects the GEOMETRY of templating, not one encoder's manifold.**
 - **Manuscript:** supports an encoder-generalization claim — templated-poison detection survives a different-lineage encoder (used in its correct symmetric convention) at the non-oracle operating point, density-invariant, ASR 0%, calibration sane. (Run-1 segfault was a `KMP_DUPLICATE_LIB_OK` misconfig I added; removed; embeddings cached, re-run resumed clean — not a result.)
 - **Status:** e5 PASS — FINAL (5080, hash-verified corpus). `gte-large` (3rd lineage, toward "encoder-invariant") **pending author go** (prereg: e5 PASS → ASK before gte).
+
+## XPLAT-4060/M4 · cross-platform reproduction — 4060 (CUDA) + M4 (MPS), both CONFIRMS; 3-platform repro folded into App C
+- **Added** 2026-06-03 · external runs returned via the `xplat_handoff` package (hash-gated, frozen `cluster_coh` hard gate, non-oracle τ). Both validity-gated **CONFIRMS**.
+- **4060 (RTX 4060 Laptop, CUDA):** corpus `28ec3811…` + fingerprint match, poison `4f7ee3f3…` match, `composite_used=false`; gap **0.2363 / 0.2408 / 0.2445** (range 0.0082, all > 0.15), **ASR 0% on all 9**, DocFPR 0.71–0.93%, latency 38.1 ms mean. Provenance `result_4060.json`.
+- **M4 (Apple Silicon, MPS):** same corpus+poison hashes, same detector; gap **0.2363 / 0.2408 / 0.2445**, **ASR 0% on all 9**, latency 28.1 ms mean / 37.3 ms p95. Provenance `result_M4.json`.
+- **Cross-backend determinism:** the two independently re-embedded externals agree on the gap to **~6×10⁻⁸** (`clean_coh_mean` bit-identical; `docfpr_benign_retrieval` exact) — the geometry is deterministic across CUDA **and** MPS, not one-GPU-specific. 27 cells (3 platforms × 9), every ASR 0%.
+- **Manuscript:** App C (`app:repro`) reproducibility sentence updated from *"…RTX 5080 (CUDA) and an Apple M4 … stable across CUDA GPUs"* → empirical **3-platform** reproduction (5080+4060 CUDA, M4 MPS; gap density-invariant in +0.236…+0.245; ASR 0% all; external pair agree to 10⁻⁶; deterministic across hardware + accelerator backends). Tagged `% [XPLAT-4060, XPLAT-M4]`.
+- **Honest scoping (NOT folded):** (a) the xplat-pipeline gap (0.236–0.245) is within the paper's primary band but **not** bit-identical to `tab:coh` (0.235–0.247, original STEP3 poison build) — App C is worded as a *reproducibility statement*, not a re-statement of `tab:coh`; (b) M4 latency 28.1 ms mean / 37.3 ms p95 is slightly below the paper's "~32–42 ms M4" — `tab:latency` **left unchanged** this pass (separate axis, flagged to author).
+- **Checks:** citation integrity 0/0; percent-escaping clean; env balanced. Commit local, **no push**.
+
+---
 
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
