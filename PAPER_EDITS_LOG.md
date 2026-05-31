@@ -33,20 +33,14 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | R-7 | Limitation 3 | FINAL (framing); numbers PROVISIONAL (→ E2/E5) |
 | R-8 | Limitation 5 | PROVISIONAL (→ E7) |
 | R-9 | Limitation 6 / Table IX | FINAL (direction); result PROVISIONAL (→ E4-HH) |
-| E2-1 | dataset/corpus; Lim 2; §III | PROVISIONAL (→ Step-3 baseline) |
-| E2-2 / E3-1 | Tables I/II/V/VI/VII; §VI; eval | PROVISIONAL (→ seeds 7,123) |
-| RESCOPE-1 | Abstract; §I-C; Tables V/VI; §VI; Lims; Concl. | PROVISIONAL (→ E1/E1b + seeds) |
-| OPEN-CAL-1 | §IV calibration protocol | RESOLVED (attack-specific/oracle; realistic frozen number → E1-2) |
-| E1-1 | §I-C; §V-E; Lim 1; cluster_coh claim | PROVISIONAL (→ 3-seed; CHECK-3 frontier accepted) |
-| E1-2 | Tables V/VI; Lim 1; §VI; robustness claim | PROVISIONAL (→ 3-seed; frozen-cal L1 number recorded) |
 | E2-1 | clean corpus / Limitation 2 | FINAL (direction) |
 | E2-2/E3-1 | §VI; Tables V/VI | PROVISIONAL (seed 42 → 3-seed) |
 | RESCOPE-1 | Abstract; §I-C; Tables V/VI; Limitations; Conclusion | PROVISIONAL (→ E1) |
 | E1B-1 | Abstract; §I-C; necessity; Conclusion | SETTLED-directional / PROVISIONAL |
 | E1-1 | Abstract; §I-C; threat model; results; Limitations; Conclusion | **MAJOR** — SETTLED s42 / PROVISIONAL |
-| E1-2 | results; Limitations; Tables V/VI companion | PROVISIONAL (blocked on OPEN-CAL-1) |
+| E1-2 | results; Limitations; Tables V/VI companion | **MAJOR** — frozen L1 **88.8%**; SETTLED s42 / PROVISIONAL (→ 3-seed) |
 | E1-3 | method/system; any dedup claim | FLAG — verify vs paper |
-| OPEN-CAL-1 | paper-wide (calibration disclosure) | OPEN |
+| OPEN-CAL-1 | paper-wide (calibration disclosure) | RESOLVED (attack-specific/oracle; → E1-2 frozen 88.8%) |
 | E3-2 | §IV methods; error bars; Limitations | DISCLOSURE (FINAL direction) |
 
 ---
@@ -205,10 +199,12 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Interpretation (load-bearing):** `cluster_coh` detects **templated near-duplication / payload concentration, NOT poisoning-in-general.** Scope the headline contribution to "domain-independent detection of **templated** corpus poisoning (the dominant literature pattern, e.g. PoisonedRAG-style near-duplicate injection)," explicitly **not** low-prominence single-clone injection.
 - **Affected:** Abstract; §I-C contributions; threat model; results; Limitations; Conclusion.
 
-### E1-2 · Composite ASR on clone-inject: L1 holds only via the confounded `kw_density`; adaptive L2/L3 collapse worse than templated
-- **Added** 2026-05-31 · **Origin** composite frozen `phase3`+`phase4` (`b53acca`) · **Status** PROVISIONAL — **blocked on OPEN-CAL-1**
-- **Finding (recalibrated-on-attack):** L1 ASR **8.9%** (caught **entirely by `kw_density`**, SNR 5.40), L2 **91.1%**, L3 **97.0%**; `hash_catch = 0`. clone-inject defeats the adaptive operating point **worse** than templated poison (gate 44–73%) because it *also* evades `cluster_coh`.
-- **CAVEAT:** 8.9% used recalibration on the clone-inject poison (oracle-optimistic). The realistic frozen-gate-calibration number is pending and likely **higher**. **Do not put 8.9% in the paper until OPEN-CAL-1 resolves.**
+### E1-2 · Composite ASR on clone-inject: under realistic FROZEN calibration SEVA leaks at EVERY layer (L1 88.8%)
+- **Added** 2026-05-31 · **Updated** 2026-05-31 (STEP 1 — OPEN-CAL-1 resolved; `986140e`) · **Origin** composite frozen `phase3`+`phase4` (`b53acca`); frozen-gate calibration (`986140e`) · **Status** SETTLED (seed 42) / PROVISIONAL (→ 3-seed). **MAJOR.**
+- **Finding (FROZEN templated-gate calibration — the REALISTIC deployed number):** L1 **88.8%**, L2 **100%**, L3 **100%**; `hash_catch = 0`; DocFPR ≤ 0.65%; τ frozen at the gate's templated value (τ_L1 = 0.5915). Provenance: `full_check_frozenincorpus_s042.json`.
+- **Finding (recalibrated-on-attack — ORACLE, NOT realistic):** L1 **8.9%**, L2 **91.1%**, L3 **97.0%**; `hash_catch = 0`. Provenance: `full_check_incorpus_s042.json`.
+- **Resolution (lifts the OPEN-CAL-1 block; confirms the prediction):** the 8.9% L1 "hold" was an **oracle artifact** — recalibrating τ+weights on the clone-inject poison lets τ drop into its score band. Under deployed/frozen calibration, `kw_density`'s separation (SNR 5.40) is **insufficient** to lift the composite over a τ tuned for templated poison (which fires `cluster_coh` AND `kw_density`) → **even naive L1 leaks clone-inject at 88.8%** (L2/L3 = 100%). `hash` never fires (per-doc tamper check, not near-dup — see E1-3).
+- **Manuscript impact (MAJOR):** under realistic deployed calibration SEVA does **not** hold against clone-and-inject at any layer; the lone separating signal (`kw_density`) is domain-confounded and sub-threshold at the deployed τ. Use the **88.8%** (frozen) number, NOT 8.9%. Supersedes any "L1 ensemble catches clone-inject" framing.
 - **Affected:** results; Limitations; Tables V/VI clone-inject companion row; adaptive-robustness discussion.
 
 ### E1-3 · FLAG (code-vs-paper): the "hash" catch is a per-doc `sha256` tamper check, NOT a near-dup / dedup detector
@@ -217,11 +213,11 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Manuscript impact:** if the paper describes hashing/dedup as a near-duplicate or clone defense, **correct it** — clone-inject is not caught by hashing.
 - **Affected:** method/system description; any dedup claim.
 
-### OPEN-CAL-1 · OPEN ISSUE (paper-wide): is SEVA oracle- or reference-calibrated?
-- **Added** 2026-05-31 · **Origin** E1-2 recalibration caveat · **Status** OPEN — blocks E1-2 finalization
-- **Question:** does SEVA's SNR-weight + τ calibration *see the attack* (oracle) or calibrate once on a fixed reference attack and deploy *frozen* (realistic)?
-- **Impact:** if **oracle**, ALL ASR numbers (incl. the gate's 0%) carry an oracle-calibration assumption the paper must **disclose**; if **reference**, the frozen-gate-calibration clone-inject number (pending) is canonical and likely worse than 8.9%.
-- **Action:** resolve from paper + code; run the frozen-gate-calibration L1 test; finalize E1-2.
+### OPEN-CAL-1 · RESOLVED (paper-wide): SEVA is ATTACK-SPECIFIC (oracle) calibrated as implemented; realistic = frozen reference
+- **Added** 2026-05-31 · **Resolved** 2026-05-31 (STEP 0 code audit + STEP 1 frozen test; `986140e`) · **Status** RESOLVED
+- **Resolution (code-authoritative; paper PDF not auto-extractable in the frozen `seva` env):** as implemented, SEVA's SNR weights are derived from the *deployment corpus's* poison (`seva_benchmark_4060.py:685, 701, 744–750`) and τ is calibrated to FPR_TARGET on cal-clean *under those weights* (`:817–836`) → **attack-specific / oracle**. A reference/frozen protocol is supported by the Phase-3 cache (`:653–672`). Paper §0.5 "universal-FPR calibration" = τ density-agnostic (no poison-RATIO input), NOT attack-agnostic weights (SNR fundamentally needs poison to compute).
+- **Consequence (paper-wide):** ALL per-corpus-recalibrated ASR numbers (incl. the gate's L1 0% and L2/L3 44–73%) carry an **oracle-calibration assumption that MUST be disclosed** — or be re-run under frozen reference calibration. The realistic frozen clone-inject number (L1 **88.8%**) is canonical and recorded in **E1-2**.
+- **Affected:** §IV calibration disclosure; every ASR claim's calibration assumption; Limitations.
 
 ### NOTE-1 · clone-inject is itself a contribution (consider a "boundary of geometric detection" subsection)
 - **Added** 2026-05-31 — the clone-inject evasion + the prominence/cohesion boundary + the templating-vs-poisoning distinction are a **novel result**. Consider presenting as a positive "boundary of geometric detection" subsection rather than only a limitation. Decide at framing time (after OPEN-CAL-1 + E4-HH).
@@ -234,33 +230,5 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Affected:** §IV methods; any error-bar / multi-seed statement; Limitations.
 
 ---
-
-### OPEN-CAL-1 · SEVA's calibration protocol: attack-specific (oracle) vs reference/frozen — RESOLVED
-- **Added:** 2026-05-31 · **Origin:** author scrutiny of the E1 cheap-end "L1 holds (8.9%)" number.
-- **Question:** Are SEVA's SNR weights + τ calibrated *per deployment corpus* (so they "see" the attack poison = oracle), or *once on a reference attack* then frozen for deployment?
-- **Resolution (code-authoritative; PDF text not auto-extractable in the frozen `seva` env):**
-  **As implemented = ATTACK-SPECIFIC / oracle.** Phase 3 derives SNR weights from the *current corpus's* poison (`poison_indices` = ALL poison present; `seva_benchmark_4060.py:685, 701, 744–750`) and calibrates τ to FPR_TARGET on cal-clean *under those weights* (`:817–836`). So both weights and τ depend on the attack present at calibration. A reference/frozen protocol IS supported by the Phase-3 cache (`:653–672`: load a reference `p3` JSON, deploy frozen). Paper §0.5 "universal-FPR calibration" = τ is **density-agnostic** (no poison-RATIO input); it does **not** claim attack-agnostic *weights* (SNR fundamentally needs poison to compute).
-- **Implication:** any per-corpus-recalibrated benchmark number is **oracle-optimistic** w.r.t. the attack. The realistic deployed number requires freezing a reference calibration (templated gate) and facing the novel attack → see **E1-2** frozen number.
-- **Status:** **RESOLVED.**
-
-### E1-1 · cluster_coh narrowing (E1b geometric + CHECK-3 prominence) — calibration-independent
-- **Added:** 2026-05-31 · **Origin:** E1b probe + CHECK 3 (author-accepted as solid/calibration-independent).
-- **Provenance:** `whitebox_attack_results/probe_s042.json`, `prominence_s042.json`; `whitebox_validity.py` (combined-corpus 5-NN coherence 0.5866 ≈ probe 0.5908).
-- **(a) Pure-geometric necessity is UNCLAIMABLE:** necessity needs r*² > τ_coh, but r*²=0.72²=0.52 ≪ τ_coh=0.8442 → free-on-sphere poison trivially clears the cone floor (foregone). The E1b "geometric necessity" claim is not available; **manifold realizability** is the real question. *Not* evidence SEVA is weak by itself.
-- **(b) cluster_coh is cheaply evaded by realizable clone-inject (the binding narrowing):** real diverse on-topic host + payload → cluster_coh 0.79 < τ_coh 0.84 at the **minimum defensible prominence** (one full false-claim sentence, ~12% payload). Cohesion climbs over τ_coh only at ≥~62% payload, where retrievability collapses (CHECK 3). → **cluster_coh detects payload CONCENTRATION (≈ templating/near-duplication), not subtle injection.**
-- **Paper edit (claim narrowing):** the "domain-independent geometric core" is bounded to **templated/near-duplicate** poison; it does NOT detect realistic clone-and-inject. (Supersedes any unqualified "cluster_coh is the robust core" wording.)
-- **Status:** PROVISIONAL (→ seeds 7,123 for τ_coh mean±std; seed-42 numbers + CHECK-3 frontier accepted).
-
-### E1-2 · Clone-inject vs the FULL frozen detector — composite ASR (oracle vs realistic calibration)
-- **Added:** 2026-05-31 · **Origin:** E1 CHECK 1 (composite) + STEP 1 (frozen, resolving OPEN-CAL-1).
-- **Provenance:** `whitebox_attack_results/full_check_incorpus_s042.json` (recalibrated/oracle); `full_check_frozenincorpus_s042.json` (frozen templated-gate cal). 250 clone-inject poison (top-5 real Security-SE hosts/query + payload) + 95k clean; real frozen `phase4`, real 50 TARGETED_Q (attempts=169); seed 42.
-- **Composite ASR (L1 / L2 / L3):**
-  | calibration | L1 | L2 | L3 | hash_catch | DocFPR |
-  |---|---|---|---|---|---|
-  | recalibrated **on the attack** (oracle — NOT realistic) | 8.9% | 91.1% | 97.0% | 0 | ≤0.67% |
-  | **FROZEN templated-gate** (realistic deployed; τ_L1=0.5915) | **88.8%** | **100%** | **100%** | 0 | ≤0.65% |
-- **Finding:** the 8.9% L1 "hold" was an **oracle artifact** — recalibrating τ+weights on clone-inject lets τ drop to its score band. Under deployed (frozen, templated-reference) calibration, kw_density's separation (SNR 5.40) is **insufficient** to lift clone-inject's composite over a τ tuned for templated poison (which fires cluster_coh **and** kw_density). So **even naive L1 SEVA leaks clone-inject at 88.8%** (L2/L3 = 100%). hash never fires (per-doc tamper check, not near-dup; hypothesis refuted).
-- **Paper edit (MAJOR — pending author):** under realistic deployed calibration SEVA does **not** hold against clone-and-inject poison at any layer (L1 88.8%, L2/L3 100%); the only separating signal (kw_density) is domain-confounded and sub-threshold at the deployed τ. **Supersedes** any "L1 ensemble catches clone-inject" framing.
-- **Status:** PROVISIONAL (→ seeds 7,123 for frozen-cal mean±std). Per author: the recal-vs-frozen ambiguity is **RESOLVED** (frozen=realistic=88.8%); OPEN-CAL-1 closed.
 
 *(further entries appended per the Standing rule as E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
