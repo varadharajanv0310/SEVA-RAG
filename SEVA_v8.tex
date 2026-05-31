@@ -507,9 +507,10 @@ Table~\ref{tab:main} is the central result: SEVA across three adversary tiers,
 three contamination densities, and three calibration seeds on the in-domain
 corpus. At L1---the full signal set against a naive templated adversary---SEVA
 flags every injected passage: \textbf{$0\%$ attack-success across all nine
-conditions} ($0/1257$ pooled poison encounters; $95\%$ Wilson upper bound
-$0.30\%$), at a document false-positive rate held near the $0.69\%$ target (grand
-mean $0.56\%$; per-condition maximum $0.83\%$ on the high-variance seed~7).
+conditions}, with a dedicated high-encounter run tightening the $95\%$ Wilson upper
+bound to $0.0154\%$ ($0$ evasions in $25{,}000$ templated encounters at the frozen
+gate), at a document false-positive rate held near the $0.69\%$ target (grand mean
+$0.56\%$; per-condition maximum $0.83\%$ on the high-variance seed~7).% [SCALE-1; SEEDS-1]
 Two things make this result load-bearing rather than incidental. First, because
 clean and poison are drawn from the \emph{same} security domain, $0\%$ cannot be a
 domain-contrast artifact---the very confound that flatters linguistic detectors
@@ -635,6 +636,34 @@ Density & Clean coh. & Poison coh. & Gap & SNR \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Calibration Scaling}
+\label{subsec:calib}
+The deployed threshold $\tau$ is calibrated non-oracle, as the $(1-0.0069)$
+empirical percentile of clean coherence. A second formal property governs how
+tightly its realized false-positive rate tracks that $0.69\%$ target as the clean
+calibration corpus grows.
+
+\smallskip
+\noindent\textbf{Observation~2 (Calibration Scaling).}
+\emph{The realized non-oracle document false-positive rate converges toward the
+calibration target ($0.69\%$) as the clean calibration corpus grows; its deviation
+from the target shrinks with corpus size.}
+
+\emph{Evidence.} The grand-mean held-out document-FPR is $0.765\%$ at $N=10{,}000$
+and $0.674\%$ at $N=100{,}000$---the deviation from the $0.69\%$ target falling from
+$0.075\%$ to $0.016\%$ as $N$ grows tenfold, at the frozen $\tau$ (in-domain, three
+seeds at each size).% [SCALE-1]
+
+\emph{Mechanism.} $\tau$ is an order statistic of the clean-coherence sample; the
+sampling error of an empirical percentile---and thus the gap between the realized
+and target FPR---decays with the number of clean calibration documents, the
+$O(1/\sqrt{N})$ behaviour of such estimators. The convergence is a property of the
+clean calibration set alone, independent of the attack.
+
+\emph{Scope.} Established at two in-domain corpus sizes ($10{,}000$ and $100{,}000$);
+we report the convergence and its direction, and---two points fixing the direction
+but not the exponent---do not extrapolate the rate to larger corpora.
 
 \subsection{Cross-Domain Detection on Released PoisonedRAG}
 The in-domain result establishes that SEVA catches templated poison; the
@@ -1084,12 +1113,15 @@ document- and query-level false-positive rates at the $0.69\%$ non-oracle operat
 point. Attack-success is $0\%$ at every condition (each cell has $\mathrm{FN}=0$,
 Table~\ref{tab:confL1}); on the templated attack the deployed geometric hard gate
 coincides with the full signal set at $0\%$ ASR, their divergence under adaptation
-being the subject of Table~\ref{tab:core}. The pooled row aggregates all nine
-conditions ($n=1{,}257$). All quantities in \%.}
+being the subject of Table~\ref{tab:core}. The grand-mean row averages the nine
+conditions ($n=1{,}257$ pooled encounters); the high-encounter row is a dedicated
+frozen-gate run ($25{,}000$ templated encounters, $0$ evasions) tightening the
+templated-ASR upper bound to $0.0154\%$. All quantities in \%.}
 \label{tab:percond}
 % [SEEDS-1, STEP3] per-cell asr/doc_fpr/query_fpr from the L1 block of
 % seva_v6_2_results_100k_secqa_p{010,050,100}_s{042,007,123}.json; Wilson upper
 % z^2/(n+z^2), z=1.96, n = poison encounters (TP+FN) per cell.
+% [SCALE-1] high-encounter row from result_hienc_ci.json (n=25,000, 0 evasions, frozen tau=0.8423).
 \begin{tabular}{llrccc}
 \toprule
 Density & Seed & $n$ & ASR (95\% Wilson) & Doc-FPR & query-FPR \\
@@ -1106,7 +1138,8 @@ Density & Seed & $n$ & ASR (95\% Wilson) & Doc-FPR & query-FPR \\
                       & 7   & 156 & $\mathbf{0.0}$\,(2.4) & 0.68 & 2.75 \\
                       & 123 & 156 & $\mathbf{0.0}$\,(2.4) & 0.47 & 1.88 \\
 \midrule
-\multicolumn{2}{l}{Pooled} & $1{,}257$ & $\mathbf{0.0}$\,(0.30) & 0.56 & 2.24 \\
+\multicolumn{2}{l}{Grand mean}    & $1{,}257$  & $\mathbf{0.0}$           & 0.56 & 2.24 \\
+\multicolumn{2}{l}{High-enc.\ CI} & $25{,}000$ & $\mathbf{0.0}$\,(0.0154) & ---  & ---  \\
 \bottomrule
 \end{tabular}
 \end{table}
