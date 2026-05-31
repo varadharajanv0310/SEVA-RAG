@@ -262,12 +262,12 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 ### E4-HH · SQUEEZE TEST (SEVA × RAGDefender, templated × clone-inject): complementarity FAILS — clone-inject is a shared blind spot
 - **Added** 2026-05-31 · **Origin** E4-HH squeeze (`whitebox_attack_seva.py squeezegen` [seva env] + `e4hh_ragdefender.py` [ragdefender env]) · **Status** SETTLED (seed 42) / PROVISIONAL (→ 3-seed). **CAUTIONARY — keystone refuted.**
 - **Setup:** SAME clone-inject artifact (provenance); SEVA = frozen gate-p050 L1 (τ_L1=0.5915); RAGDefender v0.2.0 **single_hop** (confirmed via `docs/algorithm.md`: clustering-based, NQ/MS-MARCO/k=5 regime — matches our short factual queries), **embedder = BAAI/bge-large-en-v1.5** (= SEVA's encoder → isolates the *algorithmic* difference, not embedder). Per-query top-K=5. Catch metric = retrieved-poison-NOT-removed (ASR, comparable to SEVA). Provenance: `whitebox_attack_results/squeeze_retrieval_s042.json`, `e4hh_s042.json`.
-- **2×2 (ASR; lower = better defense):**
-  | poison | SEVA frozen-L1 | RAGDefender |
+- **2×2 at RAGDefender's NATIVE defend() operating point — NOT a fair comparison (its forced ~50% FPR; see Fair-comparison below):**
+  | poison | SEVA frozen-L1 | RAGDefender (native) |
   |---|---|---|
-  | templated (near-dup) | **0.0%** (DocFPR≈0.6%) | 18.9% |
-  | clone-inject (n=5/query) | **87.7%** | 41.7% |
-  - **RAGDefender benign doc-FPR = 50.4%** — it removes ~half of the *clean* retrieved docs on benign queries (over-fires on legitimately-similar in-domain passages; its poison "catch" is largely indiscriminate removal, not detection). RAGDefender is **not deployable on an in-domain corpus** at this FPR.
+  | templated (near-dup) | **0.0%** (DocFPR≈0.6%) | 18.9% ASR @ 50.4% FPR |
+  | clone-inject (n=5/query) | **87.7%** | 41.7% ASR @ 50.4% FPR |
+  - **RAGDefender benign doc-FPR = 50.4%** — native `defend()` removes ~half of the *clean* retrieved docs on benign queries (its poison "catch" is largely indiscriminate removal, not detection).
 - **Squeeze (clone-inject per-query count n; SURVIVE-BOTH = poison neither SEVA-flagged nor RAGDef-removed):**
   | n/query | attempts | SEVA-catch | RAGD-catch | **SURVIVE-BOTH ASR** | **q-level survive-both** |
   |---|---|---|---|---|---|
@@ -277,9 +277,17 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
   | 5 | 163 | 12.3% | 58.3% | 36.8% | 76% |
   | 8 | 175 | 12.6% | 57.1% | 37.1% | 80% |
 - **Finding (keystone REFUTED):** at **every** per-query density, clone-inject survives **both** defenses on 26–37% of retrieved poison and on **33–80% of target queries** (rising with n). The attacker is **not squeezed**: clone-inject is corpus-diffuse (evades SEVA cohesion → ~88% ASR, flat in n) **and** evades RAGDefender's per-query clustering (the clones mimic clean docs; and as n rises the poison-majority flips RAGDefender's minority/majority vote → RAGD-catch *drops* 70.7%→57%). **Complementarity / defense-in-depth does NOT hold for realizable clone-inject.**
-- **Silver lining (positive, keep):** against the **templated** threat SEVA **dominates** the SOTA per-query competitor on both axes — templated ASR **0.0% @ ≈0.6% FPR** (SEVA) vs **18.9% ASR @ 50.4% FPR** (RAGDefender).
-- **Manuscript impact (MAJOR):** the E1×E4-HH **complementarity reframe is NOT available** (the honesty-clause fallback fails). Honest framing: SEVA is a clean, low-FPR detector of **templated** corpus poisoning that **beats RAGDefender**, but **realizable clone-and-inject is an open problem that neither doc-level cohesion (SEVA) nor per-query clustering (RAGDefender) solves** — a shared blind spot, stated as a limitation/future-work. Table IX: SEVA > RAGDefender on templated (ASR & FPR); both fail clone-inject.
-- **Caveats:** seed 42; RAGDefender run with bge-large + single_hop (its default embedder is minilm — bge chosen to isolate the algorithm; a minilm run could shift its numbers); RAGDefender's 50% FPR means its "catches" are not at a controlled operating point.
+- **FAIR-COMPARISON checks (operating-point corrected; provenance `e4hh_fair_s042.json`):**
+  - **CHECK 1 (Nadv-GATE):** single_hop has **no no-attack gate** — `estimate_n_adv` returns `min/max(cluster sizes) ∈ [1,|R|-1]`, never 0. On 30 CLEAN k=5 sets it removes **2.30/5 docs on avg (0/30 gated to 0)** → the 50% FPR is **structural forced cluster-removal**, not selective in-domain FP. We invoke it as the authors intend (defend() filters every set); single_hop has no non-clustering path. So the native ASRs above sit at a remove-~half point.
+  - **CHECK 2 (MATCHED-FPR ROC):** defend() has no FPR knob → sweep RAGDefender's **concentration signal** (per-doc within-window mean pairwise cos — the premise both grouping strategies rest on; a **generous, best-case** RAGDefender with an idealized threshold it does not actually have). benign clean s_mean median 0.749; templated 0.993; **clone-inject 0.786 ≈ clean**. ROC (benign-FPR → templated-catch / clone-catch): **0.8% → 89.3% / 16.0%**; 5% → 93.4% / 28.8%; 25% → 95.9% / 58.9%; 50% → 97.5% / 77.9%. FPR floor ~0.20%.
+- **FAIR head-to-head (matched ~0.7–0.8% FPR = SEVA's operating point):**
+  | poison | SEVA catch | RAGDefender catch (best-case threshold) |
+  |---|---|---|
+  | templated | **100%** | ~89% |
+  | clone-inject | 12% | ~16% |
+  → On **templated** SEVA has a **modest, real edge** (100% vs ~89%: its corpus-level view catches lone templated docs RAGDefender's per-query view misses when no near-dup co-occurs in the window) — **NOT** "0% vs 18.9%@50%FPR domination" (that framing is **retired**). On **clone-inject both fail (~12–16%)** even at matched FPR → the shared-blind-spot / keystone-refuted finding is **robust to operating point**.
+- **Manuscript impact (MAJOR):** complementarity reframe **not available**. Fair, defensible framing: SEVA **modestly out-detects** the SOTA per-query competitor on **templated** poison at a matched low FPR (and RAGDefender's native filter is **not deployable** on in-domain corpora — forced ~50% FPR), while **realizable clone-and-inject defeats both** (open problem / shared blind spot). Table IX: use the **matched-FPR** table (templated 100% vs ~89%; clone-inject both ~12–16%) — do **NOT** state "SEVA dominates 0% vs 18.9%".
+- **Caveats:** seed 42; the matched-FPR ROC uses RAGDefender's concentration signal with an *idealized* threshold (generous — its real `defend()` cannot threshold and runs at ~50% FPR); RAGDefender embedder = bge-large (minilm sensitivity optional; clustering-evasion expected encoder-agnostic).
 - **Affected:** §I-C; Limitations (shared blind spot / open problem); Table IX / head-to-head; the complementarity discussion.
 
 *(further entries: E5 / E6 / E7 / 3-seed generalization — appended per the Standing rule)*
