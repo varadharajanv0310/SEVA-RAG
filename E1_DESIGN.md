@@ -332,3 +332,59 @@ Steps in `whitebox_attack_seva.py` (probe mode):
 **Next actions (this session):** commit this file → build `whitebox_attack_seva.py` (probe mode) →
 run the <30-min seed-42 probe → **STOP at the probe gate** and report
 `(cohesion, retrievability, ASR, directional NECESSARY/CORRELATED)`.
+
+---
+
+## 13. PROBE RESULT (seed 42, 2026-05-31) + CORRECTED interpretation *(supersedes the §9 directional wording)*
+
+**Numbers (`whitebox_attack_results/probe_s042.json`):** τ_coh(42)=**0.8442** (clean P95 0.8130);
+r*_op=**0.7231** (d5 median 0.718); R_base=**64%**. Best-case *synthetic free-on-sphere* spread poison:
+**100% retrievable, 100% ≤ τ_coh, mean cohesion 0.59–0.70, ASR-loose 100%, ASR-majority ≤94%** →
+C_min(geometric)=**0.5908**. Validity (`whitebox_validity.py`): combined real-corpus 5-NN cohesion
+**0.5866** ≈ probe 0.5908; poison-only shortcut 0.5103 → the probe used the COMBINED REAL corpus path;
+the +0.076 lift over the pure cone floor is the clean-neighbour contribution.
+
+**CORRECTED INTERPRETATION (replaces the earlier "necessity refuted / minus for the paper").** The
+CORRELATED result was **foregone**: pure-geometric necessity holds iff **r\*² > τ_coh**, and
+**0.72² = 0.52 ≪ 0.84**, so it fails by inspection for any r* < √0.84 ≈ 0.917. The probe merely
+**rediscovered the r\*² cone floor**; free-on-sphere placement **ignores the encoder manifold** and so
+**did NOT test the real claim**.
+
+> **Reworded verdict: pure-geometric necessity is UNCLAIMABLE (r\*² ≪ τ_coh); manifold realizability is
+> the open, decisive question. This is NOT evidence SEVA is weak.**
+
+The only realizable poison we have (the 0.99 set) is *surface-diverse but semantically identical* — a
+**weak predictor either way**. The decisive test is whether **realizable text** can be pushed below
+τ_coh — that is E1 (below).
+
+## 14. E1 cheap-end PRE-REGISTRATION *(fixed BEFORE any cheap-end numbers)*
+
+**Attack objective — SEMANTIC diffusion.** Generate poison that is **genuinely semantically diverse**
+subject to **(a) retrievable** (cos(doc,q) ≥ r*(q)) **and (b) payload preserved** (the malicious claim
+survives). Surface-only variation (the 0.99 set) is explicitly *not* the attack.
+
+**Realizability target (crisp):** push **real, retrievable, on-target** poison from cohesion **0.99
+below τ_coh = 0.84** — it need NOT reach the 0.59 geometric floor.
+
+**Cheap-end ladder (no GPU optimization):** offline-LLM semantic generation; budget `b` =
+candidates/slot ∈ {1, 4, 16, 64} with cohesion-based selection (keep the lowest-cohesion candidate that
+stays retrievable + payload-preserving).
+
+**Joint metric per budget point (reported together):** `(mean cluster_coh, retrievability,
+ASR-majority)` where **ASR-majority** = ≥⌈K/2⌉=3 of the top-K are *unflagged* poison (cluster_coh-only @
+τ_coh) on **≥ target = 0.8·R_base** of the 50 targeted queries.
+
+**3-WAY DECISION RULE (pre-registered):**
+- **cheaply-evadable:** cheap LLM rephrasing (small budget) → cohesion ≤ **max_s τ_coh(s)** AND
+  ASR-majority ≥ target.
+- **cost-imposition:** only the **b=400 discrete-token steelman** reaches it.
+- **empirically-robust:** even **b=400** cannot realize cohesion ≤ τ_coh at target ASR in text.
+
+**Honesty clause:** cheap evasion → report **complementarity** (E1×E4-HH: such poison is corpus-diffuse
++ query-retrievable = RAGDefender's per-query catch zone). Do **NOT** escalate to the steelman to
+"manufacture robustness" once cheap evasion succeeds.
+
+**Provenance (attack inputs).** Save the LLM-generated poison set **and** the generator (script + model
+id) to disk as a versioned artifact — the provenance invariant applies to attack inputs, not only
+results. Cheap-end run compares to τ_coh(42)=0.8442 directionally; the binding comparison uses
+max_s τ_coh(s) (3-seed calibration, deferred); the 0.84-vs-0.99 margin makes the directional read sound.
