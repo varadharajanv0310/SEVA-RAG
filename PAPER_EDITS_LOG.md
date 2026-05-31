@@ -34,17 +34,18 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | R-8 | Limitation 5 | PROVISIONAL (→ E7) |
 | R-9 | Limitation 6 / Table IX | FINAL (direction); result PROVISIONAL (→ E4-HH) |
 | E2-1 | clean corpus / Limitation 2 | FINAL (direction) |
-| E2-2/E3-1 | §VI; Tables V/VI | PROVISIONAL (seed 42 → 3-seed) |
-| RESCOPE-1 | Abstract; §I-C; Tables V/VI; Limitations; Conclusion | PROVISIONAL (→ E1) |
-| E1B-1 | Abstract; §I-C; necessity; Conclusion | SETTLED-directional / PROVISIONAL |
-| E1-1 | Abstract; §I-C; threat model; results; Limitations; Conclusion | **MAJOR** — SETTLED s42 / PROVISIONAL |
-| E1-2 | results; Limitations; Tables V/VI companion | **MAJOR** — frozen L1 **88.8%**; SETTLED s42 / PROVISIONAL (→ 3-seed) |
+| E2-2/E3-1 | §VI; Tables V/VI | FINAL (3-seed; see SEEDS-1) |
+| RESCOPE-1 | Abstract; §I-C; Tables V/VI; Limitations; Conclusion | FINAL (in-domain 3-seed L2/L3) |
+| E1B-1 | Abstract; §I-C; necessity; Conclusion | SETTLED-directional (geometry seed-invariant) |
+| E1-1 | Abstract; §I-C; threat model; results; Limitations; Conclusion | **MAJOR** — FINAL (3-seed) |
+| E1-2 | results; Limitations; Tables V/VI companion | **MAJOR** — FINAL (frozen L1 88.8%; 3-seed SEVA-ASR 86.7±1.0%) |
 | E1-3 | method/system; any dedup claim | FLAG — verify vs paper |
 | OPEN-CAL-1 | paper-wide (calibration disclosure) | RESOLVED (attack-specific/oracle; → E1-2 frozen 88.8%) |
 | E3-2 | §IV methods; error bars; Limitations | DISCLOSURE (FINAL direction) |
-| E-CAL-1 | §I-C; results; Limitations | POSITIVE — SETTLED s42 / PROVISIONAL (→ 3-seed) |
-| E-CAL-2 | Tables V/VI L2/L3; §VI; Limitations | SETTLED s42 / PROVISIONAL (→ 3-seed) |
-| E4-HH | §I-C; Limitations; Table IX / head-to-head | CAUTIONARY (complementarity refuted) — SETTLED s42 / PROVISIONAL (→ 3-seed) |
+| E-CAL-1 | §I-C; results; Limitations | POSITIVE — FINAL (3-seed; L1 0% all seeds) |
+| E-CAL-2 | Tables V/VI L2/L3; §VI; Limitations | SETTLED s42 (adaptive collapse confirmed 3-seed via E2-2) |
+| E4-HH | §I-C; Limitations; Table IX / head-to-head | CAUTIONARY (complementarity refuted) — FINAL (3-seed) |
+| SEEDS-1 | 3-seed generalization (all above) | FINAL — calibration variance only (E3-2) |
 
 ---
 
@@ -290,4 +291,12 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Caveats:** seed 42; the matched-FPR ROC uses RAGDefender's concentration signal with an *idealized* threshold (generous — its real `defend()` cannot threshold and runs at ~50% FPR); RAGDefender embedder = bge-large (minilm sensitivity optional; clustering-evasion expected encoder-agnostic).
 - **Affected:** §I-C; Limitations (shared blind spot / open problem); Table IX / head-to-head; the complementarity discussion.
 
-*(further entries: E5 / E6 / E7 / 3-seed generalization — appended per the Standing rule)*
+### SEEDS-1 · 3-SEED generalization (seeds 42/7/123, CORRECTED per-seed calibration) — lifts PROVISIONALs to FINAL
+- **Added** 2026-05-31 · **Origin** corrected per-seed multitier (E3-2 protocol: deleted the non-seed-tagged `p1_query.json` + stale `p3` per tier → each seed re-selects its benign pool; verified "50 targeted + 2000 benign queries" rebuild, NOT cache-load; `step3_secqa_s{7,123}_corrected.log`) + `whitebox_attack_seva.py seeds3` · **Status** FINAL (seeds 42/7/123).
+- **Disclosure (E3-2):** seeds bound **CALIBRATION-sampling variance ONLY** (poison, clean, embeddings, `doc_coh`, SNR weights are seed-invariant; only benign sampling + cal/eval split vary → τ_L1). **τ_L1(p050) = 0.5915 / 0.5854 / 0.5877 → 0.5882 ± 0.0025.**
+- **(a) In-domain BASELINE 3-seed (templated; finalizes E2-2(c) / RESCOPE-1):** L1 ASR **0.0% at all 3 seeds × all densities** (positive claim rock-solid). L2/L3 ASR mean±std: 1% ≈ L2 44±1 / L3 42±2; **5% = 57.0 ± 5.5** (s42/7/123 = 60.9/49.3/60.9); **10% = 72.4 ± 0.9**. DocFPR ≤ 0.83% (seed-7 slightly above the 0.69% target — calibration variance; disclose). The adaptive L2/L3 collapse (44–73%) holds across seeds.
+- **(b) Frozen 2×2 + squeeze 3-seed (E4-HH / E1-2 / E-CAL-1):** templated SEVA-ASR **0.0 ± 0.0%** (L1 catches templated, all seeds); clone-inject SEVA-ASR **86.7 ± 1.0%** (n5; consistent with the 88.8% full-frozen). Squeeze SURVIVE-BOTH (clone-inject): n1 **25.6 ± 0.0%** / n3 **37.0 ± 0.3%** / n5 **36.4 ± 0.6%** / n8 **37.1 ± 0.0%**; q-level survive-both **33 → 80%** (±≤1%, rising with n). **RAGDefender catch + the matched-FPR fair-ROC are seed-INVARIANT** (no per-seed calibration; concentration = corpus property).
+- **Verdict:** every E1 / E-CAL / E4-HH finding is **stable across 3 seeds** (tight std); the seed-42 numbers generalize. Provenance: `seeds3_s042.json`, corrected `seva_v6_2_results_100k_secqa_p{010,050,100}_s{007,123}.json`, `e4hh_ragd_flags_s042.json`.
+- **Status flips → FINAL:** E2-2/E3-1, RESCOPE-1 (L2/L3 in-domain), E1-1, E1-2, E-CAL-1, E4-HH. E-CAL-2's specific frozen-no-re-adaptation variant stays seed-42 (the adaptive collapse it measures is confirmed across seeds via (a)).
+
+*(further entries: E1-4 (attack demo) / E5 / E6 / E7 — appended per the Standing rule)*
