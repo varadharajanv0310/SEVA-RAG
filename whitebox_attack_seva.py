@@ -448,7 +448,7 @@ def run_cheap():
     log("  CHEAP-END COMPLETE — STOP at cost-curve gate.")
 
 
-def run_full(out_tag="full", host_source="incorpus"):
+def run_full(out_tag="full", host_source="incorpus", calibration="recal"):
     """CHECK 1+2: run the clone-inject cheap poison through the FULL FROZEN detector
     (hash + ALL signals, real phase3/phase4, real TARGETED_Q, frozen retrieval).
     Reports COMPOSITE L1/L2/L3 ASR + hash/ml catches. Reuses cached 95k clean embeddings.
@@ -526,7 +526,19 @@ def run_full(out_tag="full", host_source="incorpus"):
     b = FullBench(95000, poison_ratio=0.0025)
     b.ckdir = ckdir; os.makedirs(ckdir, exist_ok=True)
     b.rf = os.path.join(RESULTS_DIR, f"full_{out_tag}_s042.json")
-    b.phase1(); b._compute_corpus_stats(); b.phase2(); b._compute_doc_coh(); b.phase3()
+    b.phase1(); b.phase2(); b._compute_doc_coh()
+    if calibration == "frozen":
+        # STEP 1 (OPEN-CAL-1): FREEZE the seed-42 TEMPLATED-gate calibration (weights + tau),
+        # score clone-inject with NO recalibration — the realistic deployed-detector number.
+        gp = _json.load(open(os.path.join(CKDIR, "p3_v6.2_s042.json"), encoding="utf-8"))
+        b.tau_L1, b.tau_L2, b.tau_L3 = gp["tau_L1"], gp["tau_L2"], gp["tau_L3"]
+        b.L1_weights, b.L2_weights, b.L3_weights = gp["L1_weights"], gp["L2_weights"], gp["L3_weights"]
+        b.flipped_signals = set(gp.get("flipped_signals", [])); b.norm_config = gp["norm_config"]
+        b.cal_doc_ids = set(); b._compute_centroid(); b._split_queries(); b.phase3_ok = True
+        log(f"  [FROZEN templated-gate cal] tau_L1={b.tau_L1:.4f} tau_L2={b.tau_L2:.4f} tau_L3={b.tau_L3:.4f}")
+        log("  [FROZEN] L1 weights: " + ", ".join(f"{k}={v:.3f}" for k, v in b.L1_weights.items()))
+    else:
+        b._compute_corpus_stats(); b.phase3()
     if not b.phase3_ok: log("  phase3 STOP"); return
     R1, R2, R3 = b.phase4(); out = b.report(R1, R2, R3)
     pc = b.doc_coh[:P]
@@ -554,5 +566,7 @@ if __name__ == "__main__":
         run_full("incorpus", "incorpus")
     elif mode == "fullout":
         run_full("outcorpus", "outcorpus")
+    elif mode == "fullfrozen":
+        run_full("frozenincorpus", "incorpus", "frozen")
     else:
-        print("modes: probe | cheap | full | fullout"); sys.exit(2)
+        print("modes: probe | cheap | full | fullout | fullfrozen"); sys.exit(2)

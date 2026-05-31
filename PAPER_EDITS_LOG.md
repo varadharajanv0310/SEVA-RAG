@@ -33,6 +33,12 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | R-7 | Limitation 3 | FINAL (framing); numbers PROVISIONAL (→ E2/E5) |
 | R-8 | Limitation 5 | PROVISIONAL (→ E7) |
 | R-9 | Limitation 6 / Table IX | FINAL (direction); result PROVISIONAL (→ E4-HH) |
+| E2-1 | dataset/corpus; Lim 2; §III | PROVISIONAL (→ Step-3 baseline) |
+| E2-2 / E3-1 | Tables I/II/V/VI/VII; §VI; eval | PROVISIONAL (→ seeds 7,123) |
+| RESCOPE-1 | Abstract; §I-C; Tables V/VI; §VI; Lims; Concl. | PROVISIONAL (→ E1/E1b + seeds) |
+| OPEN-CAL-1 | §IV calibration protocol | RESOLVED (attack-specific/oracle; realistic frozen number → E1-2) |
+| E1-1 | §I-C; §V-E; Lim 1; cluster_coh claim | PROVISIONAL (→ 3-seed; CHECK-3 frontier accepted) |
+| E1-2 | Tables V/VI; Lim 1; §VI; robustness claim | PROVISIONAL (→ 3-seed; frozen-cal L1 number recorded) |
 | E2-1 | clean corpus / Limitation 2 | FINAL (direction) |
 | E2-2/E3-1 | §VI; Tables V/VI | PROVISIONAL (seed 42 → 3-seed) |
 | RESCOPE-1 | Abstract; §I-C; Tables V/VI; Limitations; Conclusion | PROVISIONAL (→ E1) |
@@ -229,4 +235,32 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 ---
 
-*(further entries appended per the Standing rule as E1 / E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
+### OPEN-CAL-1 · SEVA's calibration protocol: attack-specific (oracle) vs reference/frozen — RESOLVED
+- **Added:** 2026-05-31 · **Origin:** author scrutiny of the E1 cheap-end "L1 holds (8.9%)" number.
+- **Question:** Are SEVA's SNR weights + τ calibrated *per deployment corpus* (so they "see" the attack poison = oracle), or *once on a reference attack* then frozen for deployment?
+- **Resolution (code-authoritative; PDF text not auto-extractable in the frozen `seva` env):**
+  **As implemented = ATTACK-SPECIFIC / oracle.** Phase 3 derives SNR weights from the *current corpus's* poison (`poison_indices` = ALL poison present; `seva_benchmark_4060.py:685, 701, 744–750`) and calibrates τ to FPR_TARGET on cal-clean *under those weights* (`:817–836`). So both weights and τ depend on the attack present at calibration. A reference/frozen protocol IS supported by the Phase-3 cache (`:653–672`: load a reference `p3` JSON, deploy frozen). Paper §0.5 "universal-FPR calibration" = τ is **density-agnostic** (no poison-RATIO input); it does **not** claim attack-agnostic *weights* (SNR fundamentally needs poison to compute).
+- **Implication:** any per-corpus-recalibrated benchmark number is **oracle-optimistic** w.r.t. the attack. The realistic deployed number requires freezing a reference calibration (templated gate) and facing the novel attack → see **E1-2** frozen number.
+- **Status:** **RESOLVED.**
+
+### E1-1 · cluster_coh narrowing (E1b geometric + CHECK-3 prominence) — calibration-independent
+- **Added:** 2026-05-31 · **Origin:** E1b probe + CHECK 3 (author-accepted as solid/calibration-independent).
+- **Provenance:** `whitebox_attack_results/probe_s042.json`, `prominence_s042.json`; `whitebox_validity.py` (combined-corpus 5-NN coherence 0.5866 ≈ probe 0.5908).
+- **(a) Pure-geometric necessity is UNCLAIMABLE:** necessity needs r*² > τ_coh, but r*²=0.72²=0.52 ≪ τ_coh=0.8442 → free-on-sphere poison trivially clears the cone floor (foregone). The E1b "geometric necessity" claim is not available; **manifold realizability** is the real question. *Not* evidence SEVA is weak by itself.
+- **(b) cluster_coh is cheaply evaded by realizable clone-inject (the binding narrowing):** real diverse on-topic host + payload → cluster_coh 0.79 < τ_coh 0.84 at the **minimum defensible prominence** (one full false-claim sentence, ~12% payload). Cohesion climbs over τ_coh only at ≥~62% payload, where retrievability collapses (CHECK 3). → **cluster_coh detects payload CONCENTRATION (≈ templating/near-duplication), not subtle injection.**
+- **Paper edit (claim narrowing):** the "domain-independent geometric core" is bounded to **templated/near-duplicate** poison; it does NOT detect realistic clone-and-inject. (Supersedes any unqualified "cluster_coh is the robust core" wording.)
+- **Status:** PROVISIONAL (→ seeds 7,123 for τ_coh mean±std; seed-42 numbers + CHECK-3 frontier accepted).
+
+### E1-2 · Clone-inject vs the FULL frozen detector — composite ASR (oracle vs realistic calibration)
+- **Added:** 2026-05-31 · **Origin:** E1 CHECK 1 (composite) + STEP 1 (frozen, resolving OPEN-CAL-1).
+- **Provenance:** `whitebox_attack_results/full_check_incorpus_s042.json` (recalibrated/oracle); `full_check_frozenincorpus_s042.json` (frozen templated-gate cal). 250 clone-inject poison (top-5 real Security-SE hosts/query + payload) + 95k clean; real frozen `phase4`, real 50 TARGETED_Q (attempts=169); seed 42.
+- **Composite ASR (L1 / L2 / L3):**
+  | calibration | L1 | L2 | L3 | hash_catch | DocFPR |
+  |---|---|---|---|---|---|
+  | recalibrated **on the attack** (oracle — NOT realistic) | 8.9% | 91.1% | 97.0% | 0 | ≤0.67% |
+  | **FROZEN templated-gate** (realistic deployed; τ_L1=0.5915) | **88.8%** | **100%** | **100%** | 0 | ≤0.65% |
+- **Finding:** the 8.9% L1 "hold" was an **oracle artifact** — recalibrating τ+weights on clone-inject lets τ drop to its score band. Under deployed (frozen, templated-reference) calibration, kw_density's separation (SNR 5.40) is **insufficient** to lift clone-inject's composite over a τ tuned for templated poison (which fires cluster_coh **and** kw_density). So **even naive L1 SEVA leaks clone-inject at 88.8%** (L2/L3 = 100%). hash never fires (per-doc tamper check, not near-dup; hypothesis refuted).
+- **Paper edit (MAJOR — pending author):** under realistic deployed calibration SEVA does **not** hold against clone-and-inject poison at any layer (L1 88.8%, L2/L3 100%); the only separating signal (kw_density) is domain-confounded and sub-threshold at the deployed τ. **Supersedes** any "L1 ensemble catches clone-inject" framing.
+- **Status:** PROVISIONAL (→ seeds 7,123 for frozen-cal mean±std). Per author: the recal-vs-frozen ambiguity is **RESOLVED** (frozen=realistic=88.8%); OPEN-CAL-1 closed.
+
+*(further entries appended per the Standing rule as E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
