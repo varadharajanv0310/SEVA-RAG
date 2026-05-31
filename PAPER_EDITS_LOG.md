@@ -43,6 +43,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | OPEN-CAL-1 | paper-wide (calibration disclosure) | RESOLVED (attack-specific/oracle; → E1-2 frozen 88.8%) |
 | E3-2 | §IV methods; error bars; Limitations | DISCLOSURE (FINAL direction) |
 | E-CAL-1 | §I-C; results; Limitations | POSITIVE — SETTLED s42 / PROVISIONAL (→ 3-seed) |
+| E-CAL-2 | Tables V/VI L2/L3; §VI; Limitations | SETTLED s42 / PROVISIONAL (→ 3-seed) |
 
 ---
 
@@ -242,6 +243,19 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Manuscript impact:** the surviving positive contribution — domain-independent detection of **templated** corpus poisoning (the dominant literature pattern) — **holds under non-oracle calibration**; keep it, scoped, with the clone-inject boundary as the honest limitation (NOTE-1). The L2/L3 byproduct (59.8% frozen, pre-frozen adaptive weights) previews the adaptive collapse; the precise *no-re-adaptation* adaptive-frozen number is **E-CAL-2** (OPEN-CAL-1 re-run #2, pending).
 - **Affected:** §I-C contributions (positive claim); results (frozen-calibration row); Limitations (boundary).
 
-*(further entries: E-CAL-2 (adaptive-frozen) / E4-HH / E5 / E6 / E7 / additional seeds — appended per the Standing rule)*
+### E-CAL-2 · Adaptive L2/L3 under FROZEN L1 (strict no-re-adaptation): held-out templated leaks ~49–57%, comparable to oracle-adaptive
+- **Added** 2026-05-31 · **Origin** OPEN-CAL-1 re-run #2 (`whitebox_attack_seva.py ecal2`) · **Status** SETTLED (seed 42) / PROVISIONAL (→ 3-seed).
+- **Method:** freeze L1 weights+τ (templated half-A from E-CAL-1); evaluate held-out templated half-B; adversary neutralizes the evaded signal at the **feature level**, **no re-normalization**. Frozen τ_L1=0.5870; L1 weights kw_density 0.154, cluster_coh 0.154, avg_sent_len **0.000**. attempts=125. Provenance: `whitebox_attack_results/ecal2_s042.json`.
+- **Sanity:** frozen L1, NO neutralization → ASR **0.0%** (templated caught at L1; matches E-CAL-1).
+- **Result** (L2 = evade kw_density; L3 = also evade avg_sent_len):
+  | variant | L2 | L3 |
+  |---|---|---|
+  | (b) pre-frozen adaptive weights | 53.6% | 53.6% |
+  | **(c1) value-based clean-draw (strict no-re-adaptation; headline candidate)** | **48.8%** | **48.8%** |
+  | (c2) drop-the-term (zero weight, no renorm) | 56.8% | 56.8% |
+  L3 = L2 because the frozen L1 calibration assigned **avg_sent_len weight 0** → evading it has no effect under frozen L1.
+- **Finding:** under realistic frozen single-detector calibration, a kw_density-evading adversary defeats SEVA on held-out templated at **~49–57%** — **comparable to** the oracle-recalibrated adaptive (gate 44–73%), **not dramatically worse**. The "doubly-damaging" effect is **muted here** because clean kw_density ≈ 0.047 → value-neutralization ≈ zeroing (hence c1 ≈ c2, c1 slightly lower as some clean draws carry minor keyword evidence). The adaptive-robustness collapse holds **regardless of calibration protocol** (consistent with RESCOPE-1): cluster_coh (0.99 for templated, wt 0.154) is not weighted enough to hold the composite once kw_density is evaded.
+- **Manuscript impact:** report the adaptive L2/L3 collapse as **realistic (frozen: ~49% strict / ~54% pre-adapted / ~57% drop-term)**, not only oracle. Completes the frozen-calibration picture: **templated L1 0% (E-CAL-1) · templated adaptive ~49% (E-CAL-2) · clone-inject L1 88.8% / adaptive 100% (E1-2).**
+- **Affected:** Tables V/VI L2/L3; §VI adaptive-adversary discussion; Limitations.
 
-*(further entries appended per the Standing rule as E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
+*(further entries: E4-HH / E5 / E6 / E7 / additional seeds — appended per the Standing rule)*

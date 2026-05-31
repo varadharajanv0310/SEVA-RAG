@@ -641,6 +641,111 @@ def run_linchpin():
     log(f"  ({_time.perf_counter()-t0:.1f}s) saved linchpin_s042.json")
 
 
+def run_ecal2():
+    """E-CAL-2 (OPEN-CAL-1 re-run #2): adaptive L2/L3 under FROZEN L1, STRICT no-re-adaptation.
+    Freeze L1 weights+tau (templated half-A from the linchpin); evaluate held-out templated half-B
+    with the adversary NEUTRALIZING the evaded signal at the FEATURE level, NO re-normalization.
+    Reports, for L2 (evade kw_density) and L3 (evade kw_density + avg_sent_len):
+      (b)  pre-frozen adaptive weights  (half-A L2/L3 weights+tau)            [= STEP-B sanity]
+      (c1) value-based: evaded signal <- CLEAN-distribution draw, frozen L1 weights+tau
+      (c2) drop-the-term: zero the evaded signal weight, frozen L1 weights+tau (no renorm)."""
+    import torch, numpy as _np, json as _json, time as _time, importlib.util
+    DEVICE = torch.device("cuda:0"); torch.manual_seed(SYNTH_SEED); _np.random.seed(SYNTH_SEED)
+    t0 = _time.perf_counter()
+    log("=" * 72); log("  E-CAL-2: adaptive L2/L3 under FROZEN L1 (strict no-re-adaptation)".center(72)); log("=" * 72)
+    linchA_p3 = os.path.join(CWD, "seva_checkpoints_4060_100k_secqawblinchA", "p3_v6.2_s042.json")
+    if not os.path.exists(linchA_p3):
+        log("  MISSING linch_A p3 — run `linchpin` first."); return
+    cal = _json.load(open(linchA_p3, encoding="utf-8"))
+    L1w, L2w, L3w = cal["L1_weights"], cal["L2_weights"], cal["L3_weights"]
+    tau1, tau2, tau3 = cal["tau_L1"], cal["tau_L2"], cal["tau_L3"]
+    flipped = set(cal.get("flipped_signals", [])); norm = cal["norm_config"]
+    log(f"  frozen tau_L1={tau1:.4f} tau_L2={tau2:.4f} tau_L3={tau3:.4f}; "
+        f"L1 kw_density wt={L1w.get('kw_density',0):.3f} avg_sent_len wt={L1w.get('avg_sent_len_signal',0):.3f} cluster_coh wt={L1w.get('cluster_coh',0):.3f}")
+    pe = _np.load(os.path.join(CKDIR, "p2_pe.npy")); corpus = _json.load(open(os.path.join(CKDIR, "p1_corpus.json"), encoding="utf-8"))
+    gq = _json.load(open(os.path.join(CKDIR, "p1_query.json"), encoding="utf-8"))
+    isp = _np.array([bool(d["is_poisoned"]) for d in corpus])
+    clean_emb = _np.ascontiguousarray(pe[~isp]); clean_texts = [corpus[i]["text"] for i in _np.where(~isp)[0]]
+    half_B = [d["text"] for d in _json.load(open(os.path.join(CWD, "poison_corpus_diverse.json"), encoding="utf-8"))][1::2][:2500]
+    advq = []; seen = set()
+    for q in gq:
+        if q.get("adv") and q["q"] not in seen: advq.append(q["q"]); seen.add(q["q"])
+    mod_name = "seva_ecal2_42"
+    if mod_name in sys.modules: del sys.modules[mod_name]
+    saved = sys.argv[:]
+    sys.argv = ["seva_benchmark_4060.py", "--corpus", "100000", "--poison-ratio", "0.0025", "--cal-seed", "42", "--benign-q", "2000", "--corpus-tag", "secqawbecal2"]
+    try:
+        spec = importlib.util.spec_from_file_location(mod_name, os.path.join(CWD, "seva_benchmark_4060.py"))
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    finally:
+        sys.argv = saved
+    text_features = m.text_features; K = m.K; K_FETCH = m.K_FETCH; _faiss = m.faiss
+    from sentence_transformers import SentenceTransformer
+    enc = SentenceTransformer("BAAI/bge-large-en-v1.5", device="cuda:0")
+    embB = enc.encode(half_B, batch_size=64, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+    qemb = enc.encode(advq, convert_to_numpy=True, normalize_embeddings=True).astype(_np.float32)
+    del enc; torch.cuda.empty_cache()
+    P = len(half_B)
+    pe_full = _np.ascontiguousarray(_np.concatenate([embB, clean_emb], 0), dtype=_np.float32)
+    texts_full = half_B + clean_texts
+    _faiss.omp_set_num_threads(1)
+    idx = _faiss.IndexHNSWFlat(m.EMB_DIM, m.INDEX_M, _faiss.METRIC_INNER_PRODUCT); idx.hnsw.efConstruction = m.INDEX_EF; idx.add(pe_full)
+    cr = pe_full.mean(0); centroid = (cr / _np.linalg.norm(cr)).astype(_np.float32)
+    n = pe_full.shape[0]; doc_coh = _np.zeros(n, dtype=_np.float32)
+    for s in range(0, n, 512):
+        e = min(s + 512, n); _, nbr = idx.search(_np.ascontiguousarray(pe_full[s:e]), K + 1)
+        for bi in range(e - s):
+            di = s + bi; valid = [int(j) for j in nbr[bi] if j >= 0 and int(j) != di][:K]
+            if len(valid) >= 2:
+                em = pe_full[valid]; sim = _np.dot(em, em.T); doc_coh[di] = float(sim[_np.triu_indices(len(valid), k=1)].mean())
+            else: doc_coh[di] = 0.5
+    rng = _np.random.default_rng(99)
+    csample = rng.choice(len(clean_texts), size=min(2000, len(clean_texts)), replace=False)
+    clean_kwd, clean_asl = [], []
+    for ci in csample:
+        su, ttr, rr, kwd, dl, asl, ps, cts = text_features(clean_texts[int(ci)], norm)
+        clean_kwd.append(kwd); clean_asl.append(asl)
+    clean_kwd = _np.array(clean_kwd); clean_asl = _np.array(clean_asl)
+
+    def score(fd, weights):
+        return sum(weights.get(k, 0.0) * ((1.0 - v) if k in flipped else v) for k, v in fd.items() if weights.get(k, 0.0) > 0)
+    L1w_k0 = dict(L1w); L1w_k0["kw_density"] = 0.0
+    L1w_ka0 = dict(L1w); L1w_ka0["kw_density"] = 0.0; L1w_ka0["avg_sent_len_signal"] = 0.0
+    res = {k: [0, 0] for k in ["L1ref", "b_L2", "b_L3", "c1_L2", "c1_L3", "c2_L2", "c2_L3"]}
+    for qi in range(len(advq)):
+        qe = qemb[qi:qi + 1]; _, ir = idx.search(_np.ascontiguousarray(qe), K_FETCH); ri = [int(i) for i in ir[0] if i >= 0]
+        sims = [float(_np.dot(pe_full[j], qe[0])) for j in ri]
+        topk = [ri[x] for x in sorted(range(len(ri)), key=lambda x: sims[x], reverse=True)[:K]]
+        for di in topk:
+            if di >= P: continue   # poison only (half-B at [0:P])
+            su, ttr, rr, kwd, dl, asl, ps, cts = text_features(texts_full[di], norm)
+            drift = 1.0 - float(_np.dot(pe_full[di], centroid)); coh = float(doc_coh[di])
+            base = {"topic_drift": drift, "sent_unif": su, "ttr_signal": ttr, "repeat_rate": rr, "kw_density": kwd,
+                    "doc_length_signal": dl, "avg_sent_len_signal": asl, "punct_signal": ps, "content_ttr_signal": cts, "cluster_coh": coh}
+            res["L1ref"][1] += 1;  res["L1ref"][0] += (score(base, L1w) <= tau1)
+            res["b_L2"][1] += 1;   res["b_L2"][0] += (score(base, L2w) <= tau2)
+            res["b_L3"][1] += 1;   res["b_L3"][0] += (score(base, L3w) <= tau3)
+            f_c1L2 = dict(base); f_c1L2["kw_density"] = float(rng.choice(clean_kwd))
+            res["c1_L2"][1] += 1;  res["c1_L2"][0] += (score(f_c1L2, L1w) <= tau1)
+            f_c1L3 = dict(f_c1L2); f_c1L3["avg_sent_len_signal"] = float(rng.choice(clean_asl))
+            res["c1_L3"][1] += 1;  res["c1_L3"][0] += (score(f_c1L3, L1w) <= tau1)
+            res["c2_L2"][1] += 1;  res["c2_L2"][0] += (score(base, L1w_k0) <= tau1)
+            res["c2_L3"][1] += 1;  res["c2_L3"][0] += (score(base, L1w_ka0) <= tau1)
+    def asr(k): return 100.0 * res[k][0] / res[k][1] if res[k][1] else 0.0
+    log(f"  attempts (held-out templated poison in top-K over {len(advq)} adv queries) = {res['L1ref'][1]}")
+    log(f"  [sanity] frozen L1, NO neutralization ASR = {asr('L1ref'):.1f}% (expect ~0; templated caught at L1 — matches E-CAL-1)")
+    log("  --- E-CAL-2: adaptive ASR under FROZEN L1 (strict no-re-adaptation) ---")
+    log(f"   L2 (evade kw_density):              (b) pre-frozen-adaptive={asr('b_L2'):.1f}%   (c1) value-clean-draw={asr('c1_L2'):.1f}%   (c2) drop-term={asr('c2_L2'):.1f}%")
+    log(f"   L3 (evade kw_density+avg_sent_len): (b) pre-frozen-adaptive={asr('b_L3'):.1f}%   (c1) value-clean-draw={asr('c1_L3'):.1f}%   (c2) drop-term={asr('c2_L3'):.1f}%")
+    log("=" * 72)
+    out = {"mode": "ecal2", "attempts": res["L1ref"][1], "L1ref_asr": asr("L1ref"), "frozen_tau_L1": tau1,
+           "L2": {"b": asr("b_L2"), "c1_value_clean": asr("c1_L2"), "c2_drop_term": asr("c2_L2")},
+           "L3": {"b": asr("b_L3"), "c1_value_clean": asr("c1_L3"), "c2_drop_term": asr("c2_L3")},
+           "runtime_s": _time.perf_counter() - t0}
+    _json.dump(out, open(os.path.join(RESULTS_DIR, "ecal2_s042.json"), "w", encoding="utf-8"), indent=2)
+    log(f"  ({_time.perf_counter()-t0:.1f}s) saved ecal2_s042.json")
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "probe"
     if mode == "probe":
@@ -655,5 +760,7 @@ if __name__ == "__main__":
         run_full("frozenincorpus", "incorpus", "frozen")
     elif mode == "linchpin":
         run_linchpin()
+    elif mode == "ecal2":
+        run_ecal2()
     else:
-        print("modes: probe | cheap | full | fullout | fullfrozen | linchpin"); sys.exit(2)
+        print("modes: probe | cheap | full | fullout | fullfrozen | linchpin | ecal2"); sys.exit(2)
