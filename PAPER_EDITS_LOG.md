@@ -16,6 +16,8 @@ Each entry has: **ID · Added (date) · Origin · Location** (paper §/Table/Fig
 ## Standing rule (rest of project)
 Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or removes** a claim / number / table in the paper, **append a dated entry here** with exact location, OLD, NEW, provenance (results file), and FINAL-vs-PROVISIONAL — then **commit + push** this log. Append-mostly: never delete entries; mark superseded ones `SUPERSEDED`.
 
+> **⚠ Log AS THE FINDING LANDS — never defer logging to an end-of-project pass.** Deferral is how findings get lost (this warning was added 2026-05-31 after several E1/E1b findings sat unlogged in commit messages/JSONs only). The LEDGER is always current; **only the manuscript *prose*/`.tex` edits are batched to the end** — the log itself is updated the moment a result changes a claim, even if the result is provisional or mid-investigation.
+
 ---
 
 ## Status index
@@ -31,6 +33,14 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | R-7 | Limitation 3 | FINAL (framing); numbers PROVISIONAL (→ E2/E5) |
 | R-8 | Limitation 5 | PROVISIONAL (→ E7) |
 | R-9 | Limitation 6 / Table IX | FINAL (direction); result PROVISIONAL (→ E4-HH) |
+| E2-1 | clean corpus / Limitation 2 | FINAL (direction) |
+| E2-2/E3-1 | §VI; Tables V/VI | PROVISIONAL (seed 42 → 3-seed) |
+| RESCOPE-1 | Abstract; §I-C; Tables V/VI; Limitations; Conclusion | PROVISIONAL (→ E1) |
+| E1B-1 | Abstract; §I-C; necessity; Conclusion | SETTLED-directional / PROVISIONAL |
+| E1-1 | Abstract; §I-C; threat model; results; Limitations; Conclusion | **MAJOR** — SETTLED s42 / PROVISIONAL |
+| E1-2 | results; Limitations; Tables V/VI companion | PROVISIONAL (blocked on OPEN-CAL-1) |
+| E1-3 | method/system; any dedup claim | FLAG — verify vs paper |
+| OPEN-CAL-1 | paper-wide (calibration disclosure) | OPEN |
 
 ---
 
@@ -171,5 +181,44 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
   - **Limitations:** add — multi-signal adaptive robustness was partly domain-confounded; a keyword-dropping adversary largely defeats SEVA in-domain; `cluster_coh` alone is the load-bearing signal under evasion.
   - **Conclusion:** align.
 - **Note:** FINAL framing depends on whether `cluster_coh` survives the E1 white-box suppression attack — **E1/E1b are now decisive, not confirmatory.** Do not finalize the rescoped claim until E1/E1b land; also pending seeds 7,123 for in-domain L2/L3 mean±std.
+
+## Entries — Group: E1 / E1b (white-box attack on the rescoped `cluster_coh` core)
+
+*Backfilled 2026-05-31. These findings existed only in commit messages + result JSONs until now — logged retroactively per the corrected as-you-go rule. Numbers are seed-42; cite the named commits/JSONs for exact values.*
+
+### E1B-1 · Do NOT claim geometric/fundamental necessity for `cluster_coh` — empirical manifold-realizability only
+- **Added** 2026-05-31 · **Origin** E1b geometric feasibility probe (commits `9b0b9b4`; framing-corrected `5aba517`) · **Status** SETTLED (directional); PROVISIONAL pending full E1b writeup
+- **Finding:** pure-geometric necessity is unclaimable by inspection. In bge's 1024-d space the retrievability cone (cos ≥ r\* ≈ 0.72) permits poison at pairwise cohesion ≈ r\*² ≈ 0.52 ≪ τ_coh = 0.844; the synthetic probe reached ~0.59. "Retrievable ⟹ high inter-poison cohesion" is FALSE as geometry.
+- **Manuscript impact:** remove any framing of `cluster_coh` robustness as *fundamental / geometric / necessary / provable*. If necessity is discussed, frame strictly as **empirical manifold-realizability** (can real encodable text reach the low-cohesion region?). That question is what E1's cheap-end answered → E1-1.
+- **Affected:** Abstract; §I-C; necessity/E1b discussion; Conclusion.
+
+### E1-1 · `cluster_coh` is bounded to TEMPLATED / payload-concentrated poison — cheaply evaded by low-prominence clone-inject
+- **Added** 2026-05-31 · **Origin** E1 cheap-end clone-inject (`6566f43`) + prominence–cohesion frontier (`0bc043c`) · **Status** SETTLED (seed 42); PROVISIONAL pending 3-seed. **MAJOR.**
+- **Finding:** real BGE clone-inject (clone a diverse on-topic Security-SE doc, inject the payload) inherits a clean-like neighborhood → `cluster_coh` ≈ 0.77–0.79 < τ_coh 0.844 at low prominence (1 rep) while retrievable (63% ≈ baseline 64%). It only fires when the payload is **concentrated** (≥~62%, coh > 0.84), where retrievability collapses. Crossover table in `0bc043c`.
+- **Interpretation (load-bearing):** `cluster_coh` detects **templated near-duplication / payload concentration, NOT poisoning-in-general.** Scope the headline contribution to "domain-independent detection of **templated** corpus poisoning (the dominant literature pattern, e.g. PoisonedRAG-style near-duplicate injection)," explicitly **not** low-prominence single-clone injection.
+- **Affected:** Abstract; §I-C contributions; threat model; results; Limitations; Conclusion.
+
+### E1-2 · Composite ASR on clone-inject: L1 holds only via the confounded `kw_density`; adaptive L2/L3 collapse worse than templated
+- **Added** 2026-05-31 · **Origin** composite frozen `phase3`+`phase4` (`b53acca`) · **Status** PROVISIONAL — **blocked on OPEN-CAL-1**
+- **Finding (recalibrated-on-attack):** L1 ASR **8.9%** (caught **entirely by `kw_density`**, SNR 5.40), L2 **91.1%**, L3 **97.0%**; `hash_catch = 0`. clone-inject defeats the adaptive operating point **worse** than templated poison (gate 44–73%) because it *also* evades `cluster_coh`.
+- **CAVEAT:** 8.9% used recalibration on the clone-inject poison (oracle-optimistic). The realistic frozen-gate-calibration number is pending and likely **higher**. **Do not put 8.9% in the paper until OPEN-CAL-1 resolves.**
+- **Affected:** results; Limitations; Tables V/VI clone-inject companion row; adaptive-robustness discussion.
+
+### E1-3 · FLAG (code-vs-paper): the "hash" catch is a per-doc `sha256` tamper check, NOT a near-dup / dedup detector
+- **Added** 2026-05-31 · **Origin** `seva_benchmark_4060.py:930` + empirical `hash_catch = 0` (`b53acca`)
+- **Finding:** `hash` compares a doc's text to its own stored sha256 — it cannot detect near-duplicate or cloned documents. SEVA has **no** near-dup/clone defense. (My earlier hash-near-dup hypothesis: tested and **refuted**.)
+- **Manuscript impact:** if the paper describes hashing/dedup as a near-duplicate or clone defense, **correct it** — clone-inject is not caught by hashing.
+- **Affected:** method/system description; any dedup claim.
+
+### OPEN-CAL-1 · OPEN ISSUE (paper-wide): is SEVA oracle- or reference-calibrated?
+- **Added** 2026-05-31 · **Origin** E1-2 recalibration caveat · **Status** OPEN — blocks E1-2 finalization
+- **Question:** does SEVA's SNR-weight + τ calibration *see the attack* (oracle) or calibrate once on a fixed reference attack and deploy *frozen* (realistic)?
+- **Impact:** if **oracle**, ALL ASR numbers (incl. the gate's 0%) carry an oracle-calibration assumption the paper must **disclose**; if **reference**, the frozen-gate-calibration clone-inject number (pending) is canonical and likely worse than 8.9%.
+- **Action:** resolve from paper + code; run the frozen-gate-calibration L1 test; finalize E1-2.
+
+### NOTE-1 · clone-inject is itself a contribution (consider a "boundary of geometric detection" subsection)
+- **Added** 2026-05-31 — the clone-inject evasion + the prominence/cohesion boundary + the templating-vs-poisoning distinction are a **novel result**. Consider presenting as a positive "boundary of geometric detection" subsection rather than only a limitation. Decide at framing time (after OPEN-CAL-1 + E4-HH).
+
+---
 
 *(further entries appended per the Standing rule as E1 / E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
