@@ -42,6 +42,7 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 | E1-3 | method/system; any dedup claim | FLAG — verify vs paper |
 | OPEN-CAL-1 | paper-wide (calibration disclosure) | RESOLVED (attack-specific/oracle; → E1-2 frozen 88.8%) |
 | E3-2 | §IV methods; error bars; Limitations | DISCLOSURE (FINAL direction) |
+| E-CAL-1 | §I-C; results; Limitations | POSITIVE — SETTLED s42 / PROVISIONAL (→ 3-seed) |
 
 ---
 
@@ -230,5 +231,17 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 - **Affected:** §IV methods; any error-bar / multi-seed statement; Limitations.
 
 ---
+
+## Entries — Group: E-CAL (OPEN-CAL-1 re-runs — frozen / realistic calibration)
+
+### E-CAL-1 · LINCHPIN: `cluster_coh` catches TEMPLATED poison under REALISTIC frozen (non-oracle) calibration
+- **Added** 2026-05-31 · **Origin** OPEN-CAL-1 re-run #1 (frozen matched-templated SPLIT; `whitebox_attack_seva.py linchpin`) · **Status** SETTLED (seed 42) / PROVISIONAL (→ 3-seed). **POSITIVE — the surviving claim.**
+- **Method:** calibrate SNR weights+τ on templated **half-A** (2500 docs, disjoint, interleaved), FREEZE, evaluate held-out templated **half-B** (2500) with **NO recalibration** on half-B. Provenance: `whitebox_attack_results/linchpin_s042.json`, `linch_{A,B}_s042.json`.
+- **Result:** held-out templated `cluster_coh` = **0.9915**; STEP-A calibration cluster_coh SNR 5.95, τ_L1 0.5870 (L1 cluster_coh wt 0.154). Held-out **L1 ASR = 0.0%** at **DocFPR 0.58%** (≤ target 0.69%); L2 = L3 = **59.8%** (attempts = 112).
+- **Finding:** the templated-detection claim is **NOT an oracle artifact** — weights+τ from a *disjoint* templated half generalize to held-out templated poison (both cluster at ≈0.99), so `cluster_coh` catches templated/near-duplicate poison at the **L1 operating point under realistic frozen calibration**. Contrast **E1-2**: clone-inject (cohesion 0.77) leaks L1 **88.8%** under the *same* frozen method → the boundary is clean (templated caught; subtle clone-inject evaded).
+- **Manuscript impact:** the surviving positive contribution — domain-independent detection of **templated** corpus poisoning (the dominant literature pattern) — **holds under non-oracle calibration**; keep it, scoped, with the clone-inject boundary as the honest limitation (NOTE-1). The L2/L3 byproduct (59.8% frozen, pre-frozen adaptive weights) previews the adaptive collapse; the precise *no-re-adaptation* adaptive-frozen number is **E-CAL-2** (OPEN-CAL-1 re-run #2, pending).
+- **Affected:** §I-C contributions (positive claim); results (frozen-calibration row); Limitations (boundary).
+
+*(further entries: E-CAL-2 (adaptive-frozen) / E4-HH / E5 / E6 / E7 / additional seeds — appended per the Standing rule)*
 
 *(further entries appended per the Standing rule as E1b / E4-HH / E5 / E6 / E7 / additional seeds complete)*
