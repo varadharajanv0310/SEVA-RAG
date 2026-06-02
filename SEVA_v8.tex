@@ -33,7 +33,7 @@ cluster coherence (\texttt{cluster\_coh})---operated as a hard gate. SEVA target
 templated multi-passage poisoning---the dominant published attack pattern
 (PoisonedRAG)---and we report both its operating conditions plainly. In-domain, where
 clean and poison are drawn from the \emph{same} security domain and a geometric signal
-has no topic shortcut, SEVA drives templated attack-success to 0\% across three seeds
+has no topic shortcut, SEVA drives templated poison-evasion to 0\% across three seeds
 at a 0.58\% document-level false-positive rate, under frozen non-oracle calibration and
 1--10\% contamination density. On PoisonedRAG's \emph{own released} poison for the
 field's general-domain benchmarks (Natural Questions, HotpotQA), and a faithful
@@ -45,7 +45,7 @@ evaluated and found insufficient---is corpus-fragile: at matched false-positive
 rate it fails entirely on duplicate-dense benchmarks where cluster coherence
 holds.
 Against a keyword-dropping adaptive adversary, a multi-signal composite collapses
-to 49--57\% attack-success while the geometric hard gate holds 0\%;
+to 49--57\% poison-evasion while the geometric hard gate holds 0\%;
 distilling to the geometric core is what makes SEVA both robust and deployable.
 Two further results make the signal exceptionally general and reproducible. It is
 \emph{encoder-invariant}: templated-poison detection generalizes across three embedding
@@ -130,7 +130,7 @@ domain shortcut most defense evaluations enjoy; contamination densities of
 released PoisonedRAG poison across three corpora; and a reproduced,
 shared-corpus, matched-FPR head-to-head against the per-query state of the
 art.
-Across this protocol SEVA catches templated poison in-domain at 0\% attack-success,
+Across this protocol SEVA catches all templated poison in-domain at 0\% poison-evasion,
 and PoisonedRAG's own poison at 82--98\% across three corpora (released on Natural
 Questions and HotpotQA; a faithful black-box---the authors' released attack code---on
 the Security corpus), while lexical
@@ -149,7 +149,7 @@ with no LLM call, external API, or cryptographic pre-registration---a deployment
 profile that LLM-based, decoder-access, and cryptographic defenses cannot match.
 
 \item \textbf{C2 --- Cross-domain detection of the dominant attack.} SEVA detects
-templated multi-passage poisoning at 0\% attack-success across three seeds and
+templated multi-passage poisoning at 0\% poison-evasion across three seeds and
 0.58\% document-FPR under frozen, non-oracle calibration,
 and catches PoisonedRAG's released poison on Natural Questions (82\%) and HotpotQA
 (97\%)---and a faithful black-box PoisonedRAG, built with the authors' released attack
@@ -167,7 +167,7 @@ false-positive rate.
 
 \item \textbf{C4 --- Adaptive robustness through distillation.} We show that a
 multi-signal composite, weighted by each signal's signal-to-noise ratio (SNR), is
-domain-confounded and collapses to 49--57\% attack-success under a keyword-dropping
+domain-confounded and collapses to 49--57\% poison-evasion under a keyword-dropping
 adversary, while the geometric
 core operated as a hard gate is invariant to soft-signal evasion (0\%);
 the composite is reported as the ablation that motivates distilling SEVA to its
@@ -191,7 +191,7 @@ the attack.
 
 \item \textbf{C7 --- Encoder-invariance.} The geometric signal is not an artifact of
 one embedding model: templated-poison detection holds at the non-oracle operating
-point ($0\%$ ASR, density-invariant, separation preserved in SNR) across three
+point ($0\%$ poison-evasion, density-invariant, separation preserved in SNR) across three
 embedding models of independent pre-training lineages---bge (BAAI), e5 (Microsoft),
 and gte (Alibaba)---each used in its correct symmetric convention. To our knowledge
 this is the first demonstration that an LLM-free, geometry-based corpus-poisoning
@@ -312,9 +312,12 @@ soft signals (Section~\ref{sec:eval}); SEVA's geometric core is defined so that
 this adversary has nothing to normalize.
 
 \subsection{Defense Objective}
-Writing $\mathrm{ASR}=\mathrm{FN}/(\mathrm{TP}+\mathrm{FN})$ and
-$\mathrm{FPR}=\mathrm{FP}/(\mathrm{FP}+\mathrm{TN})$, SEVA minimizes
-attack-success subject to a false-positive ceiling
+SEVA is evaluated as a \emph{detector}: it measures whether templated poison is
+flagged, not whether a downstream answer is corrupted---no generator is run. Writing
+the poison-evasion rate $\mathrm{FN}/(\mathrm{TP}+\mathrm{FN})$---the fraction of
+templated poison the gate fails to flag---and
+$\mathrm{FPR}=\mathrm{FP}/(\mathrm{FP}+\mathrm{TN})$, SEVA minimizes poison-evasion
+subject to a false-positive ceiling
 $\mathrm{FPR}_{\mathrm{TARGET}}=0.69\%$, using only benign queries for
 calibration---no LLM access, no labeled poison examples, and no oracle knowledge
 of the poison density.
@@ -415,7 +418,7 @@ We validate the protocol under its hardest version. Rather than calibrate on the
 same poison we evaluate, we fit the threshold (and, for the composite ablation, the
 signal weights) on a \emph{disjoint reference half} of the templated attack,
 \emph{freeze} it, and deploy unchanged on a held-out half. The frozen detector
-catches the held-out poison at $0\%$ attack-success and $0.58\%$ document-FPR
+catches the held-out poison at $0\%$ poison-evasion and $0.58\%$ document-FPR
 (Section~\ref{subsec:main}), establishing that detection is not an oracle artifact
 of tuning on the test poison.
 
@@ -436,7 +439,7 @@ from clean at an SNR of $38$ against a general-domain background but only
 $\approx\!8$ in-domain, because much of its apparent power was discriminating
 security text from Wikipedia, not poison from clean.
 Second, they are \emph{normalizable}: a keyword-dropping adversary neutralizes them
-at the feature level, driving the composite's attack-success to $49$--$57\%$
+at the feature level, driving the composite's poison-evasion to $49$--$57\%$
 (Section~\ref{subsec:core}), because cluster coherence carries too little of the
 fused weight ($\approx\!0.15$) to hold the score alone.
 Only cluster coherence is both domain-robust---its SNR \emph{rises} in-domain---and
@@ -511,8 +514,9 @@ re-implementation.
 
 \noindent\textbf{Detector, metrics, protocol.} All documents are embedded with
 BAAI/bge-large-en-v1.5 ($1024$-d, normalized)~\cite{bge} and indexed with FAISS
-HNSW~\cite{faiss,hnsw} ($M=32$, $\mathrm{efConstruction}=200$). We report
-attack-success rate $\mathrm{ASR}=\mathrm{FN}/(\mathrm{TP}+\mathrm{FN})$ and
+HNSW~\cite{faiss,hnsw} ($M=32$, $\mathrm{efConstruction}=200$). We report the
+poison-evasion rate $\mathrm{FN}/(\mathrm{TP}+\mathrm{FN})$---the fraction of
+templated poison the gate fails to flag, i.e.\ one minus the catch rate---and the
 document false-positive rate $\mathrm{FPR}=\mathrm{FP}/(\mathrm{FP}+\mathrm{TN})$
 against a universal target $\mathrm{FPR}_{\mathrm{TARGET}}=0.69\%$. Thresholds are
 calibrated on benign queries only---no labeled poison, no oracle density---and
@@ -528,7 +532,7 @@ latency are additionally reproduced on an RTX 4060 and an Apple M4
 Table~\ref{tab:main} is the central result: SEVA across three adversary tiers,
 three contamination densities, and three calibration seeds on the in-domain
 corpus. At L1---the full signal set against a naive templated adversary---SEVA
-flags every injected passage: \textbf{$0\%$ attack-success across all nine
+flags every injected passage: \textbf{$0\%$ poison-evasion across all nine
 conditions}, with a dedicated high-encounter run tightening the $95\%$ Wilson upper
 bound to $0.0154\%$ ($0$ evasions in $25{,}000$ templated encounters at the frozen
 gate), at a document false-positive rate held near the $0.69\%$ target (grand mean
@@ -540,12 +544,12 @@ when poison is security text on a general-domain background (\S\ref{subsec:geom}
 Second, it is not a single lucky split: the $0\%$ is identical at all three seeds
 and every density. The complete per-condition breakdown---all nine
 density$\times$seed cells, with document- and query-level false-positive rates and
-$95\%$ Wilson upper bounds on the $0\%$ attack-success---is given in
+$95\%$ Wilson upper bounds on the $0\%$ poison-evasion---is given in
 Table~\ref{tab:percond} (Appendix~\ref{app:confusion}).
 
 Tiers L2 and L3 ablate the soft keyword and sentence-structure signals to model
 the keyword-dropping adaptive adversary (\S\ref{sec:threat}). Here the multi-signal
-composite's attack-success rises to $42$--$72\%$, climbing with density
+composite's poison-evasion rises to $42$--$72\%$, climbing with density
 (Table~\ref{tab:main}).
 This is the central negative finding of our own evaluation, and we put it in the
 primary table rather than a footnote: \emph{the soft signals do not survive
@@ -564,7 +568,7 @@ spending false positives.
 documents, mean\,$\pm$\,sample std ($n=3$ seeds, ddof\,$=$\,1). L1 is
 the full signal set (naive adversary); L2/L3 ablate the soft keyword and structure
 signals to model the keyword-dropping adaptive adversary. SEVA catches \emph{all}
-templated poison at L1 ($0\%$ ASR) across every density and seed; the L2/L3 rise
+templated poison at L1 ($0\%$ poison-evasion) across every density and seed; the L2/L3 rise
 is the multi-signal composite's adaptive collapse---the ablation of
 \S\ref{subsec:core}, which the geometric hard gate eliminates ($0\%$, Table~\ref{tab:core}).
 L2 and L3 coincide at $5$--$10\%$ density because \texttt{avg\_sent\_len} falls
@@ -573,7 +577,7 @@ has no effect; they diverge at $1\%$, where L2 still carries it.}
 \label{tab:main}
 \begin{tabular}{llcc}
 \toprule
-Tier & Density & ASR (\%) & Doc-FPR (\%) \\
+Tier & Density & Evasion (\%) & Doc-FPR (\%) \\
 \midrule
 \multirow{3}{*}{L1 (naive)}    & 1\%  & $\mathbf{0.0\pm0.0}$ & $0.54\pm0.17$ \\
                                & 5\%  & $\mathbf{0.0\pm0.0}$ & $0.63\pm0.18$ \\
@@ -635,7 +639,7 @@ which we neither evaluate beyond nor extrapolate.
 
 Frozen, non-oracle, held-out calibration confirms the operational consequence: a
 threshold fit on a disjoint reference half of the attack and then frozen catches the
-held-out half at $0\%$ ASR and $0.58\%$ document-FPR.% [E-CAL-1]
+held-out half at $0\%$ poison-evasion and $0.58\%$ document-FPR.% [E-CAL-1]
 
 \begin{table}[t]
 \centering
@@ -695,14 +699,14 @@ does not.
 \emph{Templated-poison detection by the geometric gate is a property of the attack,
 not of one encoder: across embedding models of independent pre-training lineages, each
 used in its correct symmetric convention and calibrated non-oracle on its own clean
-coherence, the gate catches all templated poison ($0\%$ ASR), density-invariantly, at
+coherence, the gate catches all templated poison ($0\%$ poison-evasion), density-invariantly, at
 preserved signal-to-noise.}
 
 \emph{Evidence.} Re-embedding the identical hash-verified corpus with three encoders of
 distinct lineages---bge-large~\cite{bge} (BAAI), e5-large-v2~\cite{e5} (Microsoft), and
 gte-large~\cite{gte} (Alibaba)---and re-deriving the non-oracle threshold on each
 encoder's clean coherence, templated poison sits at cohesion $\approx 0.99$ under all
-three; attack-success is $0\%$ on all nine conditions for every encoder, the gap is
+three; poison-evasion is $0\%$ on all nine conditions for every encoder, the gap is
 density-invariant (range $\le 3.5\%$ of its mean), and the document-FPR holds near the
 $0.69\%$ target (Table~\ref{tab:encoder}).% [ENCODER-GEN-1]
 
@@ -727,14 +731,14 @@ deliberately poison-aware or adversarially-trained embeddings.
 independent pre-training lineages, on the identical hash-verified in-domain corpus,
 each calibrated non-oracle on its own clean coherence and used in its correct symmetric
 convention. Poison cohesion is $\approx\!0.99$ regardless of encoder and templated
-attack-success is $0\%$ throughout; the absolute gap shrinks only because the clean
+poison-evasion is $0\%$ throughout; the absolute gap shrinks only because the clean
 manifold grows more concentrated (clean coherence rises $0.751\!\to\!0.881$), while the
 scale-normalized SNR is preserved. Values span $1$--$10\%$ density (gap and SNR are
 density-invariant, \S\ref{subsec:geom}).}
 \label{tab:encoder}
 \begin{tabular}{llccccc}
 \toprule
-Encoder & Lineage & Clean coh. & Poison coh. & Gap & SNR & Templ.\ ASR \\
+Encoder & Lineage & Clean coh. & Poison coh. & Gap & SNR & Templ.\ evasion \\
 \midrule
 bge-large   & BAAI      & $0.751$ & $0.990$ & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ \\
 e5-large-v2 & Microsoft & $0.866$ & $0.990$ & $+0.122$ to $+0.127$ & $6.4$--$6.7$ & $\mathbf{0\%}$ \\
@@ -750,10 +754,15 @@ benchmarks it never calibrated against. On PoisonedRAG's released adversarial
 passages for Natural Questions and HotpotQA---and a faithful black-box PoisonedRAG,
 built with the authors' \emph{released} attack code, on the in-domain Security
 corpus---SEVA flags
-the attack at the $0.69\%$ non-oracle operating point on all three: $98\%$
-(Security), $82\%$ (Natural Questions), and $97\%$ (HotpotQA)
-(Table~\ref{tab:xdomain}), driving attack-success from $100\%$ down to $2\%$,
-$18\%$, and $3\%$ respectively.
+the attack at the $0.69\%$ non-oracle operating point, catching $98\%$ (Security),
+$82\%$ (Natural Questions), and $97\%$ (HotpotQA) of the injected poison
+(Table~\ref{tab:xdomain})---a poison-evasion rate of $2\%$, $18\%$, and $3\%$
+respectively. These are \emph{detection} rates, the fraction of poison the gate
+flags, not end-to-end answer-corruption: PoisonedRAG's released passages are
+engineered for high end-to-end attack-success against a generator in the
+loop~\cite{poisonedrag}, and SEVA---run purely as a detector---removes the great
+majority of them from the retrieval set before any generator is invoked. The two are
+distinct quantities, and we do not plot one against the other.
 The threshold is fit on each corpus's clean documents alone, with no sight of the
 poison, so this is detection under deployment conditions, not oracle tuning. And
 because the cross-domain passages are the attack authors' \emph{released} artifacts
@@ -767,16 +776,17 @@ PoisonedRAG on the ground PoisonedRAG was built to win.
 \caption{Cross-domain detection of the PoisonedRAG attack at $0.69\%$ non-oracle,
 matched document-FPR (released poison on Natural Questions and HotpotQA; a faithful
 black-box PoisonedRAG on the in-domain Security corpus). \texttt{cluster\_coh}
-catches the attack on all three corpora, cutting attack-success to the residual
-``Resid.\ ASR'' (from $100\%$ before the gate); lexical filtering (MinHash) is
+catches the attack on all three corpora, leaving the residual poison-evasion rate
+(``Evasion''---the fraction the gate misses, a detection metric, \emph{not} end-to-end
+attack-success); lexical filtering (MinHash) is
 corpus-fragile, failing where benign duplication is high; embedding deduplication
 ($s_{nd}$) is competitive. ``Benign dup.''\ is the fraction of clean documents
 sharing any 5-gram with another.}
 \label{tab:xdomain}
 \begin{tabular}{lccccc}
 \toprule
-\multirow{2}{*}{Corpus} & Benign & \texttt{cluster\_coh} & MinHash & $s_{nd}$ & Resid. \\
-       & dup. & (ours) & (lexical) & (embed.) & ASR \\
+\multirow{2}{*}{Corpus} & Benign & \texttt{cluster\_coh} & MinHash & $s_{nd}$ & Poison \\
+       & dup. & (ours) & (lexical) & (embed.) & evasion \\
 \midrule
 Security SE       & 0.24\% & \textbf{98\%} & 98\% & 98\% & 2\% \\
 Natural Questions & 1.15\% & \textbf{82\%} & 0\%  & 52\% & 18\% \\
@@ -894,13 +904,13 @@ RAGDefender (best-case $\tau$)    & $\sim$89\%     & 50.4\% \\
 Table~\ref{tab:core} isolates why SEVA deploys the hard gate rather than the
 composite that Table~\ref{tab:main} ablates: three attacks, one operating point
 ($0.69\%$ document-FPR), two detectors. On the naive templated attack both reach
-$0\%$ ASR---the composite's soft signals add nothing the geometry does not already
-supply. On \emph{real} PoisonedRAG the gap opens: the hard gate catches $98\%$
-(ASR $2\%$) while the full SNR-weighted composite catches only $72\%$ (ASR $28\%$).
+$0\%$ poison-evasion---the composite's soft signals add nothing the geometry does not
+already supply. On \emph{real} PoisonedRAG the gap opens: the hard gate catches $98\%$
+($2\%$ evasion) while the full SNR-weighted composite catches only $72\%$ ($28\%$ evasion).
 The soft signals do not merely fail to help; they \emph{dilute}, pulling the fused
 score of genuine poison below threshold.
 Under the keyword-dropping adversary the dilution becomes collapse: the composite's
-ASR climbs to $49$--$57\%$, because cluster coherence carries too little fused
+poison-evasion climbs to $49$--$57\%$, because cluster coherence carries too little fused
 weight ($\approx\!0.15$ of the total) to hold the score once keyword density is
 normalized, whereas the hard gate---reading only the embedding geometry the
 adversary never touches---holds $0\%$.
@@ -921,7 +931,7 @@ $98\%$.
 \begin{table}[t]
 \centering
 \caption{The geometric core vs.\ the multi-signal composite (the ablation), at
-$0.69\%$ non-oracle document-FPR, by attack-success rate (lower is better). The
+$0.69\%$ non-oracle document-FPR, by poison-evasion rate (lower is better). The
 composite equals the hard gate on the naive attack, but the soft signals dilute
 detection on real PoisonedRAG and collapse under the keyword-dropping adversary;
 the hard gate, reading only embedding geometry, holds. Catch rates: hard gate
@@ -930,7 +940,7 @@ $100/98/100\%$; composite $100/72/{\sim}49\%$.}
 \begin{tabular}{lcc}
 \toprule
 \multirow{2}{*}{Attack} & \texttt{cluster\_coh} & 10-signal \\
-       & hard gate (ASR) & composite (ASR) \\
+       & hard gate (evasion) & composite (evasion) \\
 \midrule
 Templated (held-out)    & \textbf{0\%} & 0\% \\
 Real PoisonedRAG        & \textbf{2\%} & 28\% \\
@@ -964,7 +974,7 @@ does not. Rebuilding the corpus from pinned sources and re-embedding locally on 
 platforms across two accelerator backends---an RTX~5080 and an RTX~4060 (CUDA) and an
 Apple~M4 (Metal/MPS)---each gated to the identical order-sensitive SHA-256 corpus hash
 and per-document fingerprint, the poison--clean gap, its SNR, and $0\%$ templated
-attack-success reproduce on every platform, density, and seed; the two independently
+poison-evasion reproduce on every platform, density, and seed; the two independently
 re-embedded external machines agree on the gap to within $10^{-6}$
 (Table~\ref{tab:xplat}). The separation is a property of the attack's geometry, not of
 one GPU's manifold or one vendor's kernels. Identical detection on a hash-verified
@@ -988,13 +998,13 @@ already lives on---a laptop, offline---with no second model in the loop.
 \caption{Cross-platform reproduction on a byte-identical, hash-verified in-domain
 corpus (order-sensitive SHA-256 \texttt{28ec3811}$\dots$). The geometric gate yields
 \emph{identical} detection across two accelerator backends---the poison--clean gap,
-its SNR, and $0\%$ templated attack-success are the same on every platform, density,
+its SNR, and $0\%$ templated poison-evasion are the same on every platform, density,
 and seed (the two independently re-embedded external machines agree on the gap to
 within $10^{-6}$)---at $13$--$38$\,ms per query with no LLM and no external API.}
 \label{tab:xplat}
 \begin{tabular}{llcccc}
 \toprule
-Platform & Backend & Gap ($1$--$10\%$) & SNR & Templ.\ ASR & Latency mean/p95 \\
+Platform & Backend & Gap ($1$--$10\%$) & SNR & Templ.\ evasion & Latency mean/p95 \\
 \midrule
 RTX 5080 (desktop) & CUDA & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $13.4$--$15.7$\,/\,$\le\!18.8$\,ms \\
 RTX 4060 (laptop) & CUDA & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $38.1$\,/\,$43.6$\,ms \\
@@ -1079,7 +1089,7 @@ tightly it clusters, and the more visible it is to the gate. We observe this
 tension directly: a diversity-injection adaptive attack that deliberately spreads
 poison across multiple semantic frames, perturbing each passage to lower its
 cohesion, reduces poison cohesion only marginally and leaves every injected passage
-above the gate---SEVA holds $0\%$ attack-success against it.
+above the gate---SEVA holds $0\%$ poison-evasion against it.
 The adversary cannot cheaply purchase retrievability and dispersion at once; the
 cost-of-attack floor the geometry imposes is exactly what the soft, normalizable
 signals never had. The regime where this tension finally relaxes---single-document
@@ -1101,7 +1111,7 @@ lightweight, LLM-free, corpus-level signal remains open.
 \emph{Calibration assumption.} Like any calibrated detector, SEVA assumes access
 to a reference sample of the attack class for threshold setting; we show that a
 threshold calibrated on a disjoint reference sample and then frozen generalizes to
-held-out poison of the same class at $0\%$ attack-success.
+held-out poison of the same class at $0\%$ poison-evasion.
 We do not claim calibration-free detection.
 
 \emph{Corpus-scale validation.} The latency and calibration results are measured
@@ -1120,7 +1130,7 @@ principle flatten the cohesion gap, and we make no claim against that class.% [E
 \section{Conclusion}
 We presented SEVA, a lightweight, LLM-free detector of templated multi-passage
 corpus poisoning---the dominant published attack---built on a single geometric
-signal operated as a hard gate. SEVA detects the attack at $0\%$ attack-success
+signal operated as a hard gate. SEVA detects the attack at $0\%$ poison-evasion
 across three seeds and $0.58\%$ document-FPR in-domain under frozen, non-oracle
 calibration,
 catches PoisonedRAG's poison at $82$--$98\%$ across three corpora (released on
@@ -1146,16 +1156,16 @@ We report complete confusion counts for every in-domain condition, the per-seed
 reporting that the primary results (Table~\ref{tab:main}) summarize. Table~\ref{tab:confL1}
 gives the L1 (full signal set) matrices: every cell has $\mathrm{FN}=0$---no
 templated poison passage evades detection at any density or seed---which is the
-basis for the $0\%$ L1 attack-success. Table~\ref{tab:confL23} gives L2 and L3, the
+basis for the $0\%$ L1 poison-evasion. Table~\ref{tab:confL23} gives L2 and L3, the
 ablated composite, where $\mathrm{FN}>0$ is the adaptive collapse the geometric hard
 gate (Table~\ref{tab:core}) eliminates. Table~\ref{tab:percond} converts these
-counts into per-condition detection rates---attack-success with Wilson upper bounds,
+counts into per-condition detection rates---poison-evasion with Wilson upper bounds,
 and document- and query-level false-positive rates---for all nine conditions.
 
 \begin{table}[t]
 \centering
 \caption{Complete per-seed confusion matrices at L1 (full signal set), in-domain
-Security corpus. Every cell has $\mathrm{FN}=0$: the $0\%$ L1 attack-success of
+Security corpus. Every cell has $\mathrm{FN}=0$: the $0\%$ L1 poison-evasion of
 Table~\ref{tab:main} is exact, not rounded.}
 \label{tab:confL1}
 \begin{tabular}{llcccc}
@@ -1181,7 +1191,7 @@ Density & Seed & TP & FN & FP & TN \\
 \centering
 \caption{Per-seed confusion at L2 and L3 (soft signals ablated), in-domain---the
 composite's adaptive collapse. The geometric hard gate (Table~\ref{tab:core})
-recovers $0\%$ ASR on these same conditions.}
+recovers $0\%$ poison-evasion on these same conditions.}
 \label{tab:confL23}
 \begin{tabular}{llcccc}
 \toprule
@@ -1208,17 +1218,17 @@ Density & Seed & TP & FN & TP & FN \\
 \centering
 \caption{Per-condition in-domain detection rates---all nine density$\times$seed
 conditions, the full breakdown the primary table (Table~\ref{tab:main}) summarizes,
-for the full signal set (tier~L1). The ASR column gives the templated-poison
-attack-success rate with its $95\%$ Wilson upper bound in parentheses, computed from
+for the full signal set (tier~L1). The evasion column gives the templated-poison
+poison-evasion rate with its $95\%$ Wilson upper bound in parentheses, computed from
 the per-condition poison-encounter count $n$; Doc-FPR and query-FPR are the
 document- and query-level false-positive rates at the $0.69\%$ non-oracle operating
-point. Attack-success is $0\%$ at every condition (each cell has $\mathrm{FN}=0$,
+point. Poison-evasion is $0\%$ at every condition (each cell has $\mathrm{FN}=0$,
 Table~\ref{tab:confL1}); on the templated attack the deployed geometric hard gate
-coincides with the full signal set at $0\%$ ASR, their divergence under adaptation
+coincides with the full signal set at $0\%$ poison-evasion, their divergence under adaptation
 being the subject of Table~\ref{tab:core}. The grand-mean row averages the nine
 conditions ($n=1{,}257$ pooled encounters); the high-encounter row is a dedicated
 frozen-gate run ($25{,}000$ templated encounters, $0$ evasions) tightening the
-templated-ASR upper bound to $0.0154\%$. All quantities in \%.}
+templated-evasion upper bound to $0.0154\%$. All quantities in \%.}
 \label{tab:percond}
 % [SEEDS-1, STEP3] per-cell asr/doc_fpr/query_fpr from the L1 block of
 % seva_v6_2_results_100k_secqa_p{010,050,100}_s{042,007,123}.json; Wilson upper
@@ -1226,7 +1236,7 @@ templated-ASR upper bound to $0.0154\%$. All quantities in \%.}
 % [SCALE-1] high-encounter row from result_hienc_ci.json (n=25,000, 0 evasions, frozen tau=0.8423).
 \begin{tabular}{llrccc}
 \toprule
-Density & Seed & $n$ & ASR (95\% Wilson) & Doc-FPR & query-FPR \\
+Density & Seed & $n$ & Evasion (95\% Wilson) & Doc-FPR & query-FPR \\
 \midrule
 \multirow{3}{*}{1\%}  & 42  & 125 & $\mathbf{0.0}$\,(3.0) & 0.45 & 1.88 \\
                       & 7   & 125 & $\mathbf{0.0}$\,(3.0) & 0.73 & 2.75 \\

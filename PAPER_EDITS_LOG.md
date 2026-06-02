@@ -720,4 +720,17 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 ---
 
+## V8-METRIC · rename detection metric (poison-evasion), scope to detection, disambiguate from PoisonedRAG's end-to-end ASR
+- **Added** 2026-06-03 · the one substantive correctness fix before submission. **No number changed** — only the metric's *name* and *scope*. Tags kept.
+- **Problem:** the paper defined its metric as `FN/(TP+FN)` (a detection-miss / poison-evasion rate) but called it "attack-success," and in the cross-domain section plotted our 2/18/3% miss-rate against PoisonedRAG's 100% **end-to-end** attack-success on one axis — a conflation a security reviewer catches immediately. Our gate never runs a generator; it measures detection, not answer-corruption.
+- **Rename (our flag-rate → "poison-evasion rate" = `FN/(TP+FN)`):** applied across abstract, intro, contributions (C7), Defense Objective, §V setup/metrics, **all tables** (`tab:main` ASR→Evasion; `tab:percond` ASR→Evasion; `tab:xdomain` "Resid. ASR"→"Poison evasion"; `tab:core` (ASR)→(evasion); `tab:encoder`/`tab:xplat` Templ.\ ASR→Templ.\ evasion), all three Observations, §V prose, discussion, limitations, conclusion, and appendix confusion/percond captions. **~41 sites.** The 0% results are now **"0% poison-evasion"** — same numbers, correct name.
+- **Scope to detection (item 2):** Defense Objective now opens *"SEVA is evaluated as a **detector**: it measures whether templated poison is flagged, not whether a downstream answer is corrupted — no generator is run."* §V metrics + cross-domain echo it.
+- **Objective (item 4):** "SEVA minimizes **attack-success** subject to FPR ceiling" → "minimizes **poison-evasion** subject to FPR ceiling."
+- **Disambiguation (item 3):** cross-domain rewritten — *"catching 98/82/97% of the injected poison (a poison-evasion rate of 2/18/3%). These are **detection** rates, the fraction of poison the gate flags, not end-to-end answer-corruption: PoisonedRAG's released passages are engineered for high **end-to-end attack-success** against a generator in the loop, and SEVA — run purely as a detector — removes the great majority of them before any generator is invoked. The two are distinct quantities, and we do not plot one against the other."* The "from 100% to 2%" conflation is gone. `tab:xdomain` caption fixed likewise.
+- **"attack-success" reserved (verified):** now appears ONLY for genuine end-to-end figures — PoisonedRAG/others' published numbers (§I/§II, capability table "lifted attack-success/ASR numbers") and the two explicit disambiguation phrases in §V-C. **Zero references to our flag-rate.** Re-grep confirmed.
+- **NOT done (as instructed):** no end-to-end harness (flag→remove→re-query→measure answer-corruption) added; that's a possible later/revision item. No number/scope change; no killed claim re-imported.
+- **Checks (PASS):** citation 31/31 (0 orphan/dangling); percent-escaping clean; env 37/37, tables 15 (all header column counts intact). Commit local, **no push**.
+
+---
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
