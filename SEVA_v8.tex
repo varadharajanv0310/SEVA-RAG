@@ -45,6 +45,8 @@ holds.
 Against a keyword-dropping adaptive adversary, a multi-signal composite collapses
 to 49--57\% attack-success while the geometric hard gate holds 0\%;
 distilling to the geometric core is what makes SEVA both robust and deployable.
+The geometric signal is also encoder-invariant: templated-poison detection holds across
+three embedding models of independent lineages (BAAI, Microsoft, Alibaba).
 SEVA runs in $13$--$38$\,ms per query and reproduces identical detection across a
 desktop GPU, a laptop GPU, and an Apple-Silicon laptop,
 with no LLM, API, or pre-registration; in a reproduced, shared-corpus,
@@ -177,6 +179,14 @@ defense PoisonedRAG itself tested---is corpus-fragile: effective only on lexical
 sparse corpora, and failing entirely at matched false-positive rate on
 duplicate-dense standard benchmarks, where semantic cohesion continues to detect
 the attack.
+
+\item \textbf{C7 --- Encoder-invariance.} The geometric signal is not an artifact of
+one embedding model: templated-poison detection holds at the non-oracle operating
+point ($0\%$ ASR, density-invariant, separation preserved in SNR) across three
+embedding models of independent pre-training lineages---bge (BAAI), e5 (Microsoft),
+and gte (Alibaba)---each used in its correct symmetric convention. To our knowledge
+this is the first demonstration that an LLM-free, geometry-based corpus-poisoning
+detector generalizes across embedding encoders (\S\ref{subsec:encoder}).
 \end{itemize}
 
 \section{Related Work}
@@ -663,6 +673,65 @@ clean calibration set alone, independent of the attack.
 \emph{Scope.} Established at two in-domain corpus sizes ($10{,}000$ and $100{,}000$);
 we report the convergence and its direction, and---two points fixing the direction
 but not the exponent---do not extrapolate the rate to larger corpora.
+
+\subsection{Encoder-Invariance}
+\label{subsec:encoder}
+The cluster-coherence signal reads similarities in one embedding model's space, so a
+fair worry is that it detects that model's idiosyncrasies rather than the attack. It
+does not.
+
+\smallskip
+\noindent\textbf{Observation~3 (Encoder-Invariance).}
+\emph{Templated-poison detection by the geometric gate is a property of the attack,
+not of one encoder: across embedding models of independent pre-training lineages, each
+used in its correct symmetric convention and calibrated non-oracle on its own clean
+coherence, the gate catches all templated poison ($0\%$ ASR), density-invariantly, at
+preserved signal-to-noise.}
+
+\emph{Evidence.} Re-embedding the identical hash-verified corpus with three encoders of
+distinct lineages---bge-large~\cite{bge} (BAAI), e5-large-v2~\cite{e5} (Microsoft), and
+gte-large~\cite{gte} (Alibaba)---and re-deriving the non-oracle threshold on each
+encoder's clean coherence, templated poison sits at cohesion $\approx 0.99$ under all
+three; attack-success is $0\%$ on all nine conditions for every encoder, the gap is
+density-invariant (range $\le 3.5\%$ of its mean), and the document-FPR holds near the
+$0.69\%$ target (Table~\ref{tab:encoder}).% [ENCODER-GEN-1]
+
+\emph{Mechanism.} Templated passages are near-duplicates, and near-duplicate texts map
+to near-identical vectors under any competent encoder; they form a tight local
+cluster---high cohesion---whatever manifold the encoder induces. The \emph{absolute}
+gap does shrink across the three ($+0.236 \to +0.123 \to +0.115$), but only because
+their clean manifolds are progressively more concentrated (clean coherence
+$0.751 \to 0.866 \to 0.881$); the poison cohesion stays pinned at $\approx 0.99$ and
+the scale-normalized separation (SNR $5.2$--$6.7$) is preserved. The gate keys on the
+geometry of the injection, not the idiosyncrasy of one representation.
+
+\emph{Scope.} Established on three encoders of independent lineages, each used in its
+correct \emph{symmetric} convention (bge and gte take no instruction prefix; e5 takes
+its symmetric ``query:''\ prefix on all texts); because absolute cohesion scales with
+the manifold, SNR is the cross-encoder comparator. We do not claim invariance to
+deliberately poison-aware or adversarially-trained embeddings.
+
+\begin{table}[t]
+\centering
+\caption{Encoder-invariance: the geometric gate under three embedding models of
+independent pre-training lineages, on the identical hash-verified in-domain corpus,
+each calibrated non-oracle on its own clean coherence and used in its correct symmetric
+convention. Poison cohesion is $\approx\!0.99$ regardless of encoder and templated
+attack-success is $0\%$ throughout; the absolute gap shrinks only because the clean
+manifold grows more concentrated (clean coherence rises $0.751\!\to\!0.881$), while the
+scale-normalized SNR is preserved. Values span $1$--$10\%$ density (gap and SNR are
+density-invariant, \S\ref{subsec:geom}).}
+\label{tab:encoder}
+\begin{tabular}{llccccc}
+\toprule
+Encoder & Lineage & Clean coh. & Poison coh. & Gap & SNR & Templ.\ ASR \\
+\midrule
+bge-large   & BAAI      & $0.751$ & $0.990$ & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ \\
+e5-large-v2 & Microsoft & $0.866$ & $0.990$ & $+0.122$ to $+0.127$ & $6.4$--$6.7$ & $\mathbf{0\%}$ \\
+gte-large   & Alibaba   & $0.881$ & $0.996$ & $+0.113$ to $+0.117$ & $5.2$--$5.3$ & $\mathbf{0\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Cross-Domain Detection on Released PoisonedRAG}
 The in-domain result establishes that SEVA catches templated poison; the
@@ -1272,6 +1341,8 @@ RAGDefender~\cite{ragdefender}& $\checkmark$ & $\checkmark$ & $\checkmark$ & $\t
 \bibitem{lewis2020} P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. K\"{u}ttler, M. Lewis, W.-t. Yih, T. Rockt\"{a}schel, S. Riedel, and D. Kiela, ``Retrieval-augmented generation for knowledge-intensive NLP tasks,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
 \bibitem{contriever} G. Izacard, M. Caron, L. Hosseini, S. Riedel, P. Bojanowski, A. Joulin, and E. Grave, ``Unsupervised dense information retrieval with contrastive learning,'' \emph{Transactions on Machine Learning Research (TMLR)}, 2022.
 \bibitem{lof} M. M. Breunig, H.-P. Kriegel, R. T. Ng, and J. Sander, ``LOF: Identifying density-based local outliers,'' in \emph{Proc. ACM SIGMOD Int. Conf. on Management of Data}, 2000, pp. 93--104.
+\bibitem{e5} L. Wang, N. Yang, X. Huang, B. Jiao, L. Yang, D. Jiang, R. Majumder, and F. Wei, ``Text embeddings by weakly-supervised contrastive pre-training,'' arXiv preprint arXiv:2212.03533, 2022.
+\bibitem{gte} Z. Li, X. Zhang, Y. Zhang, D. Long, P. Xie, and M. Zhang, ``Towards general text embeddings with multi-stage contrastive learning,'' arXiv preprint arXiv:2308.03281, 2023.
 \end{thebibliography}
 
 \end{document}
