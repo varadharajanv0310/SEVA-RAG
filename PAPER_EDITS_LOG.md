@@ -708,4 +708,16 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 ---
 
+## V8-COHERE · coherence + full-strength pass (post encoder-invariance / cross-platform folds)
+- **Added** 2026-06-03 · author "coherence + full-strength" pass. No numbers changed, no scope widened, no killed claim re-imported. Tags kept.
+- **(1) MANDATORY contradiction fixed.** Limitations `\emph{Single encoder}` ("All results use bge … validating across additional encoders is future work") was **false** post-Obs 3 → rewritten to `\emph{Encoder scope}`: validated across three lineages (bge/e5/gte, symmetric convention, §`subsec:encoder`); the *remaining* boundary is invariance to **adversarially-trained / poison-aware** embeddings (matches Obs 3 Scope). Tag `% [ENCODER-GEN-1]`. **Second location fixed:** Conclusion next-steps dropped "validating the signal across encoders" (kept single-document as the next step). Swept — **no location still calls the work single-encoder or lists encoder-generalization as future work** (9 banned phrases, 0 hits).
+- **(2) Full-strength headline pairing.** Abstract now asserts both plainly: *encoder-invariant* ("generalizes across three embedding models of independent pre-training lineages — BAAI, Microsoft, Alibaba") and *reproducible to within 10⁻⁶* ("byte-identical hash-verified corpus … across two accelerator backends … agreeing on the coherence gap to one part in a million — a level of cross-platform reproducibility rare in the poisoning-defence literature"). §V `subsec:eff` gains a first-class-reproducibility sentence. C7 + Obs 3 already assertive (left as-is).
+- **(3) Abstract ordering.** Reframed so in-domain **0%** and cross-domain **82–98%** read as *both* operating conditions plainly ("we report both its operating conditions plainly … In-domain … 0% … On PoisonedRAG's own released poison … 82–98% across the three corpora") — neither buried.
+- **(4) "Faithful black-box" de-jargoned.** Glossed = *built with the attack authors' released attack code*, and the corpus division (released poison on NQ + HotpotQA; faithful black-box on Security) made explicit at the abstract, intro, C2, §V setup, and cross-domain — every place the "three corpora" claim is made.
+- **(5) Scope argued affirmatively.** Abstract + §II reframed from "out of scope / we only handle one family" to "**deliberately scoped to one dominant attack family … defends it end to end across domains, adaptive adversaries, encoder lineages, and hardware**." Tone shift only; single-document boundary and CorruptRAG citation untouched; no defensive pre-emption added.
+- **Untouched (as instructed):** corpus-scale `O(log N)` limitation; no anti-CorruptRAG defensive text; no number/scope change.
+- **Checks (PASS):** citation 31/31 (0 orphan/dangling); percent-escaping clean; env 37/37, tables 15. Commit local, **no push**.
+
+---
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*

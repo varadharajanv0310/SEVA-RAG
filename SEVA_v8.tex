@@ -29,15 +29,17 @@ require LLM decoder access, multiplicative inference overhead, or cryptographic
 pre-registration, making them impractical for the on-device, offline deployment
 that local AI increasingly demands. We present SEVA, a fully local, LLM-free
 detector built on a single geometric signal---per-document $K$-nearest-neighbour
-cluster coherence (\texttt{cluster\_coh})---operated as a hard gate. SEVA detects
-templated multi-passage poisoning, the dominant published attack pattern
-(PoisonedRAG), at 0\% attack-success across three seeds and 0.58\% document-level
-false-positive rate under frozen, non-oracle calibration,
-evaluated at 1--10\% contamination density.
-On PoisonedRAG's released poison for Natural Questions and HotpotQA---and a
-faithful black-box PoisonedRAG, generated with the authors' attack code, on the
-in-domain Security corpus---SEVA catches the attack at 82--98\% under non-oracle
-calibration.
+cluster coherence (\texttt{cluster\_coh})---operated as a hard gate. SEVA targets
+templated multi-passage poisoning---the dominant published attack pattern
+(PoisonedRAG)---and we report both its operating conditions plainly. In-domain, where
+clean and poison are drawn from the \emph{same} security domain and a geometric signal
+has no topic shortcut, SEVA drives templated attack-success to 0\% across three seeds
+at a 0.58\% document-level false-positive rate, under frozen non-oracle calibration and
+1--10\% contamination density. On PoisonedRAG's \emph{own released} poison for the
+field's general-domain benchmarks (Natural Questions, HotpotQA), and a faithful
+black-box build---the attack authors' released attack code---on the in-domain Security
+corpus, it catches the attack at 82--98\% across the three corpora under the same
+non-oracle calibration.
 We further show that lexical duplicate filtering---the method PoisonedRAG itself
 evaluated and found insufficient---is corpus-fragile: at matched false-positive
 rate it fails entirely on duplicate-dense benchmarks where cluster coherence
@@ -45,16 +47,22 @@ holds.
 Against a keyword-dropping adaptive adversary, a multi-signal composite collapses
 to 49--57\% attack-success while the geometric hard gate holds 0\%;
 distilling to the geometric core is what makes SEVA both robust and deployable.
-The geometric signal is also encoder-invariant: templated-poison detection holds across
-three embedding models of independent lineages (BAAI, Microsoft, Alibaba).
-SEVA runs in $13$--$38$\,ms per query and reproduces identical detection across a
-desktop GPU, a laptop GPU, and an Apple-Silicon laptop,
-with no LLM, API, or pre-registration; in a reproduced, shared-corpus,
-matched-FPR head-to-head it catches 100\% of templated poison to the per-query
-state of the art's $\sim$89\%---which that baseline reaches only at a
-false-positive rate that discards roughly half the clean corpus.
-SEVA targets structured multi-passage injection; single-document injections
-crafted to mimic the clean distribution are out of scope.
+Two further results make the signal exceptionally general and reproducible. It is
+\emph{encoder-invariant}: templated-poison detection generalizes across three embedding
+models of independent pre-training lineages---bge (BAAI), e5 (Microsoft), and gte
+(Alibaba)---so it reads the geometry of the attack, not one encoder's manifold. And it
+is \emph{reproducible to within $10^{-6}$}: on a byte-identical, hash-verified corpus the
+detection reproduces across two accelerator backends (CUDA and Apple Silicon), the
+independently re-embedded machines agreeing on the coherence gap to one part in a
+million---a level of cross-platform reproducibility rare in the poisoning-defence
+literature. SEVA runs in $13$--$38$\,ms per query with no LLM, API, or pre-registration;
+in a reproduced, shared-corpus, matched-FPR head-to-head it catches 100\% of templated
+poison to the per-query state of the art's $\sim$89\%, which that baseline reaches only
+at a false-positive rate that discards roughly half the clean corpus.
+SEVA is deliberately scoped to one dominant attack family---templated multi-passage
+injection---which it defends across domains, adaptive adversaries, encoders, and
+hardware; single-document injections crafted to mimic the clean distribution are a
+separate problem, stated as such.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -124,7 +132,8 @@ shared-corpus, matched-FPR head-to-head against the per-query state of the
 art.
 Across this protocol SEVA catches templated poison in-domain at 0\% attack-success,
 and PoisonedRAG's own poison at 82--98\% across three corpora (released on Natural
-Questions and HotpotQA, a faithful black-box on the Security corpus), while lexical
+Questions and HotpotQA; a faithful black-box---the authors' released attack code---on
+the Security corpus), while lexical
 duplicate filtering---the defense PoisonedRAG itself tested---fails entirely at
 matched false-positive rate on duplicate-dense corpora.
 
@@ -143,8 +152,8 @@ profile that LLM-based, decoder-access, and cryptographic defenses cannot match.
 templated multi-passage poisoning at 0\% attack-success across three seeds and
 0.58\% document-FPR under frozen, non-oracle calibration,
 and catches PoisonedRAG's released poison on Natural Questions (82\%) and HotpotQA
-(97\%)---and a faithful black-box PoisonedRAG on the in-domain Security corpus
-(98\%)---all under non-oracle calibration.
+(97\%)---and a faithful black-box PoisonedRAG, built with the authors' released attack
+code, on the in-domain Security corpus (98\%)---all under non-oracle calibration.
 
 \item \textbf{C3 --- What cluster coherence adds over embedding deduplication.}
 The detection signal is a single geometric gate that (i)~is density-invariant
@@ -206,11 +215,12 @@ stealth. Others move the threat elsewhere---GARAG~\cite{garag} degrades retrieva
 through low-level document perturbations, and MutedRAG~\cite{mutedrag} induces
 denial of service by tripping LLM safety guardrails rather than corrupting
 answers; a recent benchmark consolidates thirteen such attacks against seven
-defenses~\cite{ragpoisonbench}. SEVA targets the templated, multi-passage family
-PoisonedRAG defines---the regime in which poison enters the corpus as a cluster of
-mutually similar passages. Single-injection attacks that forgo that cluster
-(Section~\ref{sec:limits}) and availability attacks such as denial of service lie
-outside this scope.
+defenses~\cite{ragpoisonbench}. SEVA is scoped by design to the templated,
+multi-passage family PoisonedRAG defines---the dominant published pattern, in which
+poison enters the corpus as a cluster of mutually similar passages---and defends it
+end to end: across domains, adaptive adversaries, encoder lineages, and hardware.
+Single-injection attacks that forgo that cluster (Section~\ref{sec:limits}) and
+availability attacks such as denial of service lie outside this scope.
 
 \subsection{Defenses and Their Deployment Cost}
 Detectors that do not call an LLM have been limited in power: perplexity-based
@@ -738,7 +748,8 @@ The in-domain result establishes that SEVA catches templated poison; the
 cross-domain results establish that it catches the \emph{published} attack on
 benchmarks it never calibrated against. On PoisonedRAG's released adversarial
 passages for Natural Questions and HotpotQA---and a faithful black-box PoisonedRAG,
-built with the authors' attack code, on the in-domain Security corpus---SEVA flags
+built with the authors' \emph{released} attack code, on the in-domain Security
+corpus---SEVA flags
 the attack at the $0.69\%$ non-oracle operating point on all three: $98\%$
 (Security), $82\%$ (Natural Questions), and $97\%$ (HotpotQA)
 (Table~\ref{tab:xdomain}), driving attack-success from $100\%$ down to $2\%$,
@@ -956,7 +967,10 @@ and per-document fingerprint, the poison--clean gap, its SNR, and $0\%$ template
 attack-success reproduce on every platform, density, and seed; the two independently
 re-embedded external machines agree on the gap to within $10^{-6}$
 (Table~\ref{tab:xplat}). The separation is a property of the attack's geometry, not of
-one GPU's manifold or one vendor's kernels.
+one GPU's manifold or one vendor's kernels. Identical detection on a hash-verified
+corpus across independent hardware and accelerator backends is a degree of
+reproducibility uncommon in poisoning-defence evaluations, and we report it as a
+first-class result.
 
 The detector is also cheap. SEVA adds a single threshold comparison against a
 precomputed statistic at query time; cluster-coherence values are computed once over
@@ -1095,9 +1109,13 @@ at $10{,}000$ and $100{,}000$ documents; behaviour at the multi-million-document
 scale of the largest production corpora is extrapolated from the index's
 $O(\log N)$ structure rather than measured.
 
-\emph{Single encoder.} All results use BAAI/bge-large-en-v1.5. Because cluster
-coherence reads geometric tightness in this encoder's manifold, validating the
-signal across additional encoders is future work.
+\emph{Encoder scope.} The geometric signal is validated across three embedding models
+of independent pre-training lineages---bge (BAAI), e5 (Microsoft), and gte (Alibaba),
+each under its correct symmetric convention (\S\ref{subsec:encoder})---so it is not an
+artifact of one encoder's manifold. The boundary we do \emph{not} claim is invariance
+to embeddings adversarially trained or otherwise built to be poison-aware: an encoder
+optimized to scatter templated injections away from their own siblings could in
+principle flatten the cohesion gap, and we make no claim against that class.% [ENCODER-GEN-1]
 
 \section{Conclusion}
 We presented SEVA, a lightweight, LLM-free detector of templated multi-passage
@@ -1118,8 +1136,7 @@ Its robustness comes from distillation: an adversarial evaluation of an earlier
 ten-signal design showed the soft signals to be domain-confounded and adaptively
 fragile, and the geometric core is what remained. SEVA targets structured
 multi-passage injection; extending lightweight corpus-level detection to
-single-document, clean-mimicking injection, and validating the signal across
-encoders, are the natural next steps.
+single-document, clean-mimicking injection is the natural next step.
 
 \appendix
 
