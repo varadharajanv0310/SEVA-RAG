@@ -45,8 +45,8 @@ holds.
 Against a keyword-dropping adaptive adversary, a multi-signal composite collapses
 to 49--57\% attack-success while the geometric hard gate holds 0\%;
 distilling to the geometric core is what makes SEVA both robust and deployable.
-SEVA runs in approximately 13--16\,ms on a consumer GPU and 32--42\,ms on an
-Apple-Silicon laptop,
+SEVA runs in $13$--$38$\,ms per query and reproduces identical detection across a
+desktop GPU, a laptop GPU, and an Apple-Silicon laptop,
 with no LLM, API, or pre-registration; in a reproduced, shared-corpus,
 matched-FPR head-to-head it catches 100\% of templated poison to the per-query
 state of the art's $\sim$89\%---which that baseline reaches only at a
@@ -104,9 +104,10 @@ LLM in the loop and no per-query model call.
 SEVA meets exactly that envelope. It detects the templated multi-passage attack
 with a single per-document geometric signal---the local $K$-nearest-neighbour
 cluster coherence of the corpus---operated as a hard gate, with no LLM call, no
-external API, and no corpus pre-registration. On consumer GPU hardware it runs
-in approximately 13--16\,ms per query, and on an Apple-Silicon laptop in
-32--42\,ms.
+external API, and no corpus pre-registration. On a desktop GPU it runs
+in approximately $13$--$16$\,ms per query and on laptop-class hardware (a laptop GPU
+and an Apple-Silicon laptop) in $28$--$38$\,ms, reproducing identical detection on
+every one.
 The geometric core is what survives an adaptive adversary: a multi-signal
 composite that also reads soft linguistic statistics is domain-confounded and
 collapses under a keyword-dropping attacker, whereas the cluster-coherence gate
@@ -131,8 +132,8 @@ released result and scoped exactly to what was measured.
 
 \begin{itemize}
 \item \textbf{C1 --- Deployability.} A fully local, LLM-free corpus-poisoning
-detector that runs in approximately 13--16\,ms on a consumer GPU and 32--42\,ms
-on an Apple-Silicon laptop,
+detector that runs in $13$--$38$\,ms per query and reproduces \emph{identical}
+detection across a desktop GPU, a laptop GPU, and an Apple-Silicon laptop,
 with no LLM call, external API, or cryptographic pre-registration---a deployment
 profile that LLM-based, decoder-access, and cryptographic defenses cannot match.
 
@@ -498,8 +499,9 @@ calibrated on benign queries only---no labeled poison, no oracle density---and
 documents seen during calibration are excluded from false-positive counting.
 In-domain results use three calibration-partition seeds ($42$, $7$, $123$) over a
 fixed pool of $2{,}000$ benign queries; cross-domain results use the released
-poison at seed $42$. Numbers are measured on an RTX 5080 (CUDA); latency is
-additionally measured on an Apple M4 (\S\ref{subsec:eff}).
+poison at seed $42$. Numbers are measured on an RTX 5080 (CUDA); detection and
+latency are additionally reproduced on an RTX 4060 and an Apple M4
+(\S\ref{subsec:eff}).
 
 \subsection{Primary Detection Results}
 \label{subsec:main}
@@ -874,30 +876,46 @@ $\geq\!2$ flagged & \textbf{0.90\%} & \textbf{98.0\%} \\
 \end{tabular}
 \end{table}
 
-\subsection{Efficiency}
+\subsection{Cross-Platform Reproducibility and Efficiency}
 \label{subsec:eff}
-SEVA adds one threshold comparison against a precomputed statistic at query time;
-cluster-coherence values are computed once over the corpus and cached, so detection
-cost is dominated by the retrieval the RAG system already performs. End-to-end
-per-query latency is $13.4$--$15.7$\,ms mean (p95 $\leq\!18.8$\,ms) on a consumer
-GPU across all densities, and $32$--$42$\,ms on an Apple M4 laptop
-(Table~\ref{tab:latency}), with no LLM call and no external API.
-The FAISS HNSW index makes neighbour lookups $O(\log N)$ in corpus size, so
-per-query cost is effectively flat as the corpus grows. This is the envelope the
-deployment argument rests on: detection that runs on the hardware the corpus
+Because the detector is byte-frozen and the geometric statistic is deterministic
+given the index, its behaviour should not depend on the machine it runs on---and it
+does not. Rebuilding the corpus from pinned sources and re-embedding locally on three
+platforms across two accelerator backends---an RTX~5080 and an RTX~4060 (CUDA) and an
+Apple~M4 (Metal/MPS)---each gated to the identical order-sensitive SHA-256 corpus hash
+and per-document fingerprint, the poison--clean gap, its SNR, and $0\%$ templated
+attack-success reproduce on every platform, density, and seed; the two independently
+re-embedded external machines agree on the gap to within $10^{-6}$
+(Table~\ref{tab:xplat}). The separation is a property of the attack's geometry, not of
+one GPU's manifold or one vendor's kernels.
+
+The detector is also cheap. SEVA adds a single threshold comparison against a
+precomputed statistic at query time; cluster-coherence values are computed once over
+the corpus and cached, so detection cost is dominated by the retrieval the RAG system
+already performs. End-to-end per-query latency is $13$--$38$\,ms mean (p95 $\le
+44$\,ms) across the desktop GPU, the laptop GPU, and the Apple~M4
+(Table~\ref{tab:xplat}), with no LLM call and no external API. The FAISS HNSW index
+makes neighbour lookups $O(\log N)$ in corpus size, so per-query cost is effectively
+flat as the corpus grows. This is the envelope the deployment argument rests on:
+\emph{identical} detection, at interactive latency, on whatever hardware the corpus
 already lives on---a laptop, offline---with no second model in the loop.
 
 \begin{table}[t]
 \centering
-\caption{Full-pipeline per-query latency (in-domain $100{,}000$-document corpus,
-measured across all densities), with no LLM and no external API.}
-\label{tab:latency}
-\begin{tabular}{lcc}
+\caption{Cross-platform reproduction on a byte-identical, hash-verified in-domain
+corpus (order-sensitive SHA-256 \texttt{28ec3811}$\dots$). The geometric gate yields
+\emph{identical} detection across two accelerator backends---the poison--clean gap,
+its SNR, and $0\%$ templated attack-success are the same on every platform, density,
+and seed (the two independently re-embedded external machines agree on the gap to
+within $10^{-6}$)---at $13$--$38$\,ms per query with no LLM and no external API.}
+\label{tab:xplat}
+\begin{tabular}{llcccc}
 \toprule
-Platform & Mean & p95 \\
+Platform & Backend & Gap ($1$--$10\%$) & SNR & Templ.\ ASR & Latency mean/p95 \\
 \midrule
-Consumer GPU (RTX 5080, CUDA) & 13.4--15.7\,ms & 14.9--18.8\,ms \\
-Apple M4 (laptop)             & 32--42\,ms     & --- \\
+RTX 5080 (desktop) & CUDA & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $13.4$--$15.7$\,/\,$\le\!18.8$\,ms \\
+RTX 4060 (laptop) & CUDA & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $38.1$\,/\,$43.6$\,ms \\
+Apple M4 (laptop) & MPS & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $28.1$\,/\,$37.3$\,ms \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -907,8 +925,9 @@ Apple M4 (laptop)             & 32--42\,ms     & --- \\
 \subsection{Deployment Implications}
 SEVA's operating envelope is its central practical contribution. Detection is a
 single threshold comparison against a precomputed corpus statistic: no LLM call,
-no external API, no cryptographic registration, and $13$--$42$\,ms per query on
-hardware ranging from a consumer GPU to an Apple-Silicon laptop.
+no external API, no cryptographic registration, and $13$--$38$\,ms per query---with
+identical detection reproduced across CUDA and Apple-Silicon backends---on hardware
+ranging from a desktop GPU to an Apple-Silicon laptop.
 This is precisely the envelope that the local, offline RAG deployments now
 proliferating on personal and edge hardware require, and that certified,
 decoder-access, and provenance-based defenses cannot meet. The signal is also
@@ -1024,8 +1043,8 @@ and shows that the lexical duplicate filtering PoisonedRAG itself tested is
 corpus-fragile while semantic cohesion holds.
 In a reproduced, shared-corpus, matched-FPR head-to-head it catches all templated
 poison to the per-query state of the art's $\sim$89\%, while running with no LLM,
-no API, and no pre-registration at $13$--$42$\,ms on consumer and laptop
-hardware.
+no API, and no pre-registration at $13$--$38$\,ms on consumer and laptop
+hardware, with detection reproduced identically across CUDA and Apple-Silicon backends.
 Its robustness comes from distillation: an adversarial evaluation of an earlier
 ten-signal design showed the soft signals to be domain-confounded and adaptively
 fragile, and the geometric core is what remained. SEVA targets structured
@@ -1167,15 +1186,9 @@ sits well below poison coherence ($\approx\!0.99$) and above clean
 $\mathrm{efConstruction}=200$); cluster coherence uses $K=5$ with
 $K_{\mathrm{FETCH}}=20$ over-fetch. In-domain runs use calibration seeds $42$, $7$,
 $123$ over $2{,}000$ benign queries split $60/40$ between calibration and
-evaluation, at a $0.0069$ false-positive target throughout. Detection is reproduced
-on three platforms---an RTX 5080 and an RTX 4060 (CUDA), and an Apple M4 (MPS)---each
-rebuilding the corpus from pinned sources and re-embedding locally against the same
-order-sensitive SHA-256 corpus hash and per-document fingerprint. Across all three the
-cluster-coherence gap is density-invariant in the $+0.236$ to $+0.245$ range and
-templated attack-success is $0\%$ on every density and seed; the two independently
-re-embedded external platforms agree to within $10^{-6}$. The geometric statistic is
-therefore deterministic across hardware and accelerator backends, not specific to one
-GPU.
+evaluation, at a $0.0069$ false-positive target throughout. Cross-platform reproduction---identical detection across CUDA and Apple-Silicon
+backends on this byte-identical hash-verified corpus---is reported in
+\S\ref{subsec:eff} (Table~\ref{tab:xplat}).
 % [XPLAT-4060, XPLAT-M4] result_4060.json / result_M4.json (hash-gated CONFIRMS)
 Per-condition
 artifacts (confusion counts, thresholds, latencies) are recorded per seed and
