@@ -1,0 +1,473 @@
+{
+  "experiment": "SEVA cross-platform hard-gate (in-domain; #1/#3 grid + #2/#4 latency)",
+  "machine_label": "M4",
+  "started_unix": 1780425738,
+  "env": {
+    "python": "3.11.9",
+    "platform": "macOS-26.5-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "2.3.5",
+    "torch": "2.11.0",
+    "detected_device": "mps",
+    "device_name": "Apple Silicon (MPS)",
+    "backend": "mps",
+    "sentence_transformers": "5.2.2",
+    "faiss": "1.13.2",
+    "huggingface_hub": "1.9.2"
+  },
+  "detector": {
+    "type": "cluster_coh_hard_gate",
+    "composite_used": false,
+    "frozen_math": true,
+    "K": 5,
+    "K_FETCH": 20,
+    "FPR_TARGET": 0.0069,
+    "calibration": "non-oracle: tau = (100-0.69) percentile of CLEAN cluster_coh"
+  },
+  "encoder": {
+    "model": "BAAI/bge-large-en-v1.5",
+    "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09"
+  },
+  "preexisting_cache_report": {
+    "note": "Pre-existing caches below are the machine's OLD state. The v7.1.3 100k cache is WIKITEXT embeddings (wrong corpus) -- this run IGNORES them and builds a FRESH in-domain cache tagged 'secxplat'.",
+    "preexisting": [
+      {
+        "path": "./seva_checkpoints_m4_100k_shared/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "./seva_checkpoints_m4_100k_shared/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "./seva_checkpoints_m4_100k_p050/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "./seva_checkpoints_m4_100k_p050/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "./seva_checkpoints_m4_100k_p050/p2_doc_coh.npy",
+        "shape": [
+          100000
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "./seva_checkpoints_m4_100k_p050_adaptive/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "./seva_checkpoints_m4_100k_p050_adaptive/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "./seva_checkpoints_m4_100k_p050_adaptive/p2_doc_coh.npy",
+        "shape": [
+          100000
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_shared/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_shared/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_p050/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_p050/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_p050/p2_doc_coh.npy",
+        "shape": [
+          100000
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_p050_adaptive/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_p050_adaptive/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../SEVA final/seva_checkpoints_m4_100k_p050_adaptive/p2_doc_coh.npy",
+        "shape": [
+          100000
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_shared/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_shared/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_p050/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_p050/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_p050/p2_doc_coh.npy",
+        "shape": [
+          100000
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_p050_adaptive/p2_se.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_p050_adaptive/p2_pe.npy",
+        "shape": [
+          100000,
+          1024
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      },
+      {
+        "path": "../../Desktop/SEVA final/seva_checkpoints_m4_100k_p050_adaptive/p2_doc_coh.npy",
+        "shape": [
+          100000
+        ],
+        "dtype": "float32",
+        "guess": "WIKITEXT?(v7.1.3 -- IGNORED by this run)"
+      }
+    ]
+  },
+  "corpus": {
+    "canonical_sha256": "28ec38114ee64e6010ec489d01e6d3ee13d9b3758fd30a169c99ed078732f8a9",
+    "order_sensitive": true,
+    "n_docs": 100000,
+    "reference_sha256": "28ec38114ee64e6010ec489d01e6d3ee13d9b3758fd30a169c99ed078732f8a9",
+    "hash_match": true,
+    "fingerprint_check": {
+      "ok": true,
+      "n_corpus": 100000,
+      "n_fingerprint": 100000,
+      "first_divergent_index": null,
+      "divergent_text_preview": null
+    }
+  },
+  "poison": {
+    "count": 10000,
+    "ordered_sha256": "4f7ee3f368cc6aae82180df261f4ee60bbd1f02b0834a4c4be72615ba68a733c",
+    "reference_sha256": "4f7ee3f368cc6aae82180df261f4ee60bbd1f02b0834a4c4be72615ba68a733c",
+    "hash_match": true,
+    "source": "regenerated deterministically by xplat_poison_gen.generate_corpus(10000)"
+  },
+  "embedding_backend": "mps",
+  "grid": [
+    {
+      "density": 0.01,
+      "seed": 42,
+      "clean_coh_mean": 0.7508752942085266,
+      "poison_coh_mean": 0.987127423286438,
+      "clean_coh_std": 0.039822980761528015,
+      "gap": 0.23625212907791138,
+      "snr": 5.932557582855225,
+      "tau_coh": 0.8425191044807434,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.6909090909090909,
+      "docfpr_benign_retrieval_pct": 0.9300930093009301,
+      "query_fpr_ge1_pct": 3.3000000000000003,
+      "query_fpr_ge2_pct": 0.8999999999999999,
+      "n_poison": 1000,
+      "n_clean": 99000,
+      "poison_reach_pct": 54.0
+    },
+    {
+      "density": 0.01,
+      "seed": 7,
+      "clean_coh_mean": 0.7508752942085266,
+      "poison_coh_mean": 0.987127423286438,
+      "clean_coh_std": 0.039822980761528015,
+      "gap": 0.23625212907791138,
+      "snr": 5.932557582855225,
+      "tau_coh": 0.8425191044807434,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.6909090909090909,
+      "docfpr_benign_retrieval_pct": 0.8704352176088044,
+      "query_fpr_ge1_pct": 3.05,
+      "query_fpr_ge2_pct": 0.95,
+      "n_poison": 1000,
+      "n_clean": 99000,
+      "poison_reach_pct": 54.0
+    },
+    {
+      "density": 0.01,
+      "seed": 123,
+      "clean_coh_mean": 0.7508752942085266,
+      "poison_coh_mean": 0.987127423286438,
+      "clean_coh_std": 0.039822980761528015,
+      "gap": 0.23625212907791138,
+      "snr": 5.932557582855225,
+      "tau_coh": 0.8425191044807434,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.6909090909090909,
+      "docfpr_benign_retrieval_pct": 0.9003601440576231,
+      "query_fpr_ge1_pct": 3.4000000000000004,
+      "query_fpr_ge2_pct": 0.8500000000000001,
+      "n_poison": 1000,
+      "n_clean": 99000,
+      "poison_reach_pct": 54.0
+    },
+    {
+      "density": 0.05,
+      "seed": 42,
+      "clean_coh_mean": 0.7501878142356873,
+      "poison_coh_mean": 0.9909476637840271,
+      "clean_coh_std": 0.039804525673389435,
+      "gap": 0.24075984954833984,
+      "snr": 6.04855489730835,
+      "tau_coh": 0.8408008813858032,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.6905263157894738,
+      "docfpr_benign_retrieval_pct": 0.8309140054059465,
+      "query_fpr_ge1_pct": 3.25,
+      "query_fpr_ge2_pct": 0.8500000000000001,
+      "n_poison": 5000,
+      "n_clean": 95000,
+      "poison_reach_pct": 58.0
+    },
+    {
+      "density": 0.05,
+      "seed": 7,
+      "clean_coh_mean": 0.7501878142356873,
+      "poison_coh_mean": 0.9909476637840271,
+      "clean_coh_std": 0.039804525673389435,
+      "gap": 0.24075984954833984,
+      "snr": 6.04855489730835,
+      "tau_coh": 0.8408008813858032,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.6905263157894738,
+      "docfpr_benign_retrieval_pct": 0.8013623159370931,
+      "query_fpr_ge1_pct": 3.05,
+      "query_fpr_ge2_pct": 1.05,
+      "n_poison": 5000,
+      "n_clean": 95000,
+      "poison_reach_pct": 58.0
+    },
+    {
+      "density": 0.05,
+      "seed": 123,
+      "clean_coh_mean": 0.7501878142356873,
+      "poison_coh_mean": 0.9909476637840271,
+      "clean_coh_std": 0.039804525673389435,
+      "gap": 0.24075984954833984,
+      "snr": 6.04855489730835,
+      "tau_coh": 0.8408008813858032,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.6905263157894738,
+      "docfpr_benign_retrieval_pct": 0.8208208208208209,
+      "query_fpr_ge1_pct": 3.3000000000000003,
+      "query_fpr_ge2_pct": 0.8999999999999999,
+      "n_poison": 5000,
+      "n_clean": 95000,
+      "poison_reach_pct": 58.0
+    },
+    {
+      "density": 0.1,
+      "seed": 42,
+      "clean_coh_mean": 0.74946528673172,
+      "poison_coh_mean": 0.9939343929290771,
+      "clean_coh_std": 0.04005352780222893,
+      "gap": 0.24446910619735718,
+      "snr": 6.103559970855713,
+      "tau_coh": 0.8402788639068604,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.69,
+      "docfpr_benign_retrieval_pct": 0.7839195979899497,
+      "query_fpr_ge1_pct": 3.75,
+      "query_fpr_ge2_pct": 1.05,
+      "n_poison": 10000,
+      "n_clean": 90000,
+      "poison_reach_pct": 64.0
+    },
+    {
+      "density": 0.1,
+      "seed": 7,
+      "clean_coh_mean": 0.74946528673172,
+      "poison_coh_mean": 0.9939343929290771,
+      "clean_coh_std": 0.04005352780222893,
+      "gap": 0.24446910619735718,
+      "snr": 6.103559970855713,
+      "tau_coh": 0.8402788639068604,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.69,
+      "docfpr_benign_retrieval_pct": 0.8244520410215161,
+      "query_fpr_ge1_pct": 3.75,
+      "query_fpr_ge2_pct": 1.35,
+      "n_poison": 10000,
+      "n_clean": 90000,
+      "poison_reach_pct": 64.0
+    },
+    {
+      "density": 0.1,
+      "seed": 123,
+      "clean_coh_mean": 0.74946528673172,
+      "poison_coh_mean": 0.9939343929290771,
+      "clean_coh_std": 0.04005352780222893,
+      "gap": 0.24446910619735718,
+      "snr": 6.103559970855713,
+      "tau_coh": 0.8402788639068604,
+      "asr_pct": 0.0,
+      "catch_pct": 100.0,
+      "gate_evasion_pct": 0.0,
+      "doc_level_fpr_pct": 0.69,
+      "docfpr_benign_retrieval_pct": 0.7142857142857143,
+      "query_fpr_ge1_pct": 3.5000000000000004,
+      "query_fpr_ge2_pct": 1.25,
+      "n_poison": 10000,
+      "n_clean": 90000,
+      "poison_reach_pct": 64.0
+    }
+  ],
+  "latency": {
+    "backend": "mps",
+    "device_name": "Apple Silicon (MPS)",
+    "n_queries": 200,
+    "density": 0.1,
+    "mean_ms": 28.112877725579892,
+    "p95_ms": 37.26548094709818,
+    "encode_ms_mean": 27.70332962027169,
+    "retrieve_gate_ms_mean": 0.40954810530820396,
+    "note": "per-query = encode 1 query (device) + FAISS retrieve + gate-check precomputed coh. FAISS/gate are CPU on every platform; encode uses the backend above."
+  },
+  "verdict": {
+    "preregistered": "Expect: (a) density-invariant cluster_coh gap (range<=0.05, all>0.15); (b) 0% templated ASR on all 9 conditions. (5080 ref: gap ~0.235-0.247, ASR 0%.)",
+    "gap_per_density": {
+      "0.01": 0.23625212907791138,
+      "0.05": 0.24075984954833984,
+      "0.1": 0.24446910619735718
+    },
+    "gap_density_invariant": true,
+    "templated_asr_zero": true,
+    "result": "CONFIRMS"
+  },
+  "finished_unix": 1780426476
+}
