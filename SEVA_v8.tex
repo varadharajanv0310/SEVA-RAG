@@ -55,7 +55,10 @@ is \emph{reproducible to within $10^{-6}$}: on a byte-identical, hash-verified c
 detection reproduces across two accelerator backends (CUDA and Apple Silicon), the
 independently re-embedded machines agreeing on the coherence gap to one part in a
 million---a level of cross-platform reproducibility rare in the poisoning-defence
-literature. SEVA runs in $13$--$38$\,ms per query with no LLM, API, or pre-registration;
+literature, and detection stays flat to a million documents---sub-millisecond
+retrieval-plus-gate cost at $10\times$ the primary corpus, the $O(\log N)$ deployment
+claim measured rather than extrapolated. SEVA runs in $13$--$38$\,ms per query with no
+LLM, API, or pre-registration;
 in a reproduced, shared-corpus, matched-FPR head-to-head it catches 100\% of templated
 poison to the per-query state of the art's $\sim$89\%, which that baseline reaches only
 at a false-positive rate that discards roughly half the clean corpus.
@@ -143,10 +146,12 @@ released result and scoped exactly to what was measured.
 
 \begin{itemize}
 \item \textbf{C1 --- Deployability.} A fully local, LLM-free corpus-poisoning
-detector that runs in $13$--$38$\,ms per query and reproduces \emph{identical}
-detection across a desktop GPU, a laptop GPU, and an Apple-Silicon laptop,
-with no LLM call, external API, or cryptographic pre-registration---a deployment
-profile that LLM-based, decoder-access, and cryptographic defenses cannot match.
+detector that runs in $13$--$38$\,ms per query, reproduces \emph{identical}
+detection across a desktop GPU, a laptop GPU, and an Apple-Silicon laptop, and stays
+flat to a million documents (sub-millisecond retrieval-plus-gate cost; the $O(\log N)$
+claim measured, not extrapolated), with no LLM call, external API, or cryptographic
+pre-registration---a deployment profile that LLM-based, decoder-access, and
+cryptographic defenses cannot match.
 
 \item \textbf{C2 --- Cross-domain detection of the dominant attack.} SEVA detects
 templated multi-passage poisoning at 0\% poison-evasion across three seeds and
@@ -673,10 +678,11 @@ calibration corpus grows.
 calibration target ($0.69\%$) as the clean calibration corpus grows; its deviation
 from the target shrinks with corpus size.}
 
-\emph{Evidence.} The grand-mean held-out document-FPR is $0.765\%$ at $N=10{,}000$
-and $0.674\%$ at $N=100{,}000$---the deviation from the $0.69\%$ target falling from
-$0.075\%$ to $0.016\%$ as $N$ grows tenfold, at the frozen $\tau$ (in-domain, three
-seeds at each size).% [SCALE-1]
+\emph{Evidence.} The grand-mean held-out document-FPR is $0.765\%$ at $N=10{,}000$,
+$0.674\%$ at $N=100{,}000$, and $0.701\%$ at $N=1{,}000{,}000$---the deviation from the
+$0.69\%$ target falling from $0.075\%$ to $0.016\%$ to $0.011\%$ as $N$ grows, at the
+frozen $\tau$ (three seeds at each size; the $1$M point uses the broader corpus of
+\S\ref{subsec:scale}).% [SCALE-1; SCALE-1M]
 
 \emph{Mechanism.} $\tau$ is an order statistic of the clean-coherence sample; the
 sampling error of an empirical percentile---and thus the gap between the realized
@@ -684,9 +690,10 @@ and target FPR---decays with the number of clean calibration documents, the
 $O(1/\sqrt{N})$ behaviour of such estimators. The convergence is a property of the
 clean calibration set alone, independent of the attack.
 
-\emph{Scope.} Established at two in-domain corpus sizes ($10{,}000$ and $100{,}000$);
-we report the convergence and its direction, and---two points fixing the direction
-but not the exponent---do not extrapolate the rate to larger corpora.
+\emph{Scope.} The deviation shrinks at three corpus sizes ($10{,}000$, $100{,}000$,
+$1{,}000{,}000$)---the direction the $O(1/\sqrt{N})$ argument implies. Because the
+largest point uses a broader corpus (\S\ref{subsec:scale}), we report the direction,
+not a fitted exponent, and do not extrapolate the rate.
 
 \subsection{Encoder-Invariance}
 \label{subsec:encoder}
@@ -1013,6 +1020,65 @@ Apple M4 (laptop) & MPS & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ &
 \end{tabular}
 \end{table}
 
+\subsection{Validation at Million-Document Scale}
+\label{subsec:scale}
+The deployment argument rests on detection cost staying flat as the corpus grows; we
+measure that directly at $N=1{,}000{,}000$ documents---ten times the primary corpus,
+and the largest scale we run. Per-query latency is $15.0$\,ms mean ($18.2$\,ms p95),
+of which the cluster-coherence retrieval and gate check are $\approx\!0.4$\,ms; the
+remainder is the encoder forward pass, which is independent of corpus size. The
+detector's own cost therefore stays \emph{sub-millisecond} at a million
+documents---a ten-fold corpus increase moves the retrieval-plus-gate term by a
+fraction of a millisecond---confirming the $O(\log N)$ deployment claim by measurement
+rather than extrapolation (Table~\ref{tab:scale}). Detection holds at scale: the
+poison--clean gap is density-invariant ($+0.245$ at $1\%$, $+0.249$ at $5\%$) at an
+SNR near $5.6$, poison-evasion is $0\%$ on every condition and seed, and the
+non-oracle document-FPR is $0.70\%$---a $0.011\%$ deviation from the $0.69\%$
+target.% [SCALE-1M]
+
+This is the strongest deployability evidence in the paper, and three scope notes
+accompany it, stated plainly. \emph{(i)~A broader corpus.} The security-only source of
+the $10$k/$100$k corpora does not reach a million deduplicated documents, so the $1$M
+corpus draws from ten technical Stack Exchange sites (security, server and systems
+administration, networking, databases, programming, code review, cryptography). It is
+genuinely in-domain technical text, deterministically built and hash-gated
+(order-sensitive SHA-256 \texttt{317eb43c}$\dots$)---a \emph{distinct, larger} corpus
+from the cross-platform corpus of \S\ref{subsec:eff}, not out-of-domain padding. The
+million-scale detection result is thus a generalization to a \emph{broader} technical
+corpus at scale, not the same corpus enlarged. \emph{(ii)~Densities run.} The
+deterministic poison generator's unique-passage budget fills $1\%$ and $5\%$
+contamination at this $N$ ($P=10{,}000$ and $50{,}000$); $10\%$ ($P=100{,}000$) exceeds
+it and was left unrun rather than fabricated. Density-invariance across the full
+$1$--$10\%$ band is established at $100{,}000$ (\S\ref{subsec:geom}); at a million it is
+confirmed across the two densities the budget fills. \emph{(iii)~Calibration.} The
+$1$M point extends the calibration trend to three scales---target deviation $0.075\%$,
+$0.016\%$, $0.011\%$ at $10$k, $100$k, $1$M---shrinking, the direction Observation~2
+implies. Because this point uses the broader corpus, we read it as that direction, not
+a fitted $O(1/\sqrt{N})$ exponent.
+
+\begin{table}[t]
+\centering
+\caption{Validation at million-document scale: $N=1{,}000{,}000$, a broader,
+deterministically hash-gated technical corpus (order-sensitive SHA-256
+\texttt{317eb43c}$\dots$---a \emph{distinct, larger} corpus from the cross-platform one
+of \S\ref{subsec:eff}). Per-query latency is $15.0$\,ms mean / $18.2$\,ms p95, of which
+cluster-coherence retrieval and the gate check are $\approx\!0.4$\,ms---sub-millisecond
+at $10\times$ the primary corpus (total latency is encoder-bound); poison-evasion is
+$0\%$ and the gap stays density-invariant, at a non-oracle grand-mean document-FPR of
+$0.70\%$ ($0.011\%$ from the $0.69\%$ target). The deterministic poison budget fills
+$1\%$ and $5\%$ at this $N$; $10\%$ ($P=100{,}000$) exceeds it. Three seeds
+($42$, $7$, $123$).}
+\label{tab:scale}
+\begin{tabular}{lccccc}
+\toprule
+Density & $n_{\mathrm{poison}}$ & Gap & SNR & Evasion & Doc-FPR \\
+\midrule
+$1\%$ & $10{,}000$ & $+0.245$ & $5.63$ & $\mathbf{0\%}$ & $0.68\%$ \\
+$5\%$ & $50{,}000$ & $+0.249$ & $5.57$ & $\mathbf{0\%}$ & $0.72\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Discussion}
 
 \subsection{Deployment Implications}
@@ -1020,7 +1086,10 @@ SEVA's operating envelope is its central practical contribution. Detection is a
 single threshold comparison against a precomputed corpus statistic: no LLM call,
 no external API, no cryptographic registration, and $13$--$38$\,ms per query---with
 identical detection reproduced across CUDA and Apple-Silicon backends---on hardware
-ranging from a desktop GPU to an Apple-Silicon laptop.
+ranging from a desktop GPU to an Apple-Silicon laptop. At a million documents---ten
+times the primary corpus---the detector's retrieval-plus-gate cost stays
+sub-millisecond and per-query latency stays in band, so this envelope holds at
+production scale (\S\ref{subsec:scale}).
 This is precisely the envelope that the local, offline RAG deployments now
 proliferating on personal and edge hardware require, and that certified,
 decoder-access, and provenance-based defenses cannot meet. The signal is also
@@ -1114,10 +1183,14 @@ threshold calibrated on a disjoint reference sample and then frozen generalizes 
 held-out poison of the same class at $0\%$ poison-evasion.
 We do not claim calibration-free detection.
 
-\emph{Corpus-scale validation.} The latency and calibration results are measured
-at $10{,}000$ and $100{,}000$ documents; behaviour at the multi-million-document
-scale of the largest production corpora is extrapolated from the index's
-$O(\log N)$ structure rather than measured.
+\emph{Corpus scale.} The $O(\log N)$ deployment claim is now \emph{measured}, not
+extrapolated: at $N=1{,}000{,}000$ documents the detector's retrieval-plus-gate cost
+stays sub-millisecond and per-query latency stays in the $100{,}000$-document band
+($15.0$\,ms), with $0\%$ poison-evasion and on-target calibration
+(\S\ref{subsec:scale}). That run uses a broader technical corpus---the security-only
+source does not reach a million deduplicated documents---and the deterministic poison
+budget fills $1\%$ and $5\%$ contamination there; behaviour beyond a million, and at
+$10\%$ contamination at that scale, is the remaining open edge.
 
 \emph{Encoder scope.} The geometric signal is validated across three embedding models
 of independent pre-training lineages---bge (BAAI), e5 (Microsoft), and gte (Alibaba),

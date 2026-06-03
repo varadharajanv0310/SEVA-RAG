@@ -733,4 +733,16 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 ---
 
+## SCALE-1M · 1M-document scale run folded — corpus-scale limitation RESOLVED (measured)
+- **Added** 2026-06-03 · provenance `xplat_handoff/result_1M.json` (5080, pinned env; runner `scale1m_run` extending `scale_xrun`; frozen detector). Every number below traced to that JSON and tagged `% [SCALE-1M]`.
+- **New §V subsection `subsec:scale` ("Validation at Million-Document Scale") + table `tab:scale`** (tables 15→16), placed after `subsec:eff`, before §VI. **N=1,000,000**, corpus hash **`317eb43c…`** + fingerprint ok. **Latency 15.0 ms mean / 18.2 ms p95**; encode 14.6 ms, **retrieve+gate ≈ 0.4 ms (sub-millisecond at 10× the corpus)** → O(log N) **measured, not extrapolated**. Detection: gap **+0.245 (1%) / +0.249 (5%)**, SNR ~5.6, **0% poison-evasion** on all 6 cells; non-oracle Doc-FPR **0.70%** (dev 0.011% from 0.69%). `tab:scale` = per-density grid (1%: P=10k; 5%: P=50k).
+- **Three caveats stated honestly (in the JSON, disclosed not buried):** (i) **broader corpus** — security-only source can't reach 1M, so 10-site technical-SE family (pool 2.51M → capped to 1M), in-domain + deterministically hash-gated, **not padding**; framed as broader-corpus generalization at scale, a **distinct, larger** corpus from the cross-platform one. (ii) **densities** — poison budget fills 1% & 5%; **10% (P=100k > 96k cap) left unrun, not fabricated**; density-invariance across full 1–10% band established at 100k. (iii) **calibration** — 3-point deviation 0.075→0.016→0.011% shrinking = **direction** of O(1/√N), **not a fitted exponent** (1M is the broader corpus).
+- **Limitation rewritten:** Limitations `\emph{Corpus-scale validation}` (was "extrapolated from O(log N) rather than measured") → `\emph{Corpus scale}` = **"now measured, not extrapolated"** at 1M; remaining open edge = beyond 1M and 10% at that scale.
+- **Obs 2 (Calibration Scaling) updated:** Evidence now three points (10k/100k/1M: 0.765/0.674/0.701%; dev 0.075/0.016/0.011%); Scope = direction not fitted exponent, broader-corpus caveat. `% [SCALE-1; SCALE-1M]`.
+- **Deployability framing:** **abstract** ("detection stays flat to a million documents — sub-millisecond retrieve+gate at 10×, O(log N) measured"), **C1** (same), and **§VI Deployment Implications** (envelope holds at production scale) all reflect it.
+- **Kept distinct from cross-platform:** 1M hash `317eb43c…` ≠ cross-platform `28ec3811…`; the 1M is a separate scale result, explicitly **not** part of the cross-platform determinism claim. Both hashes present; not blurred.
+- **Checks (PASS):** every 1M number verified against `result_1M.json`; citation 31/31 (0 orphan/dangling); percent clean; env 39/39, tables 16. No number invented. Commit local, **no push**.
+
+---
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*
