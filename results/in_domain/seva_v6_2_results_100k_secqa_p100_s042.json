@@ -1,0 +1,246 @@
+{
+  "version": "v6.2.1",
+  "corpus": 100000,
+  "poisoned": 10000,
+  "poison_ratio": 0.1,
+  "cal_seed": 42,
+  "benign_q": 2000,
+  "target_fpr": 0.0069,
+  "norm_config": {
+    "doc_length": 331.0,
+    "sent_length": 26.333333333333332,
+    "punct_density": 0.15664329793039758
+  },
+  "snrs": {
+    "topic_drift": 0.09088540644827856,
+    "sent_unif": 1.0864783157432731,
+    "ttr_signal": -1.0887957390244485,
+    "repeat_rate": -0.35943933430589375,
+    "kw_density": 6.571962011788415,
+    "doc_length_signal": 0.7882833328390325,
+    "avg_sent_len_signal": 0.36829351954279277,
+    "punct_signal": 0.9794399139192733,
+    "content_ttr_signal": -1.0834967880384079,
+    "cluster_coh": 5.778814997288359
+  },
+  "signal_stats": {
+    "topic_drift": {
+      "clean_mean": 0.27434003353118896,
+      "clean_std": 0.037281181663274765,
+      "poison_mean": 0.2777283489704132,
+      "poison_std": 0.01919437199831009,
+      "snr": 0.09088540644827856,
+      "gap": 0.003388315439224243
+    },
+    "sent_unif": {
+      "clean_mean": 0.1148032695055008,
+      "clean_std": 0.06990757584571838,
+      "poison_mean": 0.19075633585453033,
+      "poison_std": 0.07128484547138214,
+      "snr": 1.0864783157432731,
+      "gap": 0.07595306634902954
+    },
+    "ttr_signal": {
+      "clean_mean": 0.2268112152814865,
+      "clean_std": 0.06811792403459549,
+      "poison_mean": 0.15264470875263214,
+      "poison_std": 0.03626713529229164,
+      "snr": -1.0887957390244485,
+      "gap": -0.07416650652885437
+    },
+    "repeat_rate": {
+      "clean_mean": 0.013238972052931786,
+      "clean_std": 0.036717161536216736,
+      "poison_mean": 4.137930955039337e-05,
+      "poison_std": 0.0008436375064775348,
+      "snr": -0.35943933430589375,
+      "gap": -0.013197592459619045
+    },
+    "kw_density": {
+      "clean_mean": 0.046800002455711365,
+      "clean_std": 0.08654339611530304,
+      "poison_mean": 0.6155599355697632,
+      "poison_std": 0.13149099051952362,
+      "snr": 6.571962011788415,
+      "gap": 0.5687599182128906
+    },
+    "doc_length_signal": {
+      "clean_mean": 0.5268157124519348,
+      "clean_std": 0.28038132190704346,
+      "poison_mean": 0.747835636138916,
+      "poison_std": 0.023623617365956306,
+      "snr": 0.7882833328390325,
+      "gap": 0.2210199236869812
+    },
+    "avg_sent_len_signal": {
+      "clean_mean": 0.29779618978500366,
+      "clean_std": 0.19565710425376892,
+      "poison_mean": 0.36985543370246887,
+      "poison_std": 0.068714439868927,
+      "snr": 0.36829351954279277,
+      "gap": 0.07205924391746521
+    },
+    "punct_signal": {
+      "clean_mean": 0.4823664724826813,
+      "clean_std": 0.27040135860443115,
+      "poison_mean": 0.7472083568572998,
+      "poison_std": 0.13859149813652039,
+      "snr": 0.9794399139192733,
+      "gap": 0.26484188437461853
+    },
+    "content_ttr_signal": {
+      "clean_mean": 0.21647414565086365,
+      "clean_std": 0.0918295606970787,
+      "poison_mean": 0.11697711050510406,
+      "poison_std": 0.03971267491579056,
+      "snr": -1.0834967880384079,
+      "gap": -0.09949703514575958
+    },
+    "cluster_coh": {
+      "clean_mean": 0.7465638518333435,
+      "clean_std": 0.04280644655227661,
+      "poison_mean": 0.9939343929290771,
+      "poison_std": 0.002718556672334671,
+      "snr": 5.778814997288359,
+      "gap": 0.24737054109573364
+    }
+  },
+  "L1_weights": {
+    "sent_unif": 0.134452,
+    "ttr_signal": 0.134655,
+    "kw_density": 0.182809,
+    "doc_length_signal": 0.106259,
+    "punct_signal": 0.124825,
+    "content_ttr_signal": 0.134191,
+    "cluster_coh": 0.182809
+  },
+  "tau_L1": 0.6373023092746735,
+  "L2_weights": {
+    "sent_unif": 0.16453,
+    "ttr_signal": 0.164778,
+    "doc_length_signal": 0.13003,
+    "punct_signal": 0.152749,
+    "content_ttr_signal": 0.16421,
+    "cluster_coh": 0.223704
+  },
+  "tau_L2": 0.7742149531841276,
+  "L3_weights": {
+    "sent_unif": 0.16453,
+    "ttr_signal": 0.164778,
+    "doc_length_signal": 0.13003,
+    "punct_signal": 0.152749,
+    "content_ttr_signal": 0.16421,
+    "cluster_coh": 0.223704
+  },
+  "tau_L3": 0.7742149531841276,
+  "L1": {
+    "asr": 0.0,
+    "doc_fpr": 0.4043545878693624,
+    "query_fpr": 1.625,
+    "tau": 0.6373023092746735,
+    "weights": {
+      "sent_unif": 0.134452,
+      "ttr_signal": 0.134655,
+      "kw_density": 0.182809,
+      "doc_length_signal": 0.106259,
+      "punct_signal": 0.124825,
+      "content_ttr_signal": 0.134191,
+      "cluster_coh": 0.182809
+    },
+    "counts": {
+      "TP": 156,
+      "FN": 0,
+      "FP": 13,
+      "TN": 3202,
+      "poison_encounters": 156,
+      "clean_seen": 3215
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 184
+    },
+    "attacks": {
+      "successes": 0,
+      "attempts": 156
+    },
+    "fp_docs": 13,
+    "clean_seen": 3215,
+    "latency": {
+      "mean": 13.676977176595862,
+      "p95": 15.410930006328272
+    }
+  },
+  "L2": {
+    "asr": 73.07692307692307,
+    "doc_fpr": 0.3110419906687403,
+    "query_fpr": 1.25,
+    "tau": 0.7742149531841276,
+    "weights": {
+      "sent_unif": 0.16453,
+      "ttr_signal": 0.164778,
+      "doc_length_signal": 0.13003,
+      "punct_signal": 0.152749,
+      "content_ttr_signal": 0.16421,
+      "cluster_coh": 0.223704
+    },
+    "counts": {
+      "TP": 42,
+      "FN": 114,
+      "FP": 10,
+      "TN": 3205,
+      "poison_encounters": 156,
+      "clean_seen": 3215
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 52
+    },
+    "attacks": {
+      "successes": 114,
+      "attempts": 156
+    },
+    "fp_docs": 10,
+    "clean_seen": 3215,
+    "latency": {
+      "mean": 13.676977176595862,
+      "p95": 15.410930006328272
+    }
+  },
+  "L3": {
+    "asr": 73.07692307692307,
+    "doc_fpr": 0.3110419906687403,
+    "query_fpr": 1.25,
+    "tau": 0.7742149531841276,
+    "weights": {
+      "sent_unif": 0.16453,
+      "ttr_signal": 0.164778,
+      "doc_length_signal": 0.13003,
+      "punct_signal": 0.152749,
+      "content_ttr_signal": 0.16421,
+      "cluster_coh": 0.223704
+    },
+    "counts": {
+      "TP": 42,
+      "FN": 114,
+      "FP": 10,
+      "TN": 3205,
+      "poison_encounters": 156,
+      "clean_seen": 3215
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 52
+    },
+    "attacks": {
+      "successes": 114,
+      "attempts": 156
+    },
+    "fp_docs": 10,
+    "clean_seen": 3215,
+    "latency": {
+      "mean": 13.676977176595862,
+      "p95": 15.410930006328272
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 5080"
+}

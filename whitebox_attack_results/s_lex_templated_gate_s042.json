@@ -1,0 +1,40 @@
+{
+  "tau_lex": 0.3,
+  "attempts": 125,
+  "poison_catch_pct": 100.0,
+  "clean_fpr_pct": 0.16526315789473683,
+  "s_lex_poison_pct": {
+    "1": 0.828125,
+    "10": 0.8671875,
+    "50": 0.90625,
+    "90": 0.9296875,
+    "99": 0.9453125
+  },
+  "asr_plain": {
+    "L1ref": 0.0,
+    "b_L2": 53.6,
+    "b_L3": 53.6,
+    "c1_L2": 48.8,
+    "c1_L3": 48.8,
+    "c2_L2": 56.8,
+    "c2_L3": 56.8
+  },
+  "asr_with_slex_prefilter": {
+    "L1ref": 0.0,
+    "b_L2": 0.0,
+    "b_L3": 0.0,
+    "c1_L2": 0.0,
+    "c1_L3": 0.0,
+    "c2_L2": 0.0,
+    "c2_L3": 0.0
+  },
+  "worst_plain": 56.8,
+  "worst_prefilter": 0.0,
+  "verdict": "GREEN",
+  "ecal2_baseline": {
+    "c1": 48.8,
+    "c2": 56.8,
+    "b": 53.6,
+    "note": "L2=L3 (frozen avg_sent_len wt=0)"
+  }
+}

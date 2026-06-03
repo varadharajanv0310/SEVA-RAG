@@ -1,0 +1,71 @@
+{
+  "manifest_version": "xplat-1.0",
+  "purpose": "Pins every input that could cause the in-domain corpus / detector to diverge across the 5080 (reference), 4060, and Apple M4, plus the 5080-produced reference values the other machines verify against. The 5080 fills the null fields ONCE (Step A of OPERATOR_GUIDE.md); the filled manifest then ships unchanged to both external machines.",
+
+  "experiment_grid": {
+    "experiments": {"#1 / #3": "in-domain hard-gate: 3 densities x 3 seeds -> cluster_coh gap, SNR, ASR, DocFPR",
+                    "#2 / #4": "in-domain hard-gate: per-query latency + device backend"},
+    "densities": [0.01, 0.05, 0.10],
+    "seeds": [42, 7, 123],
+    "targeted_queries": 50,
+    "benign_queries_per_seed": 2000
+  },
+
+  "poison": {
+    "source": "REGENERATED in-memory by xplat_poison_gen.generate_corpus(10000) -- fully DETERMINISTIC (50 base docs x variant cross-product; no randomness, no embedding). NOT shipped as a file; the runner hash-checks the regenerated texts against the canonical hash below.",
+    "canonical_ordered_sha256": "4f7ee3f368cc6aae82180df261f4ee60bbd1f02b0834a4c4be72615ba68a733c",
+    "count": 10000
+  },
+
+  "detector": {
+    "type": "cluster_coh HARD GATE (flag iff cluster_coh > tau)",
+    "calibration": "NON-ORACLE: tau = (100 - 0.69) percentile of CLEAN cluster_coh; no poison knowledge, no oracle density",
+    "composite_used": false,
+    "note": "The v7.1.3 10-signal composite is NEVER constructed or scored. The frozen cluster_coh K-NN math is byte-identical to seva_benchmark_4060.py (imported into seva_xplat_common.py)."
+  },
+
+  "frozen_constants": {
+    "MODEL_ID": "BAAI/bge-large-en-v1.5",
+    "K": 5, "K_FETCH": 20, "EMB_DIM": 1024, "INDEX_M": 32, "INDEX_EF": 200,
+    "FPR_TARGET": 0.0069, "BATCH": 32, "FAISS_THREADS": 1,
+    "corpus": {"source_repo_questions": "flax-sentence-embeddings/stackexchange_title_body_jsonl",
+               "source_repo_answers": "flax-sentence-embeddings/stackexchange_title_best_voted_answer_jsonl",
+               "source_file": "security.stackexchange.com.jsonl.gz",
+               "seed": 42, "target_docs": 100000, "n_benign": 3000, "min_chars": 200, "cohesion_gate": 0.80}
+  },
+
+  "pinned_source_revisions": {
+    "flax-sentence-embeddings/stackexchange_title_body_jsonl": "a3d99bf21570ed043e19e41af46f3f19bf4e4bb6",
+    "flax-sentence-embeddings/stackexchange_title_best_voted_answer_jsonl": "88957a0e825f49aeb2a7bfd828cb46b79010b286",
+    "_note": "Resolved + pinned 2026-06-02. All 3 machines build from EXACTLY these dataset commits, so the source data cannot drift between the (earlier) 4060/M4 runs and the (later) 5080 run. The canonical corpus SHA-256 then proves byte-identity."
+  },
+  "pinned_encoder_revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09",
+  "_pinned_encoder_note": "5080 records the bge-large-en-v1.5 commit SHA here (e.g. from `huggingface_hub.HfApi().model_info('BAAI/bge-large-en-v1.5').sha`). Identical encoder weights -> embeddings differ ONLY by hardware float noise (which the cluster_coh gap is robust to). Different weights would invalidate the comparison.",
+
+  "reference": {
+    "_note": "PRE-PINNED 2026-06-02 from the canonical corpus the paper used. VERIFIED: build_corpus_xplat.py at the pinned commits reproduces that corpus byte-identically in SET AND ORDER (ordered hash below). So the 4060/M4 gate against this canonical corpus IMMEDIATELY (auto-STOP on any divergence); they do NOT need to wait for the 5080. The 5080's later run re-verifies. The numeric fields (gap/asr/...) are filled when the 5080 reference run completes.",
+    "corpus_canonical_sha256": "28ec38114ee64e6010ec489d01e6d3ee13d9b3758fd30a169c99ed078732f8a9",
+    "corpus_canonical_sha256_kind": "ORDER-SENSITIVE: per-doc SHA-256(text) in corpus order (doc_0..doc_99999) + count; captures the exact document set AND their order. Order matters because poison replaces corpus[0:P].",
+    "corpus_fingerprint_file": "corpus_fingerprint.txt",
+    "corpus_fingerprint_note": "100000 lines, one SHA-256(text) hex per line in canonical order; lets the runner verify the rebuilt corpus DOC-BY-DOC and report the first divergent index.",
+    "machine": "RTX 5080 / CUDA 12.8 (canonical corpus build)",
+    "gap_per_density": {"0.01": null, "0.05": null, "0.10": null},
+    "templated_asr_pct": null,
+    "docfpr_range_pct": null,
+    "latency_mean_ms": null,
+    "produced_unix": null
+  },
+
+  "package_versions_5080": {
+    "_fill": "5080 records its env here (from result_5080.json -> env) so the externals can match major versions.",
+    "python": null, "torch": null, "sentence_transformers": null, "faiss": null, "numpy": null, "huggingface_hub": null
+  },
+
+  "preregistration": {
+    "PASS_if": ["corpus canonical SHA-256 == reference (byte-identical corpus)",
+                "cluster_coh gap density-invariant: range across 1/5/10% <= 0.05 AND every gap > 0.15",
+                "templated ASR == 0% on all 9 conditions"],
+    "expected_reference": "gap ~ +0.235..+0.247 (range ~0.012), SNR ~5.8-6.0, ASR 0%, DocFPR ~0.4-0.9% (seed-dependent)",
+    "on_DIVERGE": "A result that fails a PASS check is a PRIVATE NEGATIVE: reportable to the operator, NOT auto-published. Treat a hash mismatch as 'wrong corpus -> discard'; treat a gap-collapse or ASR>0 on a hash-MATCHED corpus as a genuine new finding to investigate before any claim relies on it."
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "corpus": "hotpotqa subsample",
+  "Nc": 149999,
+  "Pn": 500,
+  "n_queries": 100,
+  "reach_pct": 100.0,
+  "nq_clean_slex_gt0_pct": 9.062727084847232,
+  "poison_medians": {
+    "coh": 0.8727484345436096,
+    "s_lex": 0.2578125,
+    "s_nd": 0.9809440076351166
+  },
+  "matched_fpr_table": {
+    "0.1": {
+      "cluster_coh": {
+        "catch": 7.0,
+        "fpr": 0.10000066667111114,
+        "thr": 0.9143786226511008
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.08200054667031113,
+        "thr": 0.8203125
+      },
+      "s_nd": {
+        "catch": 79.0,
+        "fpr": 0.10000066667111114,
+        "thr": 0.9503065220117576
+      }
+    },
+    "0.5": {
+      "cluster_coh": {
+        "catch": 95.0,
+        "fpr": 0.5000033333555557,
+        "thr": 0.8230167174339307
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.494003293355289,
+        "thr": 0.7265625
+      },
+      "s_nd": {
+        "catch": 97.0,
+        "fpr": 0.499336662244415,
+        "thr": 0.9074099659919739
+      }
+    },
+    "0.69": {
+      "cluster_coh": {
+        "catch": 97.0,
+        "fpr": 0.6900046000306669,
+        "thr": 0.8043301008582112
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.6206708044720298,
+        "thr": 0.7109375
+      },
+      "s_nd": {
+        "catch": 98.0,
+        "fpr": 0.6900046000306669,
+        "thr": 0.8958289387702936
+      }
+    },
+    "1.0": {
+      "cluster_coh": {
+        "catch": 100.0,
+        "fpr": 1.0000066667111114,
+        "thr": 0.780486614704132
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.9246728311522077,
+        "thr": 0.6796875
+      },
+      "s_nd": {
+        "catch": 99.0,
+        "fpr": 1.0000066667111114,
+        "thr": 0.880913310050963
+      }
+    },
+    "2.0": {
+      "cluster_coh": {
+        "catch": 100.0,
+        "fpr": 2.0000133334222228,
+        "thr": 0.7391866731643684
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 1.8986793245288303,
+        "thr": 0.6171875
+      },
+      "s_nd": {
+        "catch": 100.0,
+        "fpr": 1.999346662311082,
+        "thr": 0.8476158380508423
+      }
+    }
+  },
+  "query_fpr_at_0.69": {
+    "cluster_coh": 2.5,
+    "MinHash/s_lex": 0.3,
+    "s_nd": 1.7000000000000002
+  },
+  "coh69": 97.0,
+  "mh69": 0.0,
+  "snd69": 98.0,
+  "verdict": "PRIMARY ECHO \u2014 cluster_coh 97% catches released PoisonedRAG on hotpotqa @0.69% DocFPR (cross-domain confirmed). MinHash 0%, s_nd 98% (hotpotqa clean s_lex>0 9.1%); \u00a77.3-lexical rebuttal LANDS (MinHash 0%)."
+}

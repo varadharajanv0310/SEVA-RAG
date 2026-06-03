@@ -1,0 +1,252 @@
+{
+  "version": "v6.2.1",
+  "corpus": 100000,
+  "poisoned": 5000,
+  "poison_ratio": 0.05,
+  "cal_seed": 7,
+  "benign_q": 2000,
+  "target_fpr": 0.0069,
+  "norm_config": {
+    "doc_length": 342.0,
+    "sent_length": 27.005000000000006,
+    "punct_density": 0.16058583837595164
+  },
+  "snrs": {
+    "topic_drift": 0.8329023314058095,
+    "sent_unif": 1.578748896575979,
+    "ttr_signal": -1.0976802442117084,
+    "repeat_rate": -0.33136925503177456,
+    "kw_density": 6.519407968197904,
+    "doc_length_signal": 0.8090510478932162,
+    "avg_sent_len_signal": 0.39934675295492733,
+    "punct_signal": 0.9963890382171227,
+    "content_ttr_signal": -1.0473813306125448,
+    "cluster_coh": 5.995624551007397
+  },
+  "signal_stats": {
+    "topic_drift": {
+      "clean_mean": 0.2705038785934448,
+      "clean_std": 0.038798943161964417,
+      "poison_mean": 0.3028196096420288,
+      "poison_std": 0.019124405458569527,
+      "snr": 0.8329023314058095,
+      "gap": 0.032315731048583984
+    },
+    "sent_unif": {
+      "clean_mean": 0.11752990633249283,
+      "clean_std": 0.0687590166926384,
+      "poison_mean": 0.22608312964439392,
+      "poison_std": 0.07489007711410522,
+      "snr": 1.578748896575979,
+      "gap": 0.10855322331190109
+    },
+    "ttr_signal": {
+      "clean_mean": 0.21766889095306396,
+      "clean_std": 0.06694681197404861,
+      "poison_mean": 0.1441826969385147,
+      "poison_std": 0.034850187599658966,
+      "snr": -1.0976802442117084,
+      "gap": -0.07348619401454926
+    },
+    "repeat_rate": {
+      "clean_mean": 0.010825340636074543,
+      "clean_std": 0.032418765127658844,
+      "poison_mean": 8.275861910078675e-05,
+      "poison_std": 0.0011916473740711808,
+      "snr": -0.33136925503177456,
+      "gap": -0.010742582380771637
+    },
+    "kw_density": {
+      "clean_mean": 0.04699999839067459,
+      "clean_std": 0.0872410461306572,
+      "poison_mean": 0.6157599687576294,
+      "poison_std": 0.13145197927951813,
+      "snr": 6.519407968197904,
+      "gap": 0.5687599778175354
+    },
+    "doc_length_signal": {
+      "clean_mean": 0.5460526347160339,
+      "clean_std": 0.2717919647693634,
+      "poison_mean": 0.7659462094306946,
+      "poison_std": 0.02063644863665104,
+      "snr": 0.8090510478932162,
+      "gap": 0.21989357471466064
+    },
+    "avg_sent_len_signal": {
+      "clean_mean": 0.33420896530151367,
+      "clean_std": 0.18984214961528778,
+      "poison_mean": 0.4100218117237091,
+      "poison_std": 0.05999227240681648,
+      "snr": 0.39934675295492733,
+      "gap": 0.07581284642219543
+    },
+    "punct_signal": {
+      "clean_mean": 0.5018454790115356,
+      "clean_std": 0.2784993648529053,
+      "poison_mean": 0.7793391942977905,
+      "poison_std": 0.13818638026714325,
+      "snr": 0.9963890382171227,
+      "gap": 0.2774937152862549
+    },
+    "content_ttr_signal": {
+      "clean_mean": 0.20368215441703796,
+      "clean_std": 0.09227592498064041,
+      "poison_mean": 0.10703407227993011,
+      "poison_std": 0.03921752795577049,
+      "snr": -1.0473813306125448,
+      "gap": -0.09664808213710785
+    },
+    "cluster_coh": {
+      "clean_mean": 0.7525694370269775,
+      "clean_std": 0.039758697152137756,
+      "poison_mean": 0.9909476637840271,
+      "poison_std": 0.005749780684709549,
+      "snr": 5.995624551007397,
+      "gap": 0.23837822675704956
+    }
+  },
+  "L1_weights": {
+    "topic_drift": 0.096255,
+    "sent_unif": 0.150491,
+    "ttr_signal": 0.117691,
+    "kw_density": 0.158863,
+    "doc_length_signal": 0.094174,
+    "punct_signal": 0.109828,
+    "content_ttr_signal": 0.113835,
+    "cluster_coh": 0.158863
+  },
+  "tau_L1": 0.5853815972805023,
+  "L2_weights": {
+    "topic_drift": 0.114434,
+    "sent_unif": 0.178914,
+    "ttr_signal": 0.139918,
+    "doc_length_signal": 0.111961,
+    "punct_signal": 0.130571,
+    "content_ttr_signal": 0.135335,
+    "cluster_coh": 0.188867
+  },
+  "tau_L2": 0.6907301843166351,
+  "L3_weights": {
+    "topic_drift": 0.114434,
+    "sent_unif": 0.178914,
+    "ttr_signal": 0.139918,
+    "doc_length_signal": 0.111961,
+    "punct_signal": 0.130571,
+    "content_ttr_signal": 0.135335,
+    "cluster_coh": 0.188867
+  },
+  "tau_L3": 0.6907301843166351,
+  "L1": {
+    "asr": 0.0,
+    "doc_fpr": 0.8287292817679558,
+    "query_fpr": 3.375,
+    "tau": 0.5853815972805023,
+    "weights": {
+      "topic_drift": 0.096255,
+      "sent_unif": 0.150491,
+      "ttr_signal": 0.117691,
+      "kw_density": 0.158863,
+      "doc_length_signal": 0.094174,
+      "punct_signal": 0.109828,
+      "content_ttr_signal": 0.113835,
+      "cluster_coh": 0.158863
+    },
+    "counts": {
+      "TP": 138,
+      "FN": 0,
+      "FP": 27,
+      "TN": 3231,
+      "poison_encounters": 138,
+      "clean_seen": 3258
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 175
+    },
+    "attacks": {
+      "successes": 0,
+      "attempts": 138
+    },
+    "fp_docs": 27,
+    "clean_seen": 3258,
+    "latency": {
+      "mean": 13.461067058892427,
+      "p95": 15.078510000603274
+    }
+  },
+  "L2": {
+    "asr": 49.275362318840585,
+    "doc_fpr": 0.8287292817679558,
+    "query_fpr": 3.375,
+    "tau": 0.6907301843166351,
+    "weights": {
+      "topic_drift": 0.114434,
+      "sent_unif": 0.178914,
+      "ttr_signal": 0.139918,
+      "doc_length_signal": 0.111961,
+      "punct_signal": 0.130571,
+      "content_ttr_signal": 0.135335,
+      "cluster_coh": 0.188867
+    },
+    "counts": {
+      "TP": 70,
+      "FN": 68,
+      "FP": 27,
+      "TN": 3231,
+      "poison_encounters": 138,
+      "clean_seen": 3258
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 101
+    },
+    "attacks": {
+      "successes": 68,
+      "attempts": 138
+    },
+    "fp_docs": 27,
+    "clean_seen": 3258,
+    "latency": {
+      "mean": 13.461067058892427,
+      "p95": 15.078510000603274
+    }
+  },
+  "L3": {
+    "asr": 49.275362318840585,
+    "doc_fpr": 0.8287292817679558,
+    "query_fpr": 3.375,
+    "tau": 0.6907301843166351,
+    "weights": {
+      "topic_drift": 0.114434,
+      "sent_unif": 0.178914,
+      "ttr_signal": 0.139918,
+      "doc_length_signal": 0.111961,
+      "punct_signal": 0.130571,
+      "content_ttr_signal": 0.135335,
+      "cluster_coh": 0.188867
+    },
+    "counts": {
+      "TP": 70,
+      "FN": 68,
+      "FP": 27,
+      "TN": 3231,
+      "poison_encounters": 138,
+      "clean_seen": 3258
+    },
+    "catches": {
+      "hash": 0,
+      "ml": 101
+    },
+    "attacks": {
+      "successes": 68,
+      "attempts": 138
+    },
+    "fp_docs": 27,
+    "clean_seen": 3258,
+    "latency": {
+      "mean": 13.461067058892427,
+      "p95": 15.078510000603274
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 5080"
+}

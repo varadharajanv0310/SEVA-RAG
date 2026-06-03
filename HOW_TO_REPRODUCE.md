@@ -1,235 +1,153 @@
-# SEVA-RAG — End-to-End Reproduction Guide
+# How to reproduce SEVA
 
-This document walks an independent reviewer from a fresh clone to the paper's Table IV / Table VI /
-Table VIII numerical cells. Follow the steps in order; each phase caches its output so a failed run
-can be resumed from the last completed phase.
+Every headline number is reproducible from pinned inputs. Identity is guaranteed not by
+"same script + seed" alone but by **hash-gated, deterministic** corpus and poison: the corpus
+is rebuilt from pinned HuggingFace dataset revisions and verified against a canonical
+**order-sensitive SHA-256** (order matters because poison replaces `corpus[0:P]`), and the
+poison is regenerated deterministically and hash-checked. A runner **stops** (naming the first
+divergent document) if the rebuild does not match.
+
+## Documented hashes (verify identity against these)
+
+| Artifact | SHA-256 |
+|---|---|
+| 100k in-domain corpus (order-sensitive) | `28ec38114ee64e6010ec489d01e6d3ee13d9b3758fd30a169c99ed078732f8a9` |
+| Templated poison (10,000 docs, ordered) | `4f7ee3f368cc6aae82180df261f4ee60bbd1f02b0834a4c4be72615ba68a733c` |
+| 1M multi-site corpus (order-sensitive) | `317eb43c337c1970c4d80e14f8eb2a9f785b75b1cbac780c620d05fe765e98f4` |
+
+Encoder: `BAAI/bge-large-en-v1.5` @ `d4aa6901d3a41ba39fb536a557fa166f842b0e09`. Pinned dataset
+revisions are in `reproduction/MANIFEST.json`.
 
 ---
 
-## Prerequisites
-
-- NVIDIA GPU with ≥ 8 GB VRAM (paper: RTX 4060 Laptop GPU, CUDA 12.4)
-- Python 3.11, conda (or venv)
-- ≥ 20 GB free disk space
-- Internet access for first run (downloads WikiText-103 and BGE-large-en-v1.5 from HuggingFace)
-
----
-
-## Step 0 — Clone and install
+## 0. Environment
 
 ```bash
-git clone https://github.com/varadharajanv0310/SEVA-RAG.git
-cd SEVA-RAG
-
-# Create and activate environment
-conda create -n seva python=3.11 -y
+conda env create -f environment.yml      # or: conda create -n seva python=3.11 -y && pip install -r requirements.txt
 conda activate seva
-
-# PyTorch + CUDA 12.4
-pip install torch==2.3.1+cu124 torchvision==0.18.1+cu124 \
-    --index-url https://download.pytorch.org/whl/cu124
-
-# FAISS GPU (conda is the most reliable source for GPU builds)
-conda install -c pytorch faiss-gpu=1.7.4 cudatoolkit=12.4 -y
-
-# Remaining packages
-pip install -r requirements.txt
 ```
 
-Verify CUDA is visible:
+The primary runs used Python 3.11.15, torch 2.11.0+cu128, numpy 1.26.4, faiss 1.7.4,
+sentence-transformers 3.0.1, huggingface-hub 0.24.2. A CUDA GPU is recommended (≈ 8 GB VRAM is
+enough at 100k); CPU and Apple MPS also reproduce identical detection, only slower.
+
+---
+
+## 1. Primary in-domain result (`tab:main`, `tab:coh`, `tab:agg`)
+
+The canonical, hash-gated path — corpus build, deterministic poison, frozen gate, 3 densities
+× 3 seeds — is a single runner:
 
 ```bash
-python -c "import torch, faiss; print(torch.cuda.get_device_name(0)); print(faiss.get_num_gpus())"
-# Expected: your GPU name, then "1"
+cd reproduction
+python hardgate_xrun.py --label local
 ```
+
+This (a) rebuilds the 100k Security-SE corpus from the pinned revisions and **gates** it to
+`28ec3811…`; (b) regenerates the exact 10k templated poison in memory and checks it against
+`4f7ee3f3…`; (c) embeds once with bge-large; (d) scores the 1/5/10% × seed{42,7,123} grid under
+non-oracle calibration. Output `result_local.json` should reproduce:
+
+- **poison-evasion = 0%** on every condition; clean coherence ≈ 0.75, poison ≈ 0.99;
+- gap **+0.235 → +0.247** across density (SNR ≈ 5.8–6.0), density-invariant;
+- document-FPR near the 0.69% target (grand mean ≈ 0.56%).
+
+The committed reference grid is in [`results/in_domain/`](results/in_domain/).
 
 ---
 
-## Step 1 — Generate the poison corpus
-
-`generate_poison_corpus.py` uses only the Python standard library — no GPU needed.
+## 2. High-encounter Wilson bound (`tab:main`, `tab:percond`)
 
 ```bash
-python generate_poison_corpus.py
-# Output: poison_corpus_diverse.json  (≈ 10 000 docs, < 10 s)
+cd reproduction
+python hienc_ci.py
 ```
 
-Verify:
+A dedicated frozen-gate run over **25,000** templated encounters → **0 evasions**, tightening
+the 95% Wilson upper bound to **0.0154%** (`result_hienc_ci.json`).
+
+---
+
+## 3. Calibration scaling — Observation 2 (`subsec:calib`)
 
 ```bash
-python -c "import json; d=json.load(open('poison_corpus_diverse.json')); print(len(d), 'docs')"
-# Expected: 10000 docs
+cd reproduction
+python scale_xrun.py            # emits result_scale10k.json, result_scale100k.json
+python scale1m_xrun.py          # 1M point (see §5)
 ```
+
+Grand-mean held-out Doc-FPR converges toward 0.69% as the clean calibration corpus grows:
+**0.765% (10k) → 0.674% (100k) → 0.701% (1M)** — deviation 0.075% → 0.016% → 0.011%.
 
 ---
 
-## Step 2 — Edit driver path constants (one-time)
-
-`run_seva_v6_smoke.py` and `run_seva_v6_100k.py` each have three path constants at the top that
-must be set to values valid on your machine:
-
-```python
-PYTHON = r"/path/to/conda/envs/seva/bin/python"  # or full path to python.exe on Windows
-BENCH  = r"/path/to/SEVA-RAG/seva_benchmark_4060.py"
-CWD    = r"/path/to/SEVA-RAG"
-```
-
-On Linux/macOS:
-```bash
-which python   # inside the seva conda env
-```
-
-On Windows:
-```
-where python   # inside the seva conda env
-```
-
----
-
-## Step 3 — Smoke test (10k corpus, ≈ 30 min)
-
-Runs 3 densities × 3 seeds × 3 layers at 10k corpus to verify the pipeline end-to-end before
-committing 6 hours to the full run.
+## 4. Encoder-invariance — Observation 3 (`tab:encoder`)
 
 ```bash
-python run_seva_v6_smoke.py
+cd reproduction
+python encoder_xrun.py --encoder bge   # then: --encoder e5 ; --encoder gte
 ```
 
-**Pass criteria** (all must hold):
-- Mean ASR ≤ 22% across all tiers and layers
-- Mean FPR ≤ 3% across all tiers and layers
-- No tier reports `"skipped": True` (indicates Phase 3 calibration failure)
-
-Checkpoints are written to `seva_checkpoints_4060_10k_p*/`.
+Re-embeds the identical hash-verified corpus with three independent lineages, each in its
+correct symmetric convention (bge/gte: no prefix; e5: `query:` on all texts). All three:
+**0% poison-evasion**, density-invariant gap, SNR preserved (5.2–6.7). Results:
+`result_encoder_{bge,e5,gte}.json`.
 
 ---
 
-## Step 4 — Full 100k production run (≈ 6 h)
+## 5. Million-document scale (`tab:scale`)
 
 ```bash
-python run_seva_v6_100k.py
+cd reproduction
+python build_1m_corpus.py       # deterministic 10-site technical-SE corpus, gated to 317eb43c…
+python scale1m_xrun.py
 ```
 
-This runs:
-- Corpus sizes: 100 000
-- Poison ratios: 1%, 5%, 10%
-- Cal/eval seeds: 42, 7, 123
-- Three-layer threat model: L1, L2, L3
-
-Result JSONs are written to:
-```
-seva_checkpoints_4060_100k_p001/seva_v6_2_results_100k_p001_s042.json
-seva_checkpoints_4060_100k_p001/seva_v6_2_results_100k_p001_s007.json
-seva_checkpoints_4060_100k_p001/seva_v6_2_results_100k_p001_s123.json
-seva_checkpoints_4060_100k_p050/seva_v6_2_results_100k_p050_s*.json
-seva_checkpoints_4060_100k_p100/seva_v6_2_results_100k_p100_s*.json
-```
-
-Each JSON contains `L1`, `L2`, `L3` sub-objects with `asr`, `fpr`, `tau`, `weights`, `signal_stats`,
-and `counts` fields corresponding to Table IV, Table VI, and Table II of the paper.
+`N = 1,000,000`: **0% poison-evasion**, gap +0.245/+0.249 at 1%/5%, **15.0 ms** mean latency
+(retrieval + gate ≈ 0.4 ms — sub-millisecond at 10× the corpus), non-oracle Doc-FPR 0.70%.
+Result: `result_1M.json` (the 1M corpus is a *distinct, larger* corpus from the cross-platform
+100k — different hash).
 
 ---
 
-## Step 5 — Adaptive attack (≈ 2 h at 5% density)
+## 6. Cross-platform reproduction (`tab:xplat`)
+
+Run the same turnkey runner on each machine; the corpus hash-gate guarantees a byte-identical
+in-domain corpus across backends:
 
 ```bash
-python adaptive_attack_seva.py
+cd reproduction
+python hardgate_xrun.py --label 5080      # RTX 5080 (CUDA)
+python hardgate_xrun.py --label 4060      # RTX 4060 (CUDA)
+python hardgate_xrun.py --label M4        # Apple M4 (MPS)
 ```
 
-Requires the 100k 5% checkpoints from Step 4 to exist
-(`seva_checkpoints_4060_100k_p050_adaptive/`).
-
-Results are written to `adaptive_attack_results/` (Table VIII of the paper). The committed
-[adaptive_attack_results/summary.md](adaptive_attack_results/summary.md) shows the expected output.
+Detection is identical across CUDA and Apple-Silicon backends; the two independently
+re-embedded external machines agree on the coherence gap to **< 5×10⁻⁷** (several cells
+bit-identical). Committed: `result_4060.json`, `result_M4.json`. See
+`reproduction/PROMPT_4060.md` / `PROMPT_M4.md` for the exact per-machine procedure and
+`reproduction/PREREGISTRATION.md` for the registered PASS criteria.
 
 ---
 
-## Reading committed Table IV results
+## 7. Cross-domain (released PoisonedRAG), lexical fragility, head-to-head
 
-The nine production result files are committed to the `results/` directory:
+These use the broader experiment scripts at the repository root (results in
+`whitebox_attack_results/`):
 
-```
-results/seva_v6_2_results_100k_p010_s{007,042,123}.json   ← 1% density
-results/seva_v6_2_results_100k_p050_s{007,042,123}.json   ← 5% density
-results/seva_v6_2_results_100k_p100_s{007,042,123}.json   ← 10% density
-```
+| Claim (table) | Script | Result file |
+|---|---|---|
+| Cross-domain catch on released PoisonedRAG, NQ + HotpotQA (`tab:xdomain`, `tab:roc`) | `pr_xgate.py` | `whitebox_attack_results/pr_xgate_s042.json`, `pr_xgate_hotpotqa_s042.json` |
+| Geometric core vs 10-signal composite (`tab:core`) | `cheap_must1.py`, `pr_gate.py` | `cheap_must1_s042.json`, `pr_gate_s042.json` |
+| Composite under feature-neutralization, 49–57% (`tab:core`) | E-CAL-2 (`cheap_must1.py`) | `ecal2_s042.json` |
+| Head-to-head vs RAGDefender, matched-FPR (`tab:h2h`) | `e4hh_fair.py`, `e4hh_ragdefender.py` | `e4hh_fair_s042.json`, `e4hh_s042.json` |
+| Diversity-injection adaptive attack, SEVA holds 0% | `adaptive_attack_seva.py` | `adaptive_attack_results/summary.md` |
 
-Read them with:
-
-```python
-import json, glob, numpy as np
-
-results = {}
-for path in sorted(glob.glob("results/seva_v6_2_results_100k_*.json")):
-    d = json.load(open(path))
-    ratio_pct = int(d["poison_ratio"] * 100)
-    tag = f"{ratio_pct}% s{d['cal_seed']}"
-    results[tag] = {layer: {"asr": d[layer]["asr"], "fpr": d[layer]["doc_fpr"],
-                             "tau": d[layer]["tau"],
-                             "lat_mean": d[layer]["latency"]["mean"],
-                             "lat_p95":  d[layer]["latency"]["p95"]}
-                    for layer in ("L1", "L2", "L3")}
-
-for tag, v in sorted(results.items()):
-    print(tag, {l: f"ASR={v[l]['asr']:.2f}% FPR={v[l]['fpr']:.3f}%" for l in v})
-```
+RAGDefender is reproduced in a **separate** conda environment (it is LLM-free but lives outside
+this repo's frozen detector); see `RAGDEFENDER_STANDUP.md`.
 
 ---
 
-## Phase cache structure (for resume/debugging)
+## Mapping every table to its source
 
-| File | Phase | Contents |
-|------|-------|----------|
-| `p1_corpus.json` | 1 | Background corpus doc ids + text |
-| `p1_query.json` | 1 | Targeted + benign queries |
-| `p2_pe.npy` | 2 | BGE-large corpus embeddings |
-| `p2_doc_coh.npy` | 2 | Precomputed per-doc cluster_coh |
-| `p3_v6.2_s{seed}.json` | 3 | τ, SNR weights, signal stats, cal_doc_ids |
-| `seva_v6_2_results_*.json` | 4 | ASR, FPR, latencies, confusion matrix |
-
-Delete any of these files to force recomputation from that phase onward.
-Use `--reset` flag to clear all caches for a given density:
-
-```bash
-python seva_benchmark_4060.py --multitier --mtcorpus 100000 --reset
-```
-
----
-
-## Seed semantics
-
-The three reported seeds `[42, 7, 123]` control the **60/40 cal/eval partition** of the 2000 benign
-queries (via `_split_queries` in `seva_benchmark_4060.py`). All three seeds share the same 2000
-benign queries; they differ only in which 1200 are used for Phase 3 calibration vs which 800 are
-held out for Phase 4 evaluation. Mean ± std across seeds therefore quantifies sensitivity of τ to
-the calibration partition, not full experimental independence.
-
----
-
-## Expected output ranges (100k, paper Table IV)
-
-| Condition | ASR (mean ± std) | FPR (mean ± std) |
-|-----------|-----------------|-----------------|
-| L1, 1% | 0.00 ± 0.00% | 0.73 ± 0.17% |
-| L1, 5% | 0.00 ± 0.00% | 0.63 ± 0.07% |
-| L1, 10% | 0.00 ± 0.00% | 0.95 ± 0.34% |
-| L2, 1% | 0.00 ± 0.00% | 0.74 ± 0.08% |
-| L2, 5% | 0.53 ± 0.92% | 0.62 ± 0.05% |
-| L2, 10% | 0.00 ± 0.00% | 0.95 ± 0.34% |
-| L3, 1% | 1.07 ± 0.92% | 0.72 ± 0.18% |
-| L3, 5% | 16.27 ± 2.31% | 0.67 ± 0.19% |
-| L3, 10% | 17.07 ± 3.23% | 0.89 ± 0.17% |
-
-Latency on RTX 4060 (full pipeline, Phase 4 per-query): **43 ms mean, ≈ 53 ms p95**.
-
----
-
-## Troubleshooting
-
-| Symptom | Likely cause | Fix |
-|---------|-------------|-----|
-| `ERROR: CUDA not available` | No CUDA GPU / wrong PyTorch build | Reinstall torch with `+cu124` index |
-| `ModuleNotFoundError: faiss` | FAISS not installed | Use `conda install -c pytorch faiss-gpu` |
-| Phase 3 `STOP` — no positive-SNR signal | Corpus too small or wrong poison file | Verify `poison_corpus_diverse.json` exists and has 10k docs |
-| Result JSON not found after run | `.gitignore` blocks `*.json` | The `!poison_corpus_diverse.json` exception in `.gitignore` only unblocks that file; result JSONs are still excluded and must be read locally |
-| Run hangs on HuggingFace download | No internet / proxy | Set `HF_DATASETS_OFFLINE=1` after first download |
+See [RESULTS.md](RESULTS.md) for the complete claim → script → result-file → hash map.

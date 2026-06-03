@@ -1,0 +1,73 @@
+{
+  "results": {
+    "cloneinject_n1": {
+      "attempts": 82,
+      "nq": 45,
+      "seva_catch_pct": 10.975609756097562,
+      "ragd_catch_pct": 70.73170731707317,
+      "seva_asr": 89.02439024390245,
+      "ragd_asr": 29.26829268292683,
+      "survive_both_asr": 25.609756097560975,
+      "q_survive_both": 15,
+      "q_survive_both_pct": 33.333333333333336
+    },
+    "cloneinject_n2": {
+      "attempts": 124,
+      "nq": 48,
+      "seva_catch_pct": 12.903225806451612,
+      "ragd_catch_pct": 63.70967741935484,
+      "seva_asr": 87.09677419354838,
+      "ragd_asr": 36.29032258064516,
+      "survive_both_asr": 29.838709677419356,
+      "q_survive_both": 27,
+      "q_survive_both_pct": 56.25
+    },
+    "cloneinject_n3": {
+      "attempts": 145,
+      "nq": 48,
+      "seva_catch_pct": 12.413793103448276,
+      "ragd_catch_pct": 57.241379310344826,
+      "seva_asr": 87.58620689655173,
+      "ragd_asr": 42.758620689655174,
+      "survive_both_asr": 37.241379310344826,
+      "q_survive_both": 34,
+      "q_survive_both_pct": 70.83333333333333
+    },
+    "cloneinject_n5": {
+      "attempts": 163,
+      "nq": 49,
+      "seva_catch_pct": 12.269938650306749,
+      "ragd_catch_pct": 58.282208588957054,
+      "seva_asr": 87.73006134969326,
+      "ragd_asr": 41.717791411042946,
+      "survive_both_asr": 36.809815950920246,
+      "q_survive_both": 37,
+      "q_survive_both_pct": 75.51020408163265
+    },
+    "cloneinject_n8": {
+      "attempts": 175,
+      "nq": 49,
+      "seva_catch_pct": 12.571428571428571,
+      "ragd_catch_pct": 57.142857142857146,
+      "seva_asr": 87.42857142857143,
+      "ragd_asr": 42.857142857142854,
+      "survive_both_asr": 37.142857142857146,
+      "q_survive_both": 39,
+      "q_survive_both_pct": 79.59183673469387
+    },
+    "templated": {
+      "attempts": 122,
+      "nq": 29,
+      "seva_catch_pct": 100.0,
+      "ragd_catch_pct": 81.14754098360656,
+      "seva_asr": 0.0,
+      "ragd_asr": 18.852459016393443,
+      "survive_both_asr": 0.0,
+      "q_survive_both": 0,
+      "q_survive_both_pct": 0.0
+    }
+  },
+  "ragd_benign_doc_fpr": 51.2,
+  "embedder": "BAAI/bge-large-en-v1.5",
+  "task_type": "single_hop"
+}

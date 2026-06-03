@@ -1,0 +1,17 @@
+{
+  "mode": "ecal2",
+  "attempts": 125,
+  "L1ref_asr": 0.0,
+  "frozen_tau_L1": 0.5870119035243986,
+  "L2": {
+    "b": 53.6,
+    "c1_value_clean": 48.8,
+    "c2_drop_term": 56.8
+  },
+  "L3": {
+    "b": 53.6,
+    "c1_value_clean": 48.8,
+    "c2_drop_term": 56.8
+  },
+  "runtime_s": 125.66011739999522
+}

@@ -1,21 +1,67 @@
-# Environments
-seva_env/
+# ============================================================================
+# SEVA-RAG .gitignore
+# Ignore large/regenerable artifacts; commit the curated result sets that back
+# the paper's headline claims (see RESULTS.md).
+# ============================================================================
 
-# Models and Checkpoints
+# --- Environments ---
+seva_env/
+reproduction/seva_env/
+.venv/
+env/
+
+# --- Embedding caches, FAISS indices, model checkpoints (large, regenerable) ---
 seva_checkpoints*/
 *.pt
 *.bin
+*.npy
+*.faiss
+*.index
 
-# Logs and Data
-*.log
-*.json
-!poison_corpus_diverse.json
-!results/seva_v6_2_results_100k_*.json
-*.pdf
-*.txt
-!requirements.txt
+# --- Local backups (multi-GB, machine-local) ---
+*_backup_*/
+seva_results_*_backup_*/
+paper_frame_*_backup_*/
 
-# Python caches
+# --- Python caches ---
 __pycache__/
 *.py[cod]
-!p3_v6.2_s*.json
+
+# --- LaTeX / local toolchain build artifacts ---
+_texbin/
+*.aux
+*.bbl
+*.blg
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.pdf
+
+# --- Logs and archives ---
+*.log
+*.zip
+
+# --- Data: ignore JSON by default, then allow the committed result sets ---
+*.json
+!results/*.json
+!results/*/*.json
+!reproduction/*.json
+!poison_corpus_diverse.json
+# Curated headline attack-experiment results (small JSONs behind tab:core / tab:h2h /
+# tab:xdomain / tab:roc); large intermediate poison/paraphrase dumps stay ignored.
+!whitebox_attack_results/ecal2_s042.json
+!whitebox_attack_results/e4hh_fair_s042.json
+!whitebox_attack_results/e4hh_s042.json
+!whitebox_attack_results/e4hh_ragd_flags_s042.json
+!whitebox_attack_results/pr_gate_s042.json
+!whitebox_attack_results/pr_xgate_s042.json
+!whitebox_attack_results/pr_xgate_hotpotqa_s042.json
+!whitebox_attack_results/cheap_must1_s042.json
+!whitebox_attack_results/s_nd_gate_s042.json
+!whitebox_attack_results/s_lex_templated_gate_s042.json
+!whitebox_attack_results/seeds3_s042.json
+
+# --- Plain-text dumps (keep requirements + the install note) ---
+*.txt
+!requirements.txt

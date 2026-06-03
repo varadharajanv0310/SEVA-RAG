@@ -1,0 +1,109 @@
+{
+  "corpus": "NQ subsample",
+  "Nc": 149996,
+  "Pn": 500,
+  "n_queries": 100,
+  "reach_pct": 100.0,
+  "nq_clean_slex_gt0_pct": 1.1513640363743032,
+  "poison_medians": {
+    "coh": 0.8644721508026123,
+    "s_lex": 0.1328125,
+    "s_nd": 0.9552834630012512
+  },
+  "matched_fpr_table": {
+    "0.1": {
+      "cluster_coh": {
+        "catch": 4.0,
+        "fpr": 0.10000266673777967,
+        "thr": 0.9222218513488791
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.0,
+        "thr": 1.0
+      },
+      "s_nd": {
+        "catch": 0.0,
+        "fpr": 0.06000160004266781,
+        "thr": 1.0
+      }
+    },
+    "0.5": {
+      "cluster_coh": {
+        "catch": 70.0,
+        "fpr": 0.5000133336888984,
+        "thr": 0.8459074541926381
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.4993466492439798,
+        "thr": 0.5859375
+      },
+      "s_nd": {
+        "catch": 30.0,
+        "fpr": 0.4993466492439798,
+        "thr": 0.9510719776153564
+      }
+    },
+    "0.69": {
+      "cluster_coh": {
+        "catch": 82.0,
+        "fpr": 0.6900184004906798,
+        "thr": 0.8320997382402422
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.6886850316008427,
+        "thr": 0.46875
+      },
+      "s_nd": {
+        "catch": 52.0,
+        "fpr": 0.6900184004906798,
+        "thr": 0.9348234839737425
+      }
+    },
+    "1.0": {
+      "cluster_coh": {
+        "catch": 92.0,
+        "fpr": 1.0000266673777969,
+        "thr": 0.8138646423816669
+      },
+      "MinHash/s_lex": {
+        "catch": 0.0,
+        "fpr": 0.9993599829328782,
+        "thr": 0.2890625
+      },
+      "s_nd": {
+        "catch": 74.0,
+        "fpr": 1.0000266673777969,
+        "thr": 0.9141853570938101
+      }
+    },
+    "2.0": {
+      "cluster_coh": {
+        "catch": 98.0,
+        "fpr": 2.0000533347555938,
+        "thr": 0.7857963204383853
+      },
+      "MinHash/s_lex": {
+        "catch": 100.0,
+        "fpr": 1.1513640363743032,
+        "thr": 0.0
+      },
+      "s_nd": {
+        "catch": 95.0,
+        "fpr": 1.999386650310675,
+        "thr": 0.8790886402130127
+      }
+    }
+  },
+  "query_fpr_at_0.69": {
+    "cluster_coh": 1.9,
+    "MinHash/s_lex": 1.95,
+    "s_nd": 2.35
+  },
+  "coh69": 82.0,
+  "mh69": 0.0,
+  "snd69": 52.0,
+  "verdict": "PRIMARY WIN \u2014 cluster_coh 82% catches released PoisonedRAG on NQ @0.69% DocFPR (cross-domain confirmed). Dedup also catches (MinHash 0%, s_nd 52%) -> no bonus separation (NQ clean s_lex>0 1.2%)."
+}

@@ -1,0 +1,155 @@
+{
+  "taus": {
+    "42": 0.591481000185013,
+    "7": 0.5853815972805023,
+    "123": 0.5877119004726408
+  },
+  "tau_mean": 0.5881914993127187,
+  "tau_std": 0.002513057929222422,
+  "configs": {
+    "templated": {
+      "seva_asr_mean": 0.0,
+      "seva_asr_std": 0.0,
+      "survive_both_mean": 0.0,
+      "survive_both_std": 0.0,
+      "q_survive_both_mean": 0.0,
+      "per_seed": {
+        "42": {
+          "seva_asr": 0.0,
+          "survive_both": 0.0,
+          "q_survive_both_pct": 0.0
+        },
+        "7": {
+          "seva_asr": 0.0,
+          "survive_both": 0.0,
+          "q_survive_both_pct": 0.0
+        },
+        "123": {
+          "seva_asr": 0.0,
+          "survive_both": 0.0,
+          "q_survive_both_pct": 0.0
+        }
+      }
+    },
+    "cloneinject_n1": {
+      "seva_asr_mean": 86.17886178861788,
+      "seva_asr_std": 2.505859350800401,
+      "survive_both_mean": 25.609756097560975,
+      "survive_both_std": 0.0,
+      "q_survive_both_mean": 33.333333333333336,
+      "per_seed": {
+        "42": {
+          "seva_asr": 89.02439024390245,
+          "survive_both": 25.609756097560975,
+          "q_survive_both_pct": 33.333333333333336
+        },
+        "7": {
+          "seva_asr": 82.92682926829268,
+          "survive_both": 25.609756097560975,
+          "q_survive_both_pct": 33.333333333333336
+        },
+        "123": {
+          "seva_asr": 86.58536585365853,
+          "survive_both": 25.609756097560975,
+          "q_survive_both_pct": 33.333333333333336
+        }
+      }
+    },
+    "cloneinject_n2": {
+      "seva_asr_mean": 85.75268817204301,
+      "seva_asr_std": 1.9008246806089983,
+      "survive_both_mean": 29.569892473118284,
+      "survive_both_std": 0.3801649361218007,
+      "q_survive_both_mean": 55.55555555555555,
+      "per_seed": {
+        "42": {
+          "seva_asr": 87.09677419354838,
+          "survive_both": 29.838709677419356,
+          "q_survive_both_pct": 56.25
+        },
+        "7": {
+          "seva_asr": 83.06451612903226,
+          "survive_both": 29.032258064516128,
+          "q_survive_both_pct": 54.166666666666664
+        },
+        "123": {
+          "seva_asr": 87.09677419354838,
+          "survive_both": 29.838709677419356,
+          "q_survive_both_pct": 56.25
+        }
+      }
+    },
+    "cloneinject_n3": {
+      "seva_asr_mean": 86.4367816091954,
+      "seva_asr_std": 1.6255328303139034,
+      "survive_both_mean": 37.01149425287356,
+      "survive_both_std": 0.3251065660627807,
+      "q_survive_both_mean": 70.13888888888887,
+      "per_seed": {
+        "42": {
+          "seva_asr": 87.58620689655173,
+          "survive_both": 37.241379310344826,
+          "q_survive_both_pct": 70.83333333333333
+        },
+        "7": {
+          "seva_asr": 84.13793103448276,
+          "survive_both": 36.55172413793103,
+          "q_survive_both_pct": 68.75
+        },
+        "123": {
+          "seva_asr": 87.58620689655173,
+          "survive_both": 37.241379310344826,
+          "q_survive_both_pct": 70.83333333333333
+        }
+      }
+    },
+    "cloneinject_n5": {
+      "seva_asr_mean": 86.70756646216769,
+      "seva_asr_std": 1.0427442768083426,
+      "survive_both_mean": 36.40081799591002,
+      "survive_both_std": 0.5784104549583227,
+      "q_survive_both_mean": 74.82993197278911,
+      "per_seed": {
+        "42": {
+          "seva_asr": 87.73006134969326,
+          "survive_both": 36.809815950920246,
+          "q_survive_both_pct": 75.51020408163265
+        },
+        "7": {
+          "seva_asr": 85.2760736196319,
+          "survive_both": 35.58282208588957,
+          "q_survive_both_pct": 73.46938775510205
+        },
+        "123": {
+          "seva_asr": 87.11656441717791,
+          "survive_both": 36.809815950920246,
+          "q_survive_both_pct": 75.51020408163265
+        }
+      }
+    },
+    "cloneinject_n8": {
+      "seva_asr_mean": 86.09523809523809,
+      "seva_asr_std": 1.1741740958036166,
+      "survive_both_mean": 37.142857142857146,
+      "survive_both_std": 0.0,
+      "q_survive_both_mean": 79.59183673469387,
+      "per_seed": {
+        "42": {
+          "seva_asr": 87.42857142857143,
+          "survive_both": 37.142857142857146,
+          "q_survive_both_pct": 79.59183673469387
+        },
+        "7": {
+          "seva_asr": 84.57142857142857,
+          "survive_both": 37.142857142857146,
+          "q_survive_both_pct": 79.59183673469387
+        },
+        "123": {
+          "seva_asr": 86.28571428571429,
+          "survive_both": 37.142857142857146,
+          "q_survive_both_pct": 79.59183673469387
+        }
+      }
+    }
+  }
+}
