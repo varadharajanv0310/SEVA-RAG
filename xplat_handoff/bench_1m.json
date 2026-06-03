@@ -1,0 +1,13 @@
+{
+  "t_embed_200k_s": 1557.1157970428467,
+  "t_hnsw_200k_s": 259.44337368011475,
+  "t_coh_200k_s": 285.8261420726776,
+  "scale_factor_NlogN": 5.6592775412587235,
+  "scale_linear": 5.0,
+  "n_fillable_densities": 2,
+  "EST_embed_1M_s": 7785.578985214233,
+  "EST_per_density_index+coh_s": 3085.831524432798,
+  "EST_total_s": 14557.242034079829,
+  "EST_total_h": 4.043678342799953,
+  "dominant_term": "embed (linear)"
+}

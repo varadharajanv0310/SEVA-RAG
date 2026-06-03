@@ -1,0 +1,94 @@
+ÿþconda.exe : [03:41:45] PHASE 1  corpus integrity gate (hashing 1M docs) ...
+ 
+[03:41:52] PHASE 1  GATE OK | N=1000000 hash=317eb43c337c1970c4d80e14f8eb2a9f785b75b1cbac780c620d05fe765e98f4 
+fingerprint_ok=True | RAM free=-1.0GB device=cuda
+[03:41:55] PHASE 1  poison: generated 50000 (cap 96000); canonical first-10k hash OK
+[03:41:55] PHASE 1  densities fillable=[0.01, 0.05] skipped(>96000 poison)=[] ; 10% always skipped at 1M (P=100k>96k)
+[03:41:55] PHASE 2  micro-benchmark: embedding first 200k ...
+want to force a new download, use `force_download=True`.
+[03:44:35] HEARTBEAT phase=embed_clean progress=10.0% elapsed=171s
+[03:47:15] HEARTBEAT phase=embed_clean progress=20.0% elapsed=332s
+[03:49:51] HEARTBEAT phase=embed_clean progress=30.0% elapsed=487s
+[03:52:23] HEARTBEAT phase=embed_clean progress=40.0% elapsed=639s
+[03:54:57] HEARTBEAT phase=embed_clean progress=50.0% elapsed=793s
+[03:57:31] HEARTBEAT phase=embed_clean progress=60.0% elapsed=948s
+[04:00:07] HEARTBEAT phase=embed_clean progress=70.0% elapsed=1103s
+[04:02:44] HEARTBEAT phase=embed_clean progress=80.0% elapsed=1261s
+[04:05:21] HEARTBEAT phase=embed_clean progress=90.0% elapsed=1417s
+[04:07:57] HEARTBEAT phase=embed_clean progress=100.0% elapsed=1573s
+[04:07:57] PHASE 2  benchmark: HNSW index + doc_coh over 200k ...
+[04:17:02] PHASE 2  RUNTIME ESTIMATE -> total ~4.0 h  (embed ~2.2h, per-density idx+coh ~0.86h x2, dominant=embed 
+(linear)) | 200k: embed 1557s hnsw 259s coh 286s
+[04:17:02] PHASE 2  embedding remaining clean to 1M ...
+want to force a new download, use `force_download=True`.
+[04:19:37] HEARTBEAT phase=embed_clean progress=22.0% elapsed=2273s
+[04:22:10] HEARTBEAT phase=embed_clean progress=24.0% elapsed=2426s
+[04:24:41] HEARTBEAT phase=embed_clean progress=26.0% elapsed=2578s
+[04:27:14] HEARTBEAT phase=embed_clean progress=28.0% elapsed=2730s
+[04:29:50] HEARTBEAT phase=embed_clean progress=30.0% elapsed=2886s
+[04:32:22] HEARTBEAT phase=embed_clean progress=32.0% elapsed=3039s
+[04:34:56] HEARTBEAT phase=embed_clean progress=34.0% elapsed=3193s
+[04:37:30] HEARTBEAT phase=embed_clean progress=36.0% elapsed=3347s
+[04:40:04] HEARTBEAT phase=embed_clean progress=38.0% elapsed=3501s
+[04:42:37] HEARTBEAT phase=embed_clean progress=40.0% elapsed=3654s
+[04:45:11] HEARTBEAT phase=embed_clean progress=42.0% elapsed=3807s
+[04:47:46] HEARTBEAT phase=embed_clean progress=44.0% elapsed=3962s
+[04:50:17] HEARTBEAT phase=embed_clean progress=46.0% elapsed=4113s
+[04:52:52] HEARTBEAT phase=embed_clean progress=48.0% elapsed=4268s
+[04:55:24] HEARTBEAT phase=embed_clean progress=50.0% elapsed=4420s
+[04:57:58] HEARTBEAT phase=embed_clean progress=52.0% elapsed=4574s
+[05:00:31] HEARTBEAT phase=embed_clean progress=54.0% elapsed=4727s
+[05:03:05] HEARTBEAT phase=embed_clean progress=56.0% elapsed=4881s
+[05:05:39] HEARTBEAT phase=embed_clean progress=58.0% elapsed=5035s
+[05:08:11] HEARTBEAT phase=embed_clean progress=60.0% elapsed=5187s
+[05:10:45] HEARTBEAT phase=embed_clean progress=62.0% elapsed=5341s
+[05:13:19] HEARTBEAT phase=embed_clean progress=64.0% elapsed=5495s
+[05:15:54] HEARTBEAT phase=embed_clean progress=66.0% elapsed=5650s
+[05:18:29] HEARTBEAT phase=embed_clean progress=68.0% elapsed=5805s
+[05:21:03] HEARTBEAT phase=embed_clean progress=70.0% elapsed=5959s
+[05:23:36] HEARTBEAT phase=embed_clean progress=72.0% elapsed=6112s
+[05:26:11] HEARTBEAT phase=embed_clean progress=74.0% elapsed=6268s
+[05:28:45] HEARTBEAT phase=embed_clean progress=76.0% elapsed=6421s
+[05:31:18] HEARTBEAT phase=embed_clean progress=78.0% elapsed=6575s
+[05:33:52] HEARTBEAT phase=embed_clean progress=80.0% elapsed=6728s
+[05:36:26] HEARTBEAT phase=embed_clean progress=82.0% elapsed=6882s
+[05:38:59] HEARTBEAT phase=embed_clean progress=84.0% elapsed=7035s
+[05:41:33] HEARTBEAT phase=embed_clean progress=86.0% elapsed=7189s
+[05:44:07] HEARTBEAT phase=embed_clean progress=88.0% elapsed=7343s
+[05:46:40] HEARTBEAT phase=embed_clean progress=90.0% elapsed=7497s
+[05:49:14] HEARTBEAT phase=embed_clean progress=92.0% elapsed=7650s
+[05:51:47] HEARTBEAT phase=embed_clean progress=94.0% elapsed=7803s
+[05:54:20] HEARTBEAT phase=embed_clean progress=96.0% elapsed=7956s
+[05:56:53] HEARTBEAT phase=embed_clean progress=98.0% elapsed=8110s
+[05:59:28] HEARTBEAT phase=embed_clean progress=100.0% elapsed=8264s
+[06:00:33] HEARTBEAT phase=embed_poison progress=40.0% elapsed=8329s
+[06:01:42] HEARTBEAT phase=embed_poison progress=80.0% elapsed=8398s
+[06:02:16] HEARTBEAT phase=embed_poison progress=100.0% elapsed=8432s
+[06:02:21] PHASE 2  embeddings done | RAM free=11.4GB
+[06:02:21] PHASE 3  density 1% (P=10000) | RAM free=11.4GB | building full memmap ...
+[06:02:32] PHASE 3  density 1%: doc_coh over 1000000 docs (HNSW build + K=5 search) ...
+[06:32:39] PHASE 3  density 1%: doc_coh done in 1807s
+[06:32:39]   [1% seed 42] gap=+0.2454 snr=5.63 evasion=0.0% docfpr_eval=0.695% tau=0.8534
+[06:32:40]   [1% seed 7] gap=+0.2454 snr=5.63 evasion=0.0% docfpr_eval=0.683% tau=0.8535
+[06:32:40]   [1% seed 123] gap=+0.2454 snr=5.63 evasion=0.0% docfpr_eval=0.671% tau=0.8536
+[06:32:40] PHASE 3  density 5% (P=50000) | RAM free=2.6GB | building full memmap ...
+[06:32:51] PHASE 3  density 5%: doc_coh over 1000000 docs (HNSW build + K=5 search) ...
+[07:01:52] PHASE 3  density 5%: doc_coh done in 1741s
+[07:01:53]   [5% seed 42] gap=+0.2489 snr=5.57 evasion=0.0% docfpr_eval=0.743% tau=0.8568
+[07:01:54]   [5% seed 7] gap=+0.2489 snr=5.57 evasion=0.0% docfpr_eval=0.716% tau=0.8572
+[07:01:54]   [5% seed 123] gap=+0.2489 snr=5.57 evasion=0.0% docfpr_eval=0.697% tau=0.8574
+[07:01:54] PHASE 4  per-query latency at 1M ...
+[07:02:02] PHASE 4  latency mean=15.0ms p95=18.2ms
+{
+  "N": 1000000,
+  "result_file": "result_1M.json",
+  "verdict": "CONFIRMS",
+  "latency_mean_ms": 15.0,
+  "gap_per_density": {
+    "1%": 0.2454,
+    "5%": 0.2489
+  },
+  "evasion_zero": true,
+  "grand_docfpr_pct": 0.7008,
+  "runtime_h": 3.34
+}

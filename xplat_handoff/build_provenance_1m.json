@@ -1,0 +1,90 @@
+{
+  "corpus_canonical_sha256": "317eb43c337c1970c4d80e14f8eb2a9f785b75b1cbac780c620d05fe765e98f4",
+  "n_docs": 1000000,
+  "true_pool_after_dedup": 2511631,
+  "target": 1000000,
+  "capped": true,
+  "n_benign": 3000,
+  "seed": 42,
+  "min_chars": 200,
+  "sites": [
+    "security",
+    "serverfault",
+    "superuser",
+    "askubuntu",
+    "unix",
+    "softwareengineering",
+    "dba",
+    "networkengineering",
+    "codereview",
+    "crypto"
+  ],
+  "per_site": {
+    "security": {
+      "q": 56421,
+      "a": 49627,
+      "qfile": "security.stackexchange.com.jsonl.gz",
+      "afile": "security.stackexchange.com.jsonl.gz"
+    },
+    "serverfault": {
+      "q": 264091,
+      "a": 193238,
+      "qfile": "serverfault.com.jsonl.gz",
+      "afile": "serverfault.com.jsonl.gz"
+    },
+    "superuser": {
+      "q": 417257,
+      "a": 284314,
+      "qfile": "superuser.com.jsonl.gz",
+      "afile": "superuser.com.jsonl.gz"
+    },
+    "askubuntu": {
+      "q": 327331,
+      "a": 213104,
+      "qfile": "askubuntu.com.jsonl.gz",
+      "afile": "askubuntu.com.jsonl.gz"
+    },
+    "unix": {
+      "q": 179782,
+      "a": 132027,
+      "qfile": "unix.stackexchange.com.jsonl.gz",
+      "afile": "unix.stackexchange.com.jsonl.gz"
+    },
+    "softwareengineering": {
+      "q": 53431,
+      "a": 49762,
+      "qfile": "softwareengineering.stackexchange.com.jsonl.gz",
+      "afile": "softwareengineering.stackexchange.com.jsonl.gz"
+    },
+    "dba": {
+      "q": 80282,
+      "a": 65611,
+      "qfile": "dba.stackexchange.com.jsonl.gz",
+      "afile": "dba.stackexchange.com.jsonl.gz"
+    },
+    "networkengineering": {
+      "q": 12794,
+      "a": 11477,
+      "qfile": "networkengineering.stackexchange.com.jsonl.gz",
+      "afile": "networkengineering.stackexchange.com.jsonl.gz"
+    },
+    "codereview": {
+      "q": 45721,
+      "a": 41032,
+      "qfile": "codereview.stackexchange.com.jsonl.gz",
+      "afile": "codereview.stackexchange.com.jsonl.gz"
+    },
+    "crypto": {
+      "q": 22442,
+      "a": 18904,
+      "qfile": "crypto.stackexchange.com.jsonl.gz",
+      "afile": "crypto.stackexchange.com.jsonl.gz"
+    }
+  },
+  "source_repos": {
+    "flax-sentence-embeddings/stackexchange_title_body_jsonl": "a3d99bf21570ed043e19e41af46f3f19bf4e4bb6",
+    "flax-sentence-embeddings/stackexchange_title_best_voted_answer_jsonl": "88957a0e825f49aeb2a7bfd828cb46b79010b286"
+  },
+  "domain_note": "multi-site technical SE family (IT/security/sysadmin/programming); broader than the security-only 100k -- DISCLOSED, in-domain, not padding",
+  "built_unix": 1780438188
+}
