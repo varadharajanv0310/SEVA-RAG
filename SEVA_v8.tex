@@ -539,7 +539,7 @@ bound to $0.0154\%$ ($0$ evasions in $25{,}000$ templated encounters at the froz
 gate), at a document false-positive rate held near the $0.69\%$ target (grand mean
 $0.56\%$ across the nine conditions; the frozen disjoint-reference protocol of
 \S\ref{subsec:geom} reports a comparable $0.58\%$; per-condition maximum $0.83\%$ on the
-high-variance seed~7).% [SCALE-1; SEEDS-1]
+high-variance seed~7).
 Two things make this result load-bearing rather than incidental. First, because
 clean and poison are drawn from the \emph{same} security domain, $0\%$ cannot be a
 domain-contrast artifact---the very confound that flatters linguistic detectors
@@ -553,7 +553,9 @@ supplementary material (per-seed confusion matrices and per-condition rates).
 Tiers L2 and L3 ablate the soft keyword and sentence-structure signals to model
 the keyword-dropping adaptive adversary (\S\ref{sec:threat}). Here the multi-signal
 composite's poison-evasion rises to $42$--$72\%$, climbing with density
-(Table~\ref{tab:main}).
+(Table~\ref{tab:main})---the cost of \emph{ablating} those signals from the detector,
+complementary to the feature-neutralization attack against the full composite quantified
+in \S\ref{subsec:core}.
 This is the central negative finding of our own evaluation, and we put it in the
 primary table rather than a footnote: \emph{the soft signals do not survive
 adaptation}. The apparent multi-signal robustness of a permissive evaluation is,
@@ -616,7 +618,7 @@ $10\%$ density---a total spread of $0.012$---at an SNR of $5.99$, $6.00$, and $5
 (Table~\ref{tab:coh}); neither quantity shows systematic density dependence. It is
 equally seed-invariant: the gap is identical across calibration seeds $42$, $7$, and
 $123$, because it is a property of the corpus and the injected cluster, not of the
-benign calibration split.% [STEP3, SEEDS-1]
+benign calibration split.
 
 \emph{Mechanism.} Cluster coherence measures a local geometric property of the
 injection itself---the tightness of the embedding region the templated passages
@@ -635,14 +637,14 @@ artifact: in-domain, where the soft linguistic signals lose most of their appare
 power (Table~\ref{tab:signals}), the geometric gap is if anything \emph{wider}. The
 very domain confound that inflates the linguistic signals is, for the geometric one,
 evidence that the separation is a property of the templating process rather than of
-the topic.% [STEP3, E2-2]
+the topic.
 
 \emph{Scope.} The invariance is established over the evaluated $1$--$10\%$ range,
 which we neither evaluate beyond nor extrapolate.
 
 Frozen, non-oracle, held-out calibration confirms the operational consequence: a
 threshold fit on a disjoint reference half of the attack and then frozen catches the
-held-out half at $0\%$ poison-evasion and $0.58\%$ document-FPR.% [E-CAL-1]
+held-out half at $0\%$ poison-evasion and $0.58\%$ document-FPR.
 
 \begin{table}[t]
 \centering
@@ -682,7 +684,7 @@ from the target shrinks with corpus size.}
 $0.674\%$ at $N=100{,}000$, and $0.701\%$ at $N=1{,}000{,}000$---the deviation from the
 $0.69\%$ target falling from $0.075\%$ to $0.016\%$ to $0.011\%$ as $N$ grows, at the
 frozen $\tau$ (three seeds at each size; the $1$M point uses the broader corpus of
-\S\ref{subsec:scale}).% [SCALE-1; SCALE-1M]
+\S\ref{subsec:scale}).
 
 \emph{Mechanism.} $\tau$ is an order statistic of the clean-coherence sample; the
 sampling error of an empirical percentile---and thus the gap between the realized
@@ -715,7 +717,7 @@ gte-large~\cite{gte} (Alibaba)---and re-deriving the non-oracle threshold on eac
 encoder's clean coherence, templated poison sits at cohesion $\approx 0.99$ under all
 three; poison-evasion is $0\%$ on all nine conditions for every encoder, the gap is
 density-invariant (range $\le 3.5\%$ of its mean), and the document-FPR holds near the
-$0.69\%$ target (Table~\ref{tab:encoder}).% [ENCODER-GEN-1]
+$0.69\%$ target (Table~\ref{tab:encoder}).
 
 \emph{Mechanism.} Templated passages are near-duplicates, and near-duplicate texts map
 to near-identical vectors under any competent encoder; they form a tight local
@@ -890,14 +892,15 @@ already supply. On \emph{real} PoisonedRAG the gap opens: the hard gate catches 
 ($2\%$ evasion) while the full SNR-weighted composite catches only $72\%$ ($28\%$ evasion).
 The soft signals do not merely fail to help; they \emph{dilute}, pulling the fused
 score of genuine poison below threshold.
-Under the keyword-dropping adversary the dilution becomes collapse: the composite's
-poison-evasion climbs to $49$--$57\%$, because cluster coherence carries too little fused
-weight ($\approx\!0.15$ of the total) to hold the score once keyword density is
-normalized, whereas the hard gate---reading only the embedding geometry the
-adversary never touches---holds $0\%$.
-This is the distillation thesis made quantitative: the highest-SNR signals of a
-permissive evaluation are the first to fall to an adaptive adversary, and the
-geometric core is what remains.
+Under the keyword-dropping adversary---which neutralizes the soft features in the attack
+text itself---the dilution becomes collapse: at the frozen operating point the composite's
+poison-evasion is $49$--$57\%$ (Table~\ref{tab:core}), a measurement distinct from the
+density-swept $42$--$72\%$ of the ablation tiers (Table~\ref{tab:main}) though it exposes the
+same fragility, because cluster coherence carries too little fused weight
+($\approx\!0.15$ of the total) to hold the score once keyword density is normalized,
+whereas the hard gate---reading only the embedding geometry the adversary never
+touches---holds $0\%$: the highest-SNR signals of a permissive evaluation are the
+first to fall to an adaptive adversary, and the geometric core is what remains.
 
 A single hard gate raises one deployment concern: document-level false positives,
 accumulated over a multi-document retrieval window, inflate the rate at which whole
@@ -983,7 +986,7 @@ rather than extrapolation (Table~\ref{tab:scale}). Detection holds at scale: the
 poison--clean gap is density-invariant ($+0.245$ at $1\%$, $+0.249$ at $5\%$) at an
 SNR near $5.6$, poison-evasion is $0\%$ on every condition and seed, and the
 non-oracle document-FPR is $0.70\%$---a $0.011\%$ deviation from the $0.69\%$
-target.% [SCALE-1M]
+target.
 
 This is the strongest deployability evidence in the paper, with three scope notes stated
 plainly. \emph{(i)~A broader corpus.} The security-only source does not reach a million
@@ -1069,14 +1072,12 @@ sparse or very dense---we claim the former and disclose the latter.
 
 \subsection{The Cost of Evading the Geometric Gate}
 What must an adversary do to defeat the deployed detector? The gate fires on one
-property: that the passages injected for a target query form a tight neighbourhood
-in embedding space. Evading it therefore means injecting poison that does
-\emph{not} cluster---passages for the same target that are mutually dissimilar in
-the encoder's geometry---and that is in direct tension with the attack's own
-objective. PoisonedRAG-style poison must be retrieved for the target query, which
-requires semantic proximity to it; passages all close to one query are, in cosine
-geometry, close to one another. The more reliably the poison is retrieved, the more
-tightly it clusters, and the more visible it is to the gate. We observe this
+property---that the passages injected for a target query form a tight neighbourhood in
+embedding space---so evading it means injecting poison that does \emph{not} cluster, in
+direct tension with the attack's own objective: poison must be retrieved for the target
+query, which requires semantic proximity to it, and passages all close to one query are,
+in cosine geometry, close to one another. The more reliably the poison is retrieved, the
+more tightly it clusters, and the more visible it is to the gate. We observe this
 tension directly: a diversity-injection adaptive attack that deliberately spreads
 poison across multiple semantic frames, perturbing each passage to lower its
 cohesion, reduces poison cohesion only marginally and leaves every injected passage
@@ -1120,7 +1121,7 @@ each under its correct symmetric convention (\S\ref{subsec:encoder})---so it is 
 artifact of one encoder's manifold. The boundary we do \emph{not} claim is invariance
 to embeddings adversarially trained or otherwise built to be poison-aware: an encoder
 optimized to scatter templated injections away from their own siblings could in
-principle flatten the cohesion gap, and we make no claim against that class.% [ENCODER-GEN-1]
+principle flatten the cohesion gap, and we make no claim against that class.
 
 \section{Conclusion}
 We presented SEVA, a lightweight, LLM-free detector of templated multi-passage
@@ -1137,10 +1138,9 @@ design proved domain-confounded and adaptively fragile, and the geometric core i
 remained. Extending lightweight, corpus-level detection to single-document, clean-mimicking
 injection is the natural next step.
 
-\noindent\emph{Supplementary material.} Per-seed confusion matrices and the full
-per-condition detection rates (all nine density$\times$seed cells, with $95\%$ Wilson
-upper bounds), attack-construction details, the calibrated thresholds, and the
-deployment-capability comparison are provided in the separate supplementary material.
+\noindent\emph{Supplementary material.} Per-seed confusion matrices and per-condition
+rates (with $95\%$ Wilson bounds), attack-construction details, calibrated thresholds, and
+the deployment-capability comparison are provided separately.
 
 \bibliographystyle{IEEEtran}
 \begin{thebibliography}{99}

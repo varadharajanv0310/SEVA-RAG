@@ -107,10 +107,6 @@ conditions ($n=1{,}257$ pooled encounters); the high-encounter row is a dedicate
 frozen-gate run ($25{,}000$ templated encounters, $0$ evasions) tightening the
 templated-evasion upper bound to $0.0154\%$. All quantities in \%.}
 \label{tab:percond}
-% [SEEDS-1, STEP3] per-cell asr/doc_fpr/query_fpr from the L1 block of
-% seva_v6_2_results_100k_secqa_p{010,050,100}_s{042,007,123}.json; Wilson upper
-% z^2/(n+z^2), z=1.96, n = poison encounters (TP+FN) per cell.
-% [SCALE-1] high-encounter row from result_hienc_ci.json (n=25,000, 0 evasions, frozen tau=0.8423).
 \begin{tabular}{llrccc}
 \toprule
 Density & Seed & $n$ & Evasion (95\% Wilson) & Doc-FPR & query-FPR \\
@@ -162,7 +158,6 @@ $123$ over $2{,}000$ benign queries split $60/40$ between calibration and
 evaluation, at a $0.0069$ false-positive target throughout. Cross-platform
 reproduction---identical detection across CUDA and Apple-Silicon backends on this
 byte-identical hash-verified corpus---is reported in the main paper.
-% [XPLAT-4060, XPLAT-M4] result_4060.json / result_M4.json (hash-gated CONFIRMS)
 Per-condition
 artifacts (confusion counts, thresholds, latencies) are recorded per seed and
 density.
