@@ -12,8 +12,9 @@
 \begin{document}
 
 \title{Supplementary Material for\\
-SEVA: Lightweight, LLM-Free Detection of Templated\\
-Corpus Poisoning in Retrieval-Augmented Generation}
+SEVA: Lightweight, LLM-Free Detection of\\
+Templated Corpus Poisoning in\\
+Retrieval-Augmented Generation}
 
 \author{\IEEEauthorblockN{Anonymous Author(s)}
 \IEEEauthorblockA{Manuscript submitted for blind review}}
@@ -23,9 +24,10 @@ Corpus Poisoning in Retrieval-Augmented Generation}
 \noindent This supplement collects appendix-grade material referenced from the main
 paper: per-seed confusion matrices and per-condition detection rates
 (Section~\ref{app:confusion}), attack-construction details (Section~\ref{app:attack}),
-calibrated thresholds (Section~\ref{app:repro}), and a deployment-capability comparison
-(Section~\ref{app:compare}). Table and section numbers prefixed ``S'' are internal to this
-supplement; unprefixed references point to the main paper.
+calibrated thresholds (Section~\ref{app:repro}), a deployment-capability comparison
+(Section~\ref{app:compare}), and supporting detection tables (Section~\ref{app:tables}). Table
+and section numbers prefixed ``S'' are internal to this supplement; unprefixed references
+point to the main paper.
 
 \section{Per-Seed Confusion Matrices}
 \label{app:confusion}
@@ -39,7 +41,7 @@ gate (main paper) eliminates. Table~\ref{tab:percond} converts these
 counts into per-condition detection rates---poison-evasion with Wilson upper bounds,
 and document- and query-level false-positive rates---for all nine conditions.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Complete per-seed confusion matrices at L1 (full signal set), in-domain
 Security corpus. Every cell has $\mathrm{FN}=0$: the $0\%$ L1 poison-evasion reported
@@ -64,7 +66,7 @@ Density & Seed & TP & FN & FP & TN \\
 \end{tabular}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Per-seed confusion at L2 and L3 (soft signals ablated), in-domain---the
 composite's adaptive collapse. The geometric hard gate (main paper)
@@ -91,7 +93,7 @@ Density & Seed & TP & FN & TP & FN \\
 \end{tabular}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Per-condition in-domain detection rates---all nine density$\times$seed
 conditions, the full breakdown the primary table of the main paper summarizes,
@@ -162,7 +164,7 @@ Per-condition
 artifacts (confusion counts, thresholds, latencies) are recorded per seed and
 density.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Calibrated thresholds. The geometric gate (deployed) and the composite
 tiers (ablation), in-domain ranges shown across $1$--$10\%$ density.}
@@ -190,7 +192,7 @@ reproduced measurement). SEVA is the only entry that is simultaneously LLM-free,
 decoder-free, registration-free, corpus-level, and evaluated across the $1$--$10\%$
 density band.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Deployment-capability comparison (factual properties of each defense, per
 its publication; not lifted ASR numbers). $\checkmark$ = property held.}
@@ -219,7 +221,7 @@ while cluster coherence catches the attack at the $0.69\%$ operating point. Tabl
 reports the per-query aggregation that, by requiring $\geq\!2$ flagged documents per query,
 cuts the benign query-level false-positive rate $3.5\times$ at no cost to catch rate.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Matched-FPR catch rate of the released PoisonedRAG attack on Natural
 Questions and HotpotQA as the operating false-positive rate is swept, for cluster
@@ -246,7 +248,7 @@ Corpus & FPR & \texttt{cluster\_coh} & MinHash & $s_{nd}$ \\
 \end{tabular}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Per-query aggregation on the PoisonedRAG corpus (same $0.69\%$ document
 threshold). Requiring $\geq\!2$ flagged documents per query exploits the attack's
