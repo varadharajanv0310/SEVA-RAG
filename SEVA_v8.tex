@@ -9,12 +9,14 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{array}
 \usepackage{url}
 
 \begin{document}
 
-\title{SEVA: Lightweight, LLM-Free Detection of Templated\\
-Corpus Poisoning in Retrieval-Augmented Generation}
+\title{SEVA: Lightweight, LLM-Free Detection of\\
+Templated Corpus Poisoning in\\
+Retrieval-Augmented Generation}
 
 \author{\IEEEauthorblockN{Anonymous Author(s)}
 \IEEEauthorblockA{Manuscript submitted for blind review}}
@@ -337,8 +339,8 @@ let $N_K(d)$ be its $K$ nearest neighbours in the \emph{corpus} embedding space
 ($K=5$, cosine). The \emph{cluster coherence} of $d$ is the mean pairwise cosine
 similarity among those neighbours:
 \[
-\texttt{cluster\_coh}(d) \;=\; \frac{2}{K(K-1)}
-\sum_{\substack{d_i,d_j \in N_K(d)\\ i<j}} \cos\!\big(f(d_i),\,f(d_j)\big).
+\texttt{cluster\_coh}(d) = \frac{2}{K(K-1)}
+\sum_{\substack{d_i,d_j \in N_K(d)\\ i<j}} \cos\!\big(f(d_i),f(d_j)\big).
 \]
 This is a density-based, $k$-nearest-neighbour cohesion statistic in the lineage of
 local-outlier detection~\cite{lof}, but inverted: templated poison is anomalous
@@ -377,8 +379,8 @@ $3.5\times$ at no cost to detection.
 \caption{SEVA detection (\texttt{cluster\_coh} hard gate)}
 \label{alg:seva}
 \begin{algorithmic}[1]
-\REQUIRE corpus $D$; query $q$; precomputed $C[d]=\texttt{cluster\_coh}(d)$;
-threshold $\tau$; aggregation $k$
+\REQUIRE corpus $D$; query $q$; threshold $\tau$; aggregation $k$
+\REQUIRE precomputed $C[d]=\texttt{cluster\_coh}(d)$ for all $d\in D$
 \STATE $R \leftarrow$ rerank top-$K$ of $\mathrm{Retrieve}_{K_{\mathrm{FETCH}}}(q, D)$
 \STATE $\mathit{flags} \leftarrow \big|\{\, d \in R : C[d] > \tau \,\}\big|$
 \IF{$\mathit{flags} \ge k$}
@@ -458,7 +460,8 @@ in-domain, and the strongest of them (keyword density) is both confounded
 (SNR~$38.4\!\to\!8.1$ against a general-domain corpus) and adversary-normalizable.
 SEVA deploys the geometric signal alone; the rest are the ablation.}
 \label{tab:signals}
-\begin{tabular}{llcl}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llc>{\raggedright\arraybackslash}p{2.1cm}}
 \toprule
 Signal & Type & In-domain SNR & Status \\
 \midrule
@@ -570,15 +573,12 @@ spending false positives.
 \begin{table}[t]
 \centering
 \caption{Primary in-domain results: Security Stack Exchange, $100{,}000$
-documents, mean\,$\pm$\,sample std ($n=3$ seeds, ddof\,$=$\,1). L1 is
-the full signal set (naive adversary); L2/L3 ablate the soft keyword and structure
-signals to model the keyword-dropping adaptive adversary. SEVA catches \emph{all}
-templated poison at L1 ($0\%$ poison-evasion) across every density and seed; the L2/L3 rise
-is the multi-signal composite's adaptive collapse---the ablation of
-\S\ref{subsec:core}, which the geometric hard gate eliminates ($0\%$, Table~\ref{tab:core}).
-L2 and L3 coincide at $5$--$10\%$ density because \texttt{avg\_sent\_len} falls
-below the SNR gate and is already excluded from L2 there, so L3's further ablation
-has no effect; they diverge at $1\%$, where L2 still carries it.}
+documents, mean\,$\pm$\,sample std ($n=3$ seeds). L1 is the full signal set (naive
+adversary); L2/L3 ablate the soft signals to model the keyword-dropping adaptive
+adversary. SEVA catches \emph{all} templated poison at L1 ($0\%$ poison-evasion)
+across every density and seed; the L2/L3 rise is the composite's adaptive collapse---the
+ablation of \S\ref{subsec:core}, which the geometric hard gate eliminates
+($0\%$, Table~\ref{tab:core}).}
 \label{tab:main}
 \begin{tabular}{llcc}
 \toprule
@@ -734,16 +734,13 @@ its symmetric ``query:''\ prefix on all texts); because absolute cohesion scales
 the manifold, SNR is the cross-encoder comparator. We do not claim invariance to
 deliberately poison-aware or adversarially-trained embeddings.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\caption{Encoder-invariance: the geometric gate under three embedding models of
-independent pre-training lineages, on the identical hash-verified in-domain corpus,
-each calibrated non-oracle on its own clean coherence and used in its correct symmetric
-convention. Poison cohesion is $\approx\!0.99$ regardless of encoder and templated
-poison-evasion is $0\%$ throughout; the absolute gap shrinks only because the clean
-manifold grows more concentrated (clean coherence rises $0.751\!\to\!0.881$), while the
-scale-normalized SNR is preserved. Values span $1$--$10\%$ density (gap and SNR are
-density-invariant, \S\ref{subsec:geom}).}
+\caption{Encoder-invariance: the geometric gate across three embedding lineages on the
+identical hash-verified in-domain corpus, each calibrated non-oracle in its correct
+symmetric convention. Templated poison-evasion is $0\%$ for all three; the absolute gap
+shrinks only as the clean manifold concentrates (clean coherence $0.751\!\to\!0.881$),
+while the scale-normalized SNR holds. Values span $1$--$10\%$ density.}
 \label{tab:encoder}
 \begin{tabular}{llccccc}
 \toprule
@@ -754,7 +751,7 @@ e5-large-v2 & Microsoft & $0.866$ & $0.990$ & $+0.122$ to $+0.127$ & $6.4$--$6.7
 gte-large   & Alibaba   & $0.881$ & $0.996$ & $+0.113$ to $+0.117$ & $5.2$--$5.3$ & $\mathbf{0\%}$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Cross-Domain Detection on Released PoisonedRAG}
 The in-domain result establishes that SEVA catches templated poison; the
@@ -782,16 +779,14 @@ PoisonedRAG on the ground PoisonedRAG was built to win.
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain detection of the PoisonedRAG attack at $0.69\%$ non-oracle,
-matched document-FPR (released poison on Natural Questions and HotpotQA; a faithful
-black-box PoisonedRAG on the in-domain Security corpus). \texttt{cluster\_coh}
-catches the attack on all three corpora, leaving the residual poison-evasion rate
-(``Evasion''---the fraction the gate misses, a detection metric, \emph{not} end-to-end
-attack-success); lexical filtering (MinHash) is
-corpus-fragile, failing where benign duplication is high; embedding deduplication
-($s_{nd}$) is competitive. ``Benign dup.''\ is the fraction of clean documents
-sharing any 5-gram with another.}
+\caption{Cross-domain detection of the PoisonedRAG attack at the $0.69\%$ non-oracle
+operating point (released poison on Natural Questions and HotpotQA; a faithful black-box
+build on Security). \texttt{cluster\_coh} catches the attack on all three corpora
+(``Evasion'' is the residual it misses, a detection metric); lexical MinHash filtering is
+corpus-fragile, while embedding deduplication ($s_{nd}$) is competitive. ``Benign dup.''\
+is the fraction of clean documents sharing a 5-gram.}
 \label{tab:xdomain}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccccc}
 \toprule
 \multirow{2}{*}{Corpus} & Benign & \texttt{cluster\_coh} & MinHash & $s_{nd}$ & Poison \\
@@ -801,7 +796,7 @@ Security SE       & 0.24\% & \textbf{98\%} & 98\% & 98\% & 2\% \\
 Natural Questions & 1.15\% & \textbf{82\%} & 0\%  & 52\% & 18\% \\
 HotpotQA          & 9.06\% & \textbf{97\%} & 0\%  & 98\% & 3\% \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \subsection{Lexical Duplicate Filtering Is Corpus-Fragile}
@@ -876,8 +871,8 @@ $\sim$0.6\%) using a best-case idealized threshold in RAGDefender's favour.}
 \multirow{2}{*}{Defense} & Templated catch & Native benign \\
         & @ matched $\sim$0.8\% FPR & doc-FPR \\
 \midrule
-SEVA (\texttt{cluster\_coh} gate) & \textbf{100\%} & $\sim$0.6\% \\
-RAGDefender (best-case $\tau$)    & $\sim$89\%     & 50.4\% \\
+SEVA & \textbf{100\%} & $\sim$0.6\% \\
+RAGDefender & $\sim$89\% & 50.4\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -917,14 +912,13 @@ $98\%$.
 \caption{The geometric core vs.\ the multi-signal composite (the ablation), at
 $0.69\%$ non-oracle document-FPR, by poison-evasion rate (lower is better). The
 composite equals the hard gate on the naive attack, but the soft signals dilute
-detection on real PoisonedRAG and collapse under the keyword-dropping adversary;
-the hard gate, reading only embedding geometry, holds. Catch rates: hard gate
-$100/98/100\%$; composite $100/72/{\sim}49\%$.}
+detection on real PoisonedRAG and collapse under the keyword-dropping adversary,
+while the geometric hard gate holds.}
 \label{tab:core}
 \begin{tabular}{lcc}
 \toprule
 \multirow{2}{*}{Attack} & \texttt{cluster\_coh} & 10-signal \\
-       & hard gate (evasion) & composite (evasion) \\
+       & hard gate & composite \\
 \midrule
 Templated (held-out)    & \textbf{0\%} & 0\% \\
 Real PoisonedRAG        & \textbf{2\%} & 28\% \\
@@ -952,14 +946,13 @@ End-to-end per-query latency is $13$--$38$\,ms mean (p95 $\le 44$\,ms) across th
 (Table~\ref{tab:xplat}), with no LLM call and no external API; the FAISS HNSW index makes
 neighbour lookups $O(\log N)$, so per-query cost is effectively flat as the corpus grows.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\caption{Cross-platform reproduction on a byte-identical, hash-verified in-domain
-corpus (order-sensitive SHA-256 \texttt{28ec3811}$\dots$). The geometric gate yields
-\emph{identical} detection across two accelerator backends---the poison--clean gap,
-its SNR, and $0\%$ templated poison-evasion are the same on every platform, density,
-and seed (the two independently re-embedded external machines agree on the gap to
-within $5\times10^{-7}$, several cells bit-identical)---at $13$--$38$\,ms per query with no LLM and no external API.}
+\caption{Cross-platform reproduction on a byte-identical, hash-verified corpus (SHA-256
+\texttt{28ec3811}$\dots$): \emph{identical} detection across CUDA and Apple-Silicon
+backends---the gap, SNR, and $0\%$ templated poison-evasion match on every platform,
+density, and seed (the two re-embedded external machines agree on the gap to within
+$5\times10^{-7}$)---at $13$--$38$\,ms per query.}
 \label{tab:xplat}
 \begin{tabular}{llcccc}
 \toprule
@@ -970,7 +963,7 @@ RTX 4060 (laptop) & CUDA & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ 
 Apple M4 (laptop) & MPS & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $28.1$\,/\,$37.3$\,ms \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Validation at Million-Document Scale}
 \label{subsec:scale}
@@ -1004,16 +997,12 @@ direction, not a fitted $O(1/\sqrt{N})$ exponent.
 
 \begin{table}[t]
 \centering
-\caption{Validation at million-document scale: $N=1{,}000{,}000$, a broader,
-deterministically hash-gated technical corpus (order-sensitive SHA-256
-\texttt{317eb43c}$\dots$---a \emph{distinct, larger} corpus from the cross-platform one
-of \S\ref{subsec:eff}). Per-query latency is $15.0$\,ms mean / $18.2$\,ms p95, of which
-cluster-coherence retrieval and the gate check are $\approx\!0.4$\,ms---sub-millisecond
-at $10\times$ the primary corpus (total latency is encoder-bound); poison-evasion is
-$0\%$ and the gap stays density-invariant, at a non-oracle grand-mean document-FPR of
-$0.70\%$ ($0.011\%$ from the $0.69\%$ target). The deterministic poison budget fills
-$1\%$ and $5\%$ at this $N$; $10\%$ ($P=100{,}000$) exceeds it. Three seeds
-($42$, $7$, $123$).}
+\caption{Validation at million-document scale: $N=1{,}000{,}000$, a broader hash-gated
+technical corpus (SHA-256 \texttt{317eb43c}$\dots$---\emph{distinct} from the
+cross-platform corpus of \S\ref{subsec:eff}). Latency is $15.0$\,ms mean / $18.2$\,ms p95,
+of which retrieval and gate are $\approx\!0.4$\,ms (sub-millisecond at $10\times$ scale);
+poison-evasion is $0\%$, the gap density-invariant, and the non-oracle document-FPR
+$0.70\%$. The poison budget fills $1\%$ and $5\%$; $10\%$ exceeds it. Three seeds.}
 \label{tab:scale}
 \begin{tabular}{lccccc}
 \toprule
@@ -1148,14 +1137,14 @@ the deployment-capability comparison are provided separately.
 \bibitem{avfilter} S. Choudhary, N. Palumbo, A. Hooda, K. Dvijotham, and S. Jha, ``Through the stealth lens: Rethinking attacks and defenses in RAG,'' 2025.
 \bibitem{robustrag} C. Xiang, T. Wu, Z. Zhong, D. Wagner, D. Chen, and P. Mittal, ``Certifiably robust RAG against retrieval corruption,'' in \emph{ICML Workshop on the Next Generation of AI Safety}, 2024. arXiv:2405.15556.
 \bibitem{ragdefender} M. Kim, H. Lee, and H. Koo, ``Rescuing the unpoisoned: Efficient defense against knowledge corruption attacks on RAG systems,'' in \emph{Annual Computer Security Applications Conference (ACSAC)}, 2025.
-\bibitem{secon} X. Si, M. Zhu, S. Qin, L. Yu, L. Zhang, S. Liu, X. Li, R. Duan, Y. Liu, and X. Jia, ``SeCon-RAG: A two-stage semantic filtering and conflict-free framework for trustworthy RAG,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2025. arXiv:2510.09710.
+\bibitem{secon} X. Si, M. Zhu, S. Qin \emph{et al.}, ``SeCon-RAG: A two-stage semantic filtering and conflict-free framework for trustworthy RAG,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2025. arXiv:2510.09710.
 \bibitem{raguard} T. Kolhe, P. Kumar, T. Nielson, S. Zala, V. Li, M. Saxon, S. Wu, and K. Zhu, ``RAGuard: A layered defense framework for retrieval-augmented generation systems against data poisoning,'' in \emph{NeurIPS Workshop on Responsible Foundation Models (ResponsibleFM)}, 2025.
 \bibitem{ragpart} P. Pathmanathan, M.-A. Panaitescu-Liess, C.-Y. J. Chiang, and F. Huang, ``RAGPart \& RAGMask: Retrieval-stage defenses against corpus poisoning in retrieval-augmented generation,'' in \emph{AAAI Workshop on New Frontiers in Information Retrieval}, 2026. arXiv:2512.24268.
 \bibitem{catpoison} H. Mei, Z. Du, C. Cai, C. Cheng, and J. Chen, ``CatPoison: Category-oriented knowledge poisoning attacks in retrieval-augmented generation systems,'' in \emph{IEEE TrustCom}, 2025.
 \bibitem{ragshield} K. Patil, ``RAGShield: Provenance-verified defense-in-depth against knowledge base poisoning in government retrieval-augmented generation systems,'' arXiv preprint arXiv:2604.00387, 2026.
 \bibitem{regain} S. Shajarian, K. Marsh, J. Benson, S. Khorsandroo, and M. Abdelsalam, ``ReGAIN: Retrieval-grounded AI framework for network traffic analysis,'' 2025.
 \bibitem{bge} S. Xiao, Z. Liu, P. Zhang, and N. Muennighoff, ``C-Pack: Packed resources for general Chinese embeddings,'' 2023.
-\bibitem{faiss} M. Douze, A. Guzhva, C. Deng, J. Johnson, G. Szilvasy, P.-E. Mazar\'{e}, M. Lomeli, L. Hosseini, and H. J\'{e}gou, ``The FAISS library,'' 2024.
+\bibitem{faiss} M. Douze, A. Guzhva, C. Deng \emph{et al.}, ``The FAISS library,'' 2024.
 \bibitem{hnsw} Y. A. Malkov and D. A. Yashunin, ``Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs,'' \emph{IEEE Trans. Pattern Anal. Mach. Intell.}, vol. 42, no. 4, pp. 824--836, 2020.
 \bibitem{wikitext} S. Merity, C. Xiong, J. Bradbury, and R. Socher, ``Pointer sentinel mixture models,'' in \emph{Int. Conf. on Learning Representations (ICLR)}, 2017.
 \bibitem{shap} S. M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model predictions,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2017, pp. 4768--4777.
@@ -1171,7 +1160,7 @@ the deployment-capability comparison are provided separately.
 \bibitem{garag} S. Cho, S. Jeong, J. Seo, T. Hwang, and J. C. Park, ``Typos that broke the RAG's back: Genetic attack on RAG pipeline by simulating documents in the wild via low-level perturbations,'' in \emph{Findings of the Association for Computational Linguistics: EMNLP}, 2024.
 \bibitem{mutedrag} P. Suo, Y.-M. Shang, S.-C. Guo, and X. Zhang, ``Hoist with his own petard: Inducing guardrails to facilitate denial-of-service attacks on retrieval-augmented generation of LLMs,'' arXiv preprint arXiv:2504.21680, 2025.
 \bibitem{ragpoisonbench} B. Zhang, H. Xin, J. Li, D. Zhang, M. Fang, Z. Liu, L. Nie, and Z. Liu, ``Benchmarking poisoning attacks against retrieval-augmented generation,'' arXiv preprint arXiv:2505.18543, 2025.
-\bibitem{lewis2020} P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. K\"{u}ttler, M. Lewis, W.-t. Yih, T. Rockt\"{a}schel, S. Riedel, and D. Kiela, ``Retrieval-augmented generation for knowledge-intensive NLP tasks,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+\bibitem{lewis2020} P. Lewis, E. Perez, A. Piktus \emph{et al.}, ``Retrieval-augmented generation for knowledge-intensive NLP tasks,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
 \bibitem{contriever} G. Izacard, M. Caron, L. Hosseini, S. Riedel, P. Bojanowski, A. Joulin, and E. Grave, ``Unsupervised dense information retrieval with contrastive learning,'' \emph{Transactions on Machine Learning Research (TMLR)}, 2022.
 \bibitem{lof} M. M. Breunig, H.-P. Kriegel, R. T. Ng, and J. Sander, ``LOF: Identifying density-based local outliers,'' in \emph{Proc. ACM SIGMOD Int. Conf. on Management of Data}, 2000, pp. 93--104.
 \bibitem{e5} L. Wang, N. Yang, X. Huang, B. Jiao, L. Yang, D. Jiang, R. Majumder, and F. Wei, ``Text embeddings by weakly-supervised contrastive pre-training,'' arXiv preprint arXiv:2212.03533, 2022.
