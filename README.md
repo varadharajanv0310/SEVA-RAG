@@ -51,6 +51,74 @@ tiers); **49–57%** is the composite under an attack that *neutralizes the feat
 
 ---
 
+## Results
+
+The figures below are generated from the committed result JSONs in `reproduction/`
+by [`reproduction/make_figures.py`](reproduction/make_figures.py). Nothing is
+hardcoded — re-running the script after a re-run of the experiments reproduces them
+exactly:
+
+```bash
+python reproduction/make_figures.py
+```
+
+### Scaling
+
+![Scaling](docs/figures/scaling.png)
+
+*Source: `reproduction/result_scale10k.json`, `result_scale100k.json`, `result_1M.json`.*
+
+Left: `scale_summary.grand_mean_docfpr_eval_pct` at each corpus size against the
+0.69% pre-registered target — 0.7653% at 10k, 0.6741% at 100k, 0.7008% at 1M. The
+deviation does not grow with N, which is the claim the scale study was run to test.
+
+Right: the cluster-coherence gap per poison density, averaged over seeds. The 100k
+and 1M curves are flat, and **the 10k curve is not** — it collapses to 0.141 at 1%
+density, and `result_scale10k.json` records `gap_density_invariant: false` and
+`templated_asr_zero: false` accordingly. Density invariance is a large-corpus
+property; the figure shows where it fails rather than cropping it out.
+
+### Cross-platform agreement
+
+![Cross-platform](docs/figures/cross_platform.png)
+
+*Source: `reproduction/result_4060.json`, `reproduction/result_M4.json`.*
+
+The same corpus and poison set (both hash-verified against the reference SHA-256)
+on an RTX 4060 under CUDA and an Apple M4 under MPS. The gap-per-density curves are
+indistinguishable at plot resolution — they agree to within 1e-6. Per-query latency
+is where the platforms actually differ: 38.1 ms mean on the 4060 versus 28.1 ms on
+the M4. The decision is a property of the geometry, not of the accelerator.
+
+### Encoder invariance
+
+![Encoder invariance](docs/figures/encoder_invariance.png)
+
+*Source: `reproduction/result_encoder_bge.json`, `result_encoder_e5.json`, `result_encoder_gte.json`.*
+
+Three independent encoder lineages on shared axes. The honest reading has two
+parts. Each encoder is **flat in density** — relative gap ranges of 0.0342, 0.0346
+and 0.0314 — and all three clear the pre-registered bar with 0% max templated ASR.
+But the absolute separation is **encoder-dependent**: bge sits near 0.24 while e5
+and gte sit near 0.12 and 0.11. What generalises is that the gate works, not that
+the margin is the same size everywhere.
+
+### Zero-evasion confidence interval
+
+![Confidence interval](docs/figures/confidence_interval.png)
+
+*Source: `reproduction/result_hienc_ci.json`.*
+
+0 evasions in 25,000 high-encounter trials. A point estimate of 0% is not by itself
+informative, so the figure draws the 95% Wilson upper bound: **0.0154%**. The right
+panel shows why the interval is that tight — every poison document sits above the
+frozen threshold τ = 0.8423, with the minimum poison coherence at 0.8905 against a
+clean mean of 0.7510. The threshold is not re-derived on the poisoned corpus; doing
+so would inflate it to 0.9767, which the JSON records and the gate deliberately
+does not use.
+
+---
+
 ## Repository structure
 
 ```
