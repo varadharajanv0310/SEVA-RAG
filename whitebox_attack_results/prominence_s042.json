@@ -1,0 +1,54 @@
+{
+  "tau_coh": 0.8441646993160248,
+  "payload_words": 37,
+  "sweep": [
+    {
+      "k": 1,
+      "payload_frac": 0.12333333333333334,
+      "mean_coh": 0.7944920659065247,
+      "frac_below_tau": 0.924,
+      "retrievable_frac": 0.628,
+      "mean_cos_q": 0.7243923544883728
+    },
+    {
+      "k": 2,
+      "payload_frac": 0.24666666666666667,
+      "mean_coh": 0.8094833493232727,
+      "frac_below_tau": 0.844,
+      "retrievable_frac": 0.496,
+      "mean_cos_q": 0.7182336449623108
+    },
+    {
+      "k": 3,
+      "payload_frac": 0.37,
+      "mean_coh": 0.8252370357513428,
+      "frac_below_tau": 0.704,
+      "retrievable_frac": 0.432,
+      "mean_cos_q": 0.7143652439117432
+    },
+    {
+      "k": 5,
+      "payload_frac": 0.6166666666666667,
+      "mean_coh": 0.8764412999153137,
+      "frac_below_tau": 0.316,
+      "retrievable_frac": 0.332,
+      "mean_cos_q": 0.7033593654632568
+    },
+    {
+      "k": 8,
+      "payload_frac": 0.9866666666666667,
+      "mean_coh": 0.9549142122268677,
+      "frac_below_tau": 0.036,
+      "retrievable_frac": 0.18,
+      "mean_cos_q": 0.6670616865158081
+    },
+    {
+      "k": 12,
+      "payload_frac": 1.0,
+      "mean_coh": 0.9549500346183777,
+      "frac_below_tau": 0.036,
+      "retrievable_frac": 0.18,
+      "mean_cos_q": 0.6670050024986267
+    }
+  ]
+}

@@ -4,6 +4,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{array}
 
 % Supplementary sections numbered S-I, S-II, ...
 \renewcommand{\thesection}{S\Roman{section}}
@@ -148,6 +149,18 @@ L3---without embedding-space optimization---gradient-based methods such as
 GCG or AutoDAN---which is the capability the geometric
 gate is built to withstand.
 
+\emph{Host-anchored clones (boundary experiment).} For each of the $50$ adversarial target
+queries we take the top-ranked benign document, rewrite it with an offline LLM
+(\texttt{mistral:7b-instruct}, temperature $0$) to preserve meaning while changing surface form,
+and splice the payload after the first sentence, truncating to $300$ words. Detection is
+LLM-free throughout; the LLM is used only for attack generation and for the answer-corruption
+check, which is judged by an offline generator (\texttt{gpt-oss:20b}, temperature $0$) counting
+payload markers in the answer with and without the clone present. A target counts as corrupted
+when the poisoned answer contains at least two payload markers and strictly more than the clean
+answer does. Cohesion for these clones is measured in the corpus the attack actually creates---
+clean documents plus the injected clones, with no templated poison present---since the two
+injection strategies are alternatives, not a combination.
+
 \section{Calibration Thresholds and Reproducibility}
 \label{app:repro}
 Table~\ref{tab:tau} lists the calibrated thresholds. The deployed geometric gate
@@ -261,6 +274,136 @@ Aggregation rule & Benign query-FPR & Poison catch \\
 \midrule
 $\geq\!1$ flagged & 3.15\% & 98.0\% \\
 $\geq\!2$ flagged & \textbf{0.90\%} & \textbf{98.0\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Signal Inventory (Composite Ablation)}
+\label{app:signals}
+Table~\ref{tab:signals} is the ten-signal inventory underlying the composite ablation of the
+main paper: only cluster coherence combines a high in-domain SNR with robustness to both the
+domain-confound control and adaptive normalization.
+
+\begin{table}[htbp]
+\centering
+\caption{In-domain signal inventory (Security Stack Exchange, seed~42, $1\%$
+density). Only cluster coherence combines a high SNR with robustness to both the
+domain-confound control and adaptive normalization; the soft signals are weak
+in-domain, and the strongest of them (keyword density) is both confounded
+(SNR~$38.4\!\to\!8.1$ against a general-domain corpus) and adversary-normalizable.
+SEVA deploys the geometric signal alone; the rest are the ablation.}
+\label{tab:signals}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llc>{\raggedright\arraybackslash}p{2.1cm}}
+\toprule
+Signal & Type & In-domain SNR & Status \\
+\midrule
+\texttt{cluster\_coh}  & geometric  & $5.99$  & \textbf{deployed} \\
+\texttt{kw\_density}   & keyword    & $8.10$  & confounded, normalizable (L2) \\
+\texttt{sent\_unif}    & structural & $1.40$  & ablated \\
+\texttt{topic\_drift}  & semantic   & $1.18$  & ablated \\
+\texttt{punct}         & structural & $1.04$  & ablated \\
+\texttt{doc\_length}   & structural & $0.92$  & ablated \\
+\texttt{avg\_sent\_len} & structural & $0.53$  & normalizable (L3) \\
+\texttt{content\_ttr}  & lexical    & $-1.09$ & ablated \\
+\texttt{ttr}           & lexical    & $-1.12$ & ablated \\
+\texttt{repeat\_rate}  & lexical    & $-0.48$ & excluded \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Geometric Core vs.\ Composite}
+\label{app:core}
+Table~\ref{tab:core} accompanies the geometric-core discussion of the main paper: the composite
+matches the hard gate on the naive attack, dilutes detection on real PoisonedRAG, and collapses
+under the keyword-dropping adversary, while the hard gate holds.
+
+\begin{table}[htbp]
+\centering
+\caption{The geometric core vs.\ the multi-signal composite (the ablation), at
+$0.69\%$ non-oracle document-FPR, by poison-evasion rate (lower is better). The
+composite equals the hard gate on the naive attack, but the soft signals dilute
+detection on real PoisonedRAG and collapse under the keyword-dropping adversary,
+while the geometric hard gate holds.}
+\label{tab:core}
+\begin{tabular}{lcc}
+\toprule
+\multirow{2}{*}{Attack} & \texttt{cluster\_coh} & 10-signal \\
+       & hard gate & composite \\
+\midrule
+Templated (held-out)    & \textbf{0\%} & 0\% \\
+Real PoisonedRAG        & \textbf{2\%} & 28\% \\
+Adaptive (keyword-drop) & \textbf{0\%} & 49--57\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Cross-Platform Reproduction}
+\label{app:xplat}
+Per-platform detail for the cross-platform reproduction reported in the main paper: identical detection across CUDA and Apple-Silicon backends on the byte-identical hash-verified corpus.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-platform reproduction on a byte-identical, hash-verified corpus (SHA-256
+\texttt{28ec3811}$\dots$): \emph{identical} detection across CUDA and Apple-Silicon
+backends---the gap, SNR, and $0\%$ templated poison-evasion match on every platform,
+density, and seed (the two re-embedded external machines agree on the gap to within
+$5\times10^{-7}$)---at $13$--$38$\,ms per query.}
+\label{tab:xplat}
+\begin{tabular}{llcccc}
+\toprule
+Platform & Backend & Gap ($1$--$10\%$) & SNR & Templ.\ evasion & Latency mean/p95 \\
+\midrule
+RTX 5080 (desktop) & CUDA & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $13.4$--$15.7$\,/\,$\le\!18.8$\,ms \\
+RTX 4060 (laptop) & CUDA & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $38.1$\,/\,$43.6$\,ms \\
+Apple M4 (laptop) & MPS & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ & $28.1$\,/\,$37.3$\,ms \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Encoder-Invariance Detail}
+\label{app:encoder}
+Per-encoder detail for Observation~3 of the main paper: the geometric gate under three embedding lineages on the identical hash-verified in-domain corpus, each calibrated non-oracle in its correct symmetric convention.
+
+\begin{table}[htbp]
+\centering
+\caption{Encoder-invariance: the geometric gate across three embedding lineages on the
+identical hash-verified in-domain corpus, each calibrated non-oracle in its correct
+symmetric convention. Templated poison-evasion is $0\%$ for all three; the absolute gap
+shrinks only as the clean manifold concentrates (clean coherence $0.751\!\to\!0.881$),
+while the scale-normalized SNR holds. Values span $1$--$10\%$ density.}
+\label{tab:encoder}
+\begin{tabular}{llccccc}
+\toprule
+Encoder & Lineage & Clean coh. & Poison coh. & Gap & SNR & Templ.\ evasion \\
+\midrule
+bge-large   & BAAI      & $0.751$ & $0.990$ & $+0.236$ to $+0.245$ & $5.9$--$6.1$ & $\mathbf{0\%}$ \\
+e5-large-v2 & Microsoft & $0.866$ & $0.990$ & $+0.122$ to $+0.127$ & $6.4$--$6.7$ & $\mathbf{0\%}$ \\
+gte-large   & Alibaba   & $0.881$ & $0.996$ & $+0.113$ to $+0.117$ & $5.2$--$5.3$ & $\mathbf{0\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Reproduced Head-to-Head Detail}
+\label{app:h2h}
+Per-defense detail for the reproduced, shared-corpus, matched-FPR head-to-head of the main paper.
+
+\begin{table}[htbp]
+\centering
+\caption{Reproduced head-to-head against the per-query state of the art on a
+shared Security corpus and templated attack. RAGDefender uses SEVA's encoder
+(bge-large), isolating the algorithmic difference; its native filter has no
+no-attack gate and removes half of all clean documents, so the catch comparison
+is made at a matched $\sim$0.8\% benign-FPR operating point (looser than SEVA's own
+$\sim$0.6\%) using a best-case idealized threshold in RAGDefender's favour.}
+\label{tab:h2h}
+\begin{tabular}{lcc}
+\toprule
+\multirow{2}{*}{Defense} & Templated catch & Native benign \\
+        & @ matched $\sim$0.8\% FPR & doc-FPR \\
+\midrule
+SEVA & \textbf{100\%} & $\sim$0.6\% \\
+RAGDefender & $\sim$89\% & 50.4\% \\
 \bottomrule
 \end{tabular}
 \end{table}

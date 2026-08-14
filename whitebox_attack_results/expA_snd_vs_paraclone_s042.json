@@ -1,0 +1,51 @@
+{
+  "n_clean": 95000,
+  "n_templated": 5000,
+  "n_paraphrase_clone": 75,
+  "FPR_TARGET_pct": 0.69,
+  "K": 5,
+  "validation_vs_frozen_doc_coh": {
+    "my_poison_coh": 0.9909476637840271,
+    "frozen_poison_coh": 0.9909476637840271,
+    "abs_delta": 0.0
+  },
+  "thresholds": {
+    "tau_coh": 0.8405244973957537,
+    "tau_snd": 0.9084837803006172,
+    "clean_FPR_coh_pct": 0.6905263157894738,
+    "clean_FPR_snd_pct": 0.6905263157894738
+  },
+  "clean_ref": {
+    "coh_mean": 0.7500917911529541,
+    "snd_mean": 0.8105540871620178,
+    "snd_median": 0.811356782913208
+  },
+  "templated_poison": {
+    "coh_mean": 0.9909476637840271,
+    "snd_mean": 0.9994006156921387,
+    "coh_catch_pct": 100.0,
+    "snd_catch_pct": 100.0
+  },
+  "paraphrased_host_no_payload": {
+    "coh_mean": 0.8228240609169006,
+    "snd_mean": 0.8805420994758606,
+    "coh_catch_pct": 49.333333333333336,
+    "snd_catch_pct": 22.666666666666664
+  },
+  "paraphrase_clone": {
+    "coh_mean": 0.882085382938385,
+    "snd_mean": 0.8616139888763428,
+    "coh_catch_pct": 70.66666666666667,
+    "snd_catch_pct": 8.0,
+    "coh_EVASION_pct": 29.33333333333333,
+    "snd_EVASION_pct": 92.0
+  },
+  "two_signal_union_gate": {
+    "percentile": 99.64736383626416,
+    "tau_coh": 0.8476543128490442,
+    "tau_snd": 0.9200857877731323,
+    "realized_clean_FPR_pct": 0.6905263157894738,
+    "templated_catch_pct": 100.0,
+    "paraphrase_clone_catch_pct": 66.66666666666666
+  }
+}

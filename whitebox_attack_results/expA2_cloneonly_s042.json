@@ -1,0 +1,73 @@
+{
+  "setting": "clean 95k corpus + injected paraphrase-clones (no templated poison present)",
+  "FPR_TARGET_pct": 0.69,
+  "K": 5,
+  "reference_templated_poison": {
+    "coh_mean": 0.99095,
+    "coh_catch_pct": 100.0,
+    "snd_catch_pct": 100.0,
+    "note": "from p050 corpus, validated against frozen p2_doc_coh"
+  },
+  "sweep": [
+    {
+      "n_per_query": 1,
+      "n_clones": 15,
+      "tau_coh": 0.8403275365054607,
+      "tau_snd": 0.9087277681708331,
+      "clone_coh_mean": 0.721773087978363,
+      "clone_snd_mean": 0.8673521876335144,
+      "coh_catch_pct": 0.0,
+      "snd_catch_pct": 20.0,
+      "coh_EVASION_pct": 100.0,
+      "union_gate_catch_pct": 13.333333333333334,
+      "union_realized_clean_FPR_pct": 0.6905263157894738,
+      "clean_coh_mean": 0.7500511407852173,
+      "clean_snd_mean": 0.8105621933937073
+    },
+    {
+      "n_per_query": 2,
+      "n_clones": 30,
+      "tau_coh": 0.8403275365054607,
+      "tau_snd": 0.9087812817871568,
+      "clone_coh_mean": 0.7458342909812927,
+      "clone_snd_mean": 0.8679921627044678,
+      "coh_catch_pct": 0.0,
+      "snd_catch_pct": 13.333333333333334,
+      "coh_EVASION_pct": 100.0,
+      "union_gate_catch_pct": 6.666666666666667,
+      "union_realized_clean_FPR_pct": 0.6905263157894738,
+      "clean_coh_mean": 0.7500547766685486,
+      "clean_snd_mean": 0.8105719685554504
+    },
+    {
+      "n_per_query": 3,
+      "n_clones": 45,
+      "tau_coh": 0.8403275365054607,
+      "tau_snd": 0.9088041488468647,
+      "clone_coh_mean": 0.7721722722053528,
+      "clone_snd_mean": 0.877234160900116,
+      "coh_catch_pct": 11.11111111111111,
+      "snd_catch_pct": 13.333333333333334,
+      "coh_EVASION_pct": 88.88888888888889,
+      "union_gate_catch_pct": 20.0,
+      "union_realized_clean_FPR_pct": 0.6915789473684211,
+      "clean_coh_mean": 0.7500563859939575,
+      "clean_snd_mean": 0.8105798363685608
+    },
+    {
+      "n_per_query": 5,
+      "n_clones": 75,
+      "tau_coh": 0.8403481346547602,
+      "tau_snd": 0.9088041488468647,
+      "clone_coh_mean": 0.7900928854942322,
+      "clone_snd_mean": 0.8819770216941833,
+      "coh_catch_pct": 22.666666666666664,
+      "snd_catch_pct": 18.666666666666668,
+      "coh_EVASION_pct": 77.33333333333333,
+      "union_gate_catch_pct": 33.33333333333333,
+      "union_realized_clean_FPR_pct": 0.6905263157894738,
+      "clean_coh_mean": 0.750058114528656,
+      "clean_snd_mean": 0.8105916976928711
+    }
+  ]
+}

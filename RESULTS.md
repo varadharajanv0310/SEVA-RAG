@@ -50,6 +50,27 @@ The geometric hard gate holds **0%** against both.
 | `tab:tau` — calibrated thresholds | per-run `tau_L1/L2/L3` and the hard-gate τ (≈0.84) in the result files |
 | `tab:caps` — deployment-capability comparison | factual properties per cited defense (no lifted numbers) |
 
+## The boundary: host-anchored cloning
+
+The deployed gate's measured limitation (main paper, "The Boundary: Host-Anchored Cloning";
+Limitations). Each injected passage mimics a *distinct* benign host, so cohesion never leaves
+the clean band. Scored in the corpus the attack actually creates (95k clean + injected clones,
+no templated poison present).
+
+| Claim | Number | File |
+|---|---|---|
+| Clone evasion of `cluster_coh` (deployed gate) | **100%** of 50 targets; coh 0.751 vs tau 0.841 | `whitebox_attack_results/expD_deployed_gate_s042.json` |
+| Retrievable @K=5 | 84% | same |
+| Answer corruption among evading+retrieved | **31.0%** (13/42; Wilson 19.1-46.0) | same |
+| **End-to-end ASR vs deployed gate** | **26.0%** of all 50 targets | same |
+| Complementary signal `s_nd` on clones | catches 13-20%; two-signal union gate 6.7-33.3% | `expA_snd_vs_paraclone_s042.json`, `expA2_cloneonly_s042.json` |
+| Multiplicity sweep (1->5 clones/target) | coh 0.722 -> 0.790, still under tau | `expA2_cloneonly_s042.json` |
+| Evasion/retrievability frontier (Figure 1) | evasion 92->4%, retrievable 63->18% | `whitebox_attack_results/prominence_s042.json` |
+
+Attack generation used `mistral:7b-instruct` (temperature 0); the answer-corruption judge used
+`gpt-oss:20b` (temperature 0), identical to the earlier `expC_potency_s042.json` run, so potency
+figures stay comparable. Detection is LLM-free throughout.
+
 ## Notes
 
 - `results/general_domain/` holds the **general-domain baseline** (WikiText-style background):
