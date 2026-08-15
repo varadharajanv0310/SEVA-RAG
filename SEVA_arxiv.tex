@@ -336,8 +336,9 @@ false-positive reporting, on an in-domain corpus that denies a geometric detecto
 shortcut. Second, we validate deployment at a level the family has not reported: identical
 detection across two accelerator backends, and measurement to $10^6$ documents. Third, and most consequentially, we delimit the assumption:
 we show that host-anchored cloning evades the gate completely while remaining retrievable, that
-the natural complementary geometric signal does \emph{not} close the gap, and that evasion is
-nonetheless bought at a heavy cost in payload potency (\S\ref{subsec:boundary}). Because that
+the natural complementary geometric signal does \emph{not} close the gap, and that the bypass is
+not expensive---it corrupts more targets end to end than the attack it replaces
+(\S\ref{subsec:boundary}). Because that
 boundary follows from the mutual-similarity assumption itself rather than from our particular
 statistic, it applies to the family, CleanBase included.
 
@@ -1245,8 +1246,8 @@ and beats the per-query state of the art in a reproduced, matched-FPR head-to-he
 $13$--$38$\,ms per query, invariant to contamination density, embedding encoder, and hardware
 backend, and measured to $10^6$ documents. We also delimit the assumption underlying the whole
 cohesion-detection family: host-anchored cloning evades the gate entirely while remaining
-retrievable, and no complementary geometric signal we tested closes the gap---but evasion costs
-the attacker most of its end-to-end effectiveness. Detecting injections that leave no
+retrievable, no complementary geometric signal we tested closes the gap, and the bypass is not
+expensive---it corrupts more targets than the attack it replaces. Detecting injections that leave no
 duplication footprint, without an LLM in the loop, remains open.
 
 \appendices
