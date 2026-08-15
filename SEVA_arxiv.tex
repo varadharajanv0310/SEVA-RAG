@@ -12,6 +12,8 @@
 \usepackage{array}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.17}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,shapes.geometric}
+
 \usepackage{url}
 
 \begin{document}
@@ -75,6 +77,45 @@ Security, Geometric Detection, On-Device Security.
 \section{Introduction}
 
 \subsection{Motivation}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\scriptsize, x=1mm, y=1mm,
+  box/.style={draw, rounded corners=1.2pt, align=center, inner xsep=2.2pt, inner ysep=2.4pt},
+  off/.style={box, fill=blue!7},
+  on/.style={box, fill=black!4},
+  gate/.style={box, fill=red!10, draw=red!55!black, thick},
+  adv/.style={box, fill=orange!16, draw=orange!65!black},
+  ar/.style={-{Latex[length=1.3mm]}, gray!60!black},
+]
+% --- online path (top row) ---
+\node[on]   (q)   at (0,14)  {query $q$};
+\node[on]   (ret) at (21,14) {retrieve top-$K_{\mathrm{FETCH}}$};
+\node[gate] (g)   at (50,14) {gate: drop $C[d]\!>\!\tau$};
+\node[on]   (gen) at (76,14) {generator};
+% --- offline path (bottom row) ---
+\node[adv]  (atk) at (0,0)  {adversary};
+\node[on]   (cor) at (19,0) {corpus $D$};
+\node[off]  (emb) at (38,0) {embed $+$ HNSW};
+\node[off]  (coh) at (62,0) {cache $C[d]$};
+\draw[ar] (q)   -- (ret);
+\draw[ar] (ret) -- (g);
+\draw[ar] (g)   -- (gen);
+\draw[ar] (atk) -- (cor);
+\draw[ar] (cor) -- (emb);
+\draw[ar] (emb) -- (coh);
+\draw[ar] (coh.north) -- node[right=0.5pt, font=\tiny, pos=0.45] {lookup} (g.south);
+\begin{scope}[on background layer]
+\node[draw=blue!35, dashed, rounded corners=1.5pt, fit=(emb)(coh), inner sep=2.6pt] (ob) {};
+\end{scope}
+\node[blue!45!black, font=\tiny, anchor=north] at (ob.south) {offline, once per corpus};
+\end{tikzpicture}
+\caption{Where the gate sits. The only per-query work SEVA adds is a threshold comparison against
+a cached statistic (red); the neighbourhood computation is offline and amortized over every
+subsequent query. No LLM is consulted for detection, and the generator is never asked to
+adjudicate its own context.}
+\label{fig:pipeline}
+\end{figure}
 Retrieval-Augmented Generation (RAG)~\cite{lewis2020} grounds a language model's
 output in an external document corpus, decoupling parametric model knowledge from a
 non-parametric, operator-maintained vector store. That decoupling is also RAG's
@@ -243,6 +284,36 @@ SEVA occupies the gap none of these fill: a corpus-level, LLM-free detector with
 no decoder access, no pre-registration, and millisecond latency on laptop-class
 hardware.
 
+
+\begin{table}[t]
+\centering
+\caption{The cohesion-detection family and its neighbours. ``Corpus'' marks defenses that score
+documents against the whole knowledge base rather than one retrieval window; ``FPR'' marks those
+reporting a benign false-positive rate at their operating point. The shared assumption in the
+top block is that co-targeted injections are mutually similar---the assumption
+\S\ref{subsec:boundary} delimits.}
+\label{tab:family}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{llcccc}
+\toprule
+Defense & Signal & Corpus & LLM-free & FPR \\
+\midrule
+CleanBase~\cite{cleanbase}   & similarity-graph cliques & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+SeCon-RAG~\cite{secon}       & centroid tightness + conflict & $\times$ & $\times$ & $\times$ \\
+GRADA~\cite{grada}           & graph centrality rerank & $\times$ & $\checkmark$ & $\times$ \\
+TrustRAG~\cite{trustrag}     & $k$-means + LLM check & $\times$ & $\times$ & $\times$ \\
+TopoGuard~\cite{topoguard}   & spectral gap of $k$-NN graph & $\times$ & $\checkmark$ & $\checkmark$ \\
+\textbf{SEVA (ours)}         & $K$-NN neighbourhood cohesion & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+\midrule
+Hubness~\cite{hubness}       & retrieval-frequency outliers & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+RAGDefender~\cite{ragdefender}& per-window density filter & $\times$ & $\checkmark$ & $\times$ \\
+RobustRAG~\cite{robustrag}   & isolate-then-aggregate & $\times$ & $\times$ & $\times$ \\
+AV Filter~\cite{avfilter}    & decoder attention variance & $\times$ & $\times$ & $\times$ \\
+RAGShield~\cite{ragshield}   & cryptographic provenance & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \emph{The cohesion-detection family.} A wave of contemporary defenses converges on the
 intuition that anchors SEVA---that poison injected for one target betrays itself as an
 over-cohesive region of embedding space. Concurrent with this work, CleanBase~\cite{cleanbase}
@@ -355,7 +426,73 @@ treat it as a stated residual of corpus-level detection
 \section{SEVA Architecture}
 \label{sec:arch}
 
+
+
 \subsection{The Geometric Signal}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\scriptsize, scale=0.95, every node/.style={inner sep=1pt}]
+% --- panel A: templated ---
+\begin{scope}
+\node[font=\scriptsize\bfseries] at (1.35,2.25) {templated injection};
+\foreach \x/\y in {0.15/0.35,0.55/1.35,0.35/1.85,1.15/0.25,1.95/0.45,2.45/1.55,2.6/0.75,0.9/1.95,2.15/1.95,1.75/1.15}
+  \fill[black!35] (\x,\y) circle (1.3pt);
+\foreach \x/\y in {1.30/1.02,1.44/1.14,1.38/0.88,1.52/0.98,1.26/1.18}
+  \fill[red!75!black] (\x,\y) circle (1.6pt);
+\draw[red!70!black, dashed] (1.39,1.04) circle (0.30);
+\node[red!60!black, font=\tiny] at (1.39,0.55) {$C\!\approx\!0.99$};
+\end{scope}
+% --- panel B: host-anchored clones ---
+\begin{scope}[xshift=4.3cm]
+\node[font=\scriptsize\bfseries] at (1.35,2.25) {host-anchored clones};
+\foreach \x/\y in {0.15/0.35,0.55/1.35,0.35/1.85,1.15/0.25,1.95/0.45,2.45/1.55,2.6/0.75,0.9/1.95,2.15/1.95,1.75/1.15}
+  \fill[black!35] (\x,\y) circle (1.3pt);
+\foreach \x/\y in {0.28/0.48,0.68/1.46,1.28/0.36,2.06/0.56,2.32/1.66}
+  \fill[orange!85!black] (\x,\y) circle (1.6pt);
+\foreach \a/\b/\c/\d in {0.15/0.35/0.28/0.48, 0.55/1.35/0.68/1.46, 1.15/0.25/1.28/0.36, 1.95/0.45/2.06/0.56, 2.45/1.55/2.32/1.66}
+  \draw[orange!70!black, very thin] (\a,\b) -- (\c,\d);
+\node[orange!60!black, font=\tiny] at (1.35,0.02) {$C\!\approx\!0.75$ (clean band)};
+\end{scope}
+\end{tikzpicture}
+\caption{Why the signal works, and where it stops. Grey points are benign documents. \emph{Left:}
+passages generated from a shared recipe land on top of each other, so each one's $K$ nearest
+neighbours are its own siblings and its neighbourhood coherence is near $1$. \emph{Right:} a
+host-anchored clone is placed beside a \emph{different} benign document, so its neighbourhood is
+that host's neighbourhood and its coherence is indistinguishable from clean text---the attack is
+retrieved just as reliably and the gate never fires (\S\ref{subsec:boundary}).}
+\label{fig:geometry}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=\columnwidth, height=4.4cm,
+  xlabel={\texttt{cluster\_coh}}, ylabel={density},
+  xmin=0.55, xmax=1.0, ymin=0,
+  tick label style={font=\scriptsize}, label style={font=\scriptsize},
+  legend style={font=\scriptsize, at={(0.02,0.97)}, anchor=north west, draw=none,
+                fill=white, fill opacity=0.85, text opacity=1},
+  grid=both, grid style={line width=.2pt, draw=gray!20},
+]
+\addplot[thick, black!60, fill=black!12, mark=none] coordinates {(0.5550,0.0000) (0.5650,0.0000) (0.5750,0.0011) (0.5850,0.0011) (0.5950,0.0158) (0.6050,0.0253) (0.6150,0.0621) (0.6250,0.1253) (0.6350,0.2232) (0.6450,0.4179) (0.6550,0.7179) (0.6650,1.1084) (0.6750,1.7568) (0.6850,2.6558) (0.6950,3.6505) (0.7050,4.8695) (0.7150,6.3200) (0.7250,7.7400) (0.7350,8.9579) (0.7450,9.7274) (0.7550,10.0789) (0.7650,9.7768) (0.7750,8.7526) (0.7850,7.2663) (0.7950,5.7263) (0.8050,4.1063) (0.8150,2.6137) (0.8250,1.6463) (0.8350,0.9211) (0.8450,0.4263) (0.8550,0.1716) (0.8650,0.0758) (0.8750,0.0211) (0.8850,0.0137) (0.8950,0.0053) (0.9050,0.0011) (0.9150,0.0021) (0.9250,0.0000) (0.9350,0.0000) (0.9450,0.0000) (0.9550,0.0000) (0.9650,0.0000) (0.9750,0.0042) (0.9850,0.0084) (0.9950,0.0063)};
+\addlegendentry{clean ($95$k)}
+\addplot[thick, orange!85!black, mark=none, dashed] coordinates {(0.5550,0.0000) (0.5650,0.0000) (0.5750,0.0000) (0.5850,0.0000) (0.5950,0.0000) (0.6050,0.0000) (0.6150,0.0000) (0.6250,0.0000) (0.6350,0.0000) (0.6450,0.0000) (0.6550,0.0000) (0.6650,0.0000) (0.6750,0.0000) (0.6850,0.0000) (0.6950,2.0000) (0.7050,4.0000) (0.7150,6.0000) (0.7250,8.0000) (0.7350,18.0000) (0.7450,12.0000) (0.7550,16.0000) (0.7650,10.0000) (0.7750,10.0000) (0.7850,2.0000) (0.7950,4.0000) (0.8050,0.0000) (0.8150,6.0000) (0.8250,2.0000) (0.8350,0.0000) (0.8450,0.0000) (0.8550,0.0000) (0.8650,0.0000) (0.8750,0.0000) (0.8850,0.0000) (0.8950,0.0000) (0.9050,0.0000) (0.9150,0.0000) (0.9250,0.0000) (0.9350,0.0000) (0.9450,0.0000) (0.9550,0.0000) (0.9650,0.0000) (0.9750,0.0000) (0.9850,0.0000) (0.9950,0.0000)};
+\addlegendentry{host-anchored clones}
+\addplot[thick, red!75!black, mark=none] coordinates {(0.5550,0.0000) (0.5650,0.0000) (0.5750,0.0000) (0.5850,0.0000) (0.5950,0.0000) (0.6050,0.0000) (0.6150,0.0000) (0.6250,0.0000) (0.6350,0.0000) (0.6450,0.0000) (0.6550,0.0000) (0.6650,0.0000) (0.6750,0.0000) (0.6850,0.0000) (0.6950,0.0000) (0.7050,0.0000) (0.7150,0.0000) (0.7250,0.0000) (0.7350,0.0000) (0.7450,0.0000) (0.7550,0.0000) (0.7650,0.0000) (0.7750,0.0000) (0.7850,0.0000) (0.7950,0.0000) (0.8050,0.0000) (0.8150,0.0000) (0.8250,0.0000) (0.8350,0.0000) (0.8450,0.0000) (0.8550,0.0000) (0.8650,0.0000) (0.8750,0.0000) (0.8850,0.0000) (0.8950,0.0000) (0.9050,0.0000) (0.9150,0.0000) (0.9250,0.0000) (0.9350,0.0000) (0.9450,0.0000) (0.9550,0.0000) (0.9650,0.1400) (0.9750,6.6000) (0.9850,28.5000) (0.9950,64.7600)};
+\addlegendentry{templated poison ($5$k)}
+\draw[green!35!black, dash dot, thick] (axis cs:0.8408,0) -- (axis cs:0.8408,\pgfkeysvalueof{/pgfplots/ymax});
+\node[green!30!black, font=\tiny, anchor=south west] at (axis cs:0.8408,0.6) {$\tau$};
+\end{axis}
+\end{tikzpicture}
+\caption{The separation the gate exploits, and the one it misses, on the in-domain corpus.
+Templated poison concentrates near $0.99$, entirely above the non-oracle threshold
+$\tau=0.841$. Host-anchored clones sit at $0.751$---inside the clean distribution, not merely
+near it---which is why no threshold on this statistic can separate them without discarding the
+corpus.}
+\label{fig:dist}
+\end{figure}
 SEVA's detection rests on a single per-document statistic. For a document $d$,
 let $N_K(d)$ be its $K$ nearest neighbours in the \emph{corpus} embedding space
 ($K=5$, cosine). The \emph{cluster coherence} of $d$ is the mean pairwise cosine
@@ -1544,6 +1681,30 @@ HotpotQA          & 9.06\% & \textbf{97\%} & 0\%  & 98\% & 3\% \\
 
 
 
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=\columnwidth, height=4.2cm,
+  xlabel={$K$ (neighbourhood size)}, ylabel={\texttt{cluster\_coh}},
+  xmin=2, xmax=21, ymin=0.68, ymax=1.02, xtick={3,5,10,20},
+  tick label style={font=\scriptsize}, label style={font=\scriptsize},
+  legend style={font=\scriptsize, at={(0.98,0.55)}, anchor=east, draw=none},
+  grid=both, grid style={line width=.2pt, draw=gray!20}]
+\addplot[thick, red!75!black, mark=*] coordinates {(3,0.9990) (5,0.9909) (10,0.9886) (20,0.9782)};
+\addlegendentry{poison}
+\addplot[thick, green!35!black, dash dot, mark=triangle*] coordinates {(3,0.8607) (5,0.8405) (10,0.8211) (20,0.8032)};
+\addlegendentry{$\tau$ (recalibrated)}
+\addplot[thick, black!55, mark=square*] coordinates {(3,0.7572) (5,0.7501) (10,0.7390) (20,0.7271)};
+\addlegendentry{clean}
+\end{axis}
+\end{tikzpicture}
+\caption{The separation is not an artifact of $K=5$. Increasing $K$ lowers clean, poison and the
+recalibrated threshold together, leaving the margin intact: catch is $100\%$ at every value
+(Table~\ref{tab:ksens}).}
+\label{fig:ksens}
+\end{figure}
+
 \section{Complete Sensitivity Measurements}
 \label{app:sens}
 The main text summarizes these; the full sweeps are below. Every row recalibrates the threshold
@@ -1588,6 +1749,26 @@ $5.00\%$ & $0.8130$ & $\mathbf{100\%}$ & $5.000\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=\columnwidth, height=4.3cm,
+  xlabel={false-positive rate (\%)}, ylabel={catch rate (\%)},
+  xmin=0, xmax=5, ymin=90, ymax=101,
+  tick label style={font=\scriptsize}, label style={font=\scriptsize},
+  grid=both, grid style={line width=.2pt, draw=gray!20}]
+\addplot[thick, blue!60!black, mark=none] coordinates {(0.0000,0.0200) (0.0000,1.9800) (0.0000,3.9400) (0.0000,5.9200) (0.0011,7.8600) (0.0011,9.8400) (0.0011,11.8000) (0.0011,13.7800) (0.0011,15.7400) (0.0011,17.7200) (0.0021,19.6600) (0.0021,21.6400) (0.0021,23.6000) (0.0021,25.5800) (0.0021,27.5400) (0.0032,29.5000) (0.0032,31.4600) (0.0032,33.4400) (0.0032,35.4000) (0.0032,37.3800) (0.0032,39.3400) (0.0032,41.3000) (0.0032,43.2800) (0.0032,45.2400) (0.0042,47.2000) (0.0042,49.1600) (0.0042,51.1400) (0.0042,53.1000) (0.0053,55.0600) (0.0063,57.0000) (0.0063,58.9800) (0.0063,60.9400) (0.0063,62.9200) (0.0063,64.8800) (0.0084,66.8200) (0.0084,68.7800) (0.0084,70.7600) (0.0095,72.7000) (0.0095,74.6800) (0.0095,76.6400) (0.0105,78.5800) (0.0105,80.5600) (0.0105,82.5200) (0.0116,84.4800) (0.0137,86.4000) (0.0147,88.3600) (0.0147,90.3200) (0.0147,92.3000) (0.0158,94.2400) (0.0158,96.2200) (0.0179,98.1400) (0.0242,100.0000) (0.1274,100.0000) (0.2316,100.0000) (0.3347,100.0000) (0.4389,100.0000) (0.5421,100.0000) (0.6463,100.0000) (0.7495,100.0000) (0.8537,100.0000) (0.9568,100.0000) (1.0600,100.0000) (1.1642,100.0000) (1.2674,100.0000) (1.3716,100.0000) (1.4747,100.0000) (1.5789,100.0000) (1.6821,100.0000) (1.7863,100.0000) (1.8895,100.0000) (1.9937,100.0000) (2.0968,100.0000) (2.2011,100.0000) (2.3042,100.0000) (2.4084,100.0000) (2.5116,100.0000) (2.6158,100.0000) (2.7189,100.0000) (2.8232,100.0000) (2.9263,100.0000) (3.0295,100.0000) (3.1337,100.0000) (3.2368,100.0000) (3.3411,100.0000) (3.4442,100.0000) (3.5484,100.0000) (3.6516,100.0000) (3.7558,100.0000) (3.8589,100.0000) (3.9632,100.0000) (4.0663,100.0000) (4.1705,100.0000) (4.2737,100.0000) (4.3779,100.0000) (4.4811,100.0000) (4.5853,100.0000) (4.6884,100.0000) (4.7926,100.0000) (4.8958,100.0000) (5.0000,100.0000)};
+\draw[green!35!black, dash dot] (axis cs:0.69,90) -- (axis cs:0.69,101);
+\node[green!30!black, font=\tiny, anchor=west] at (axis cs:0.75,93) {deployed point};
+\end{axis}
+\end{tikzpicture}
+\caption{In-domain ROC over the deployable region, frozen $K=5$. Catch is saturated at $100\%$
+well below the operating point; rank-based AUC over the full range is $0.99994$. The $0.69\%$
+target is not a tuned optimum---any threshold in this region gives the same detection.}
+\label{fig:roc}
+\end{figure}
 
 \section{The Boundary in Full}
 \label{app:boundaryfull}
@@ -1641,6 +1822,30 @@ is advantaged by. On templated poison it flags every injected passage; on host-a
 it flags none. Detection is corpus-level and LLM-free for both methods, and both run on the same
 cached embeddings, so the comparison isolates the statistic computed from the shared assumption.
 
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=\columnwidth, height=4.2cm,
+  ybar stacked, bar width=8mm,
+  symbolic x coords={RTX~4060,Apple~M4,RTX~5080~(1M)},
+  xtick=data, ymin=0, ylabel={per-query latency (ms)},
+  tick label style={font=\scriptsize}, label style={font=\scriptsize},
+  legend style={font=\scriptsize, at={(0.98,0.97)}, anchor=north east, draw=none},
+  grid=both, grid style={line width=.2pt, draw=gray!20}]
+\addplot[fill=black!18] coordinates {(RTX~4060,37.36) (Apple~M4,27.70) (RTX~5080~(1M),14.61)};
+\addlegendentry{query encode}
+\addplot[fill=red!45!black] coordinates {(RTX~4060,0.71) (Apple~M4,0.41) (RTX~5080~(1M),0.42)};
+\addlegendentry{retrieve $+$ gate}
+\end{axis}
+\end{tikzpicture}
+\caption{Where the per-query millisecond goes. The detector's own contribution---retrieval plus
+the threshold test---is $0.41$--$0.71$\,ms on every platform, including at $N=10^6$; the rest is
+the encoder forward pass a RAG system already pays. This is why the deployment envelope is
+insensitive to corpus size.}
+\label{fig:latency}
+\end{figure}
+
 \section{Deployment Cost of the Corpus-Level Precompute}
 \label{app:cost}
 Per-query latency is only half the deployment question; the other half is the one-time
@@ -1690,6 +1895,114 @@ survived as long as it did because it compared our figure against a number repor
 under a different generator, corpus and criterion. We state the correction plainly here: a
 cohesion gate raises the bar for the attack it reads and does not raise it for an adversary
 willing to write different text.
+
+
+\section{Corpora, Constants, and Environment}
+\label{app:setup}
+
+\begin{table}[t]
+\centering
+\caption{Evaluation corpora. Benign duplication is the fraction of clean documents sharing a
+$5$-gram with another, the property that separates lexical from semantic detection.}
+\label{tab:corpora}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrccl}
+\toprule
+Corpus & Docs & Benign dup. & Clean coh. & Role \\
+\midrule
+Security SE      & $100{,}000$   & $0.24\%$ & $0.750$ & in-domain control \\
+Natural Questions& $\approx\!150$k & $1.15\%$ & --- & released poison \\
+HotpotQA         & $\approx\!150$k & $9.06\%$ & --- & released poison \\
+Multi-site SE    & $1{,}000{,}000$ & --- & $0.748$ & scale \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Frozen detector constants. No value is tuned per corpus, per density, or per encoder;
+$K$ and the operating point are swept only as sensitivity analyses
+(Tables~\ref{tab:ksens},~\ref{tab:fprsweep}).}
+\label{tab:constants}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lll}
+\toprule
+Symbol & Value & Meaning \\
+\midrule
+$K$ & $5$ & neighbours scored for cohesion \\
+$K_{\mathrm{FETCH}}$ & $20$ & over-fetch before rerank \\
+$m$ & $1024$ & embedding dimension \\
+$M$ / efC & $32$ / $200$ & HNSW graph parameters \\
+$\mathrm{FPR}_{\mathrm{TARGET}}$ & $0.0069$ & non-oracle calibration target \\
+$k$ & $2$ & flags required per query \\
+seeds & $42,7,123$ & calibration partitions \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Software environment per platform. Detection agrees to $<5\times10^{-7}$ across these
+despite different Python, PyTorch, FAISS and sentence-transformers builds---the decision is a
+property of the geometry, not of a toolchain.}
+\label{tab:env}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{llll}
+\toprule
+ & RTX 5080 & RTX 4060 & Apple M4 \\
+\midrule
+Python  & $3.11.15$ & $3.13.7$ & $3.11.9$ \\
+PyTorch & $2.11.0$+cu128 & $2.6.0$+cu124 & $2.11.0$ \\
+Backend & CUDA & CUDA & MPS \\
+FAISS   & $1.7.4$ & $1.13.2$ & $1.13.2$ \\
+S-T     & $3.0.1$ & $5.3.0$ & $5.2.2$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Deployment Guidance}
+\label{app:guidance}
+Our results support a narrow recommendation, and we state its limits with it. A cohesion gate is
+worth deploying where the threat is the published templated attack: it costs one offline pass and
+sub-millisecond per query, needs no LLM, no decoder access and no registration authority, holds
+its operating point across encoders and hardware, and---measured end to end---removes all of the
+answer corruption that attack produces. For an operator whose realistic adversary is an
+opportunistic injector reusing published tooling, that is a favourable trade.
+
+It should not be deployed as though it bounded the adversary. An attacker who reads this paper can
+evade it with one paraphrase per target and lose nothing in effectiveness. A gate of this family
+is therefore a filter for known attack structure, not a security boundary, and it should sit
+behind controls that do not depend on the attacker's text: provenance on the ingestion path,
+rate and origin limits on who may write to the corpus, and review of documents that enter through
+low-trust channels. The geometric signal tells you when someone has used the standard attack; it
+cannot tell you that nobody has attacked.
+
+\section{What Would Close the Boundary}
+\label{app:future}
+The blind spot is informative about what a repair must do. Host-anchored clones defeat cohesion
+because they are, geometrically, ordinary documents: they sit where a benign document sits,
+because they were built from one. Any statistic computed \emph{only} from the corpus embedding
+geometry therefore has no signal to read---which our failed $s_{nd}$ repair demonstrates rather
+than assumes. Three directions do not share that limitation. Provenance breaks the symmetry
+without looking at content at all, at the cost of an authority the offline setting was chosen to
+avoid. Cross-encoder or entailment scoring between a passage and the claim it supports reads
+meaning rather than position, and would see that a clone's payload contradicts its host's own
+content; it costs a second model, though not necessarily a generative one. Retrieval-time
+consistency---asking whether the documents retrieved for one query agree with each other---is
+what the per-query filters already approximate, and pairing it with a corpus-level statistic is
+the obvious hybrid our results argue for, since the two fail on disjoint inputs.
+
+\section{Ethics and Responsible Disclosure}
+\label{app:ethics}
+This work evaluates a defense, but the boundary we report is an attack technique, and we describe
+it in enough detail to reproduce. We judged disclosure appropriate on three grounds. The
+construction is not novel or difficult---it is copy, paraphrase, splice, and requires no gradient
+access, no optimization and no model internals; an adversary willing to spend one LLM call per
+target would find it. It defeats a defense family that is being actively proposed for deployment,
+so operators need it to calibrate what they are buying. And withholding it would leave our own
+positive results overstated, which is the failure mode this paper exists to correct. No live
+system was attacked: every experiment runs on a locally constructed corpus with synthetic
+payloads, and the released artifacts contain no real credentials or personal data.
 
 \bibliographystyle{IEEEtran}
 \begin{thebibliography}{99}
