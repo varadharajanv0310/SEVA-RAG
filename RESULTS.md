@@ -63,6 +63,22 @@ no templated poison present).
 | Retrievable @K=5 | 84% | same |
 | Answer corruption among evading+retrieved | **31.0%** (13/42; Wilson 19.1-46.0) | same |
 | **End-to-end ASR vs deployed gate** | **26.0%** of all 50 targets | same |
+| CleanBase reproduced, matched 0.69% FPR | **100%** templated / **0%** clones -- identical to SEVA | `expT3_cleanbase_s042.json` |
+| Payload-prominence frontier (Figure 1) | evasion 100->46%, retrievable 90->38%, **ASR peaks 28% at 25% payload** | `expT2b_potency_frontier_s042.json` |
+
+## Prevention, robustness, sensitivity
+
+| Claim | Number | File |
+|---|---|---|
+| **End-to-end prevention (templated)** | corruption **18% -> 0%**; poison in top-K **2.74 -> 0.00** | `whitebox_attack_results/expA1_endtoend_s042.json` |
+| K-sensitivity | **100% catch** at K = 3, 5, 10, 20 (recalibrated per K) | `expA23_sensitivity_s042.json` |
+| Operating-point sweep | **100% catch** at FPR targets 0.1-5%; **AUC 0.99994** | same |
+| Chunking + cross-encoder reranking | 168,865 chunks; clean/poison coh 0.752/0.991; **100% catch**; reranker moves 3.6 positions/query, poison@5 unchanged | `expS1_chunk_rerank_s042.json` |
+
+**No cost-of-evasion claim is made.** Harmonized on one criterion and one generator: templated
+undefended **18%**, templated with gate **0%**, host-anchored clones **26%**, prominence-optimal
+clones **28%**. The bypass is at least as effective as the attack it replaces, and the gate does
+not bind at the adversary's optimum (25% payload, where evasion is still 100%).
 | Complementary signal `s_nd` on clones | catches 13-20%; two-signal union gate 6.7-33.3% | `expA_snd_vs_paraclone_s042.json`, `expA2_cloneonly_s042.json` |
 | Multiplicity sweep (1->5 clones/target) | coh 0.722 -> 0.790, still under tau | `expA2_cloneonly_s042.json` |
 | Evasion/retrievability frontier (Figure 1) | evasion 92->4%, retrievable 63->18% | `whitebox_attack_results/prominence_s042.json` |

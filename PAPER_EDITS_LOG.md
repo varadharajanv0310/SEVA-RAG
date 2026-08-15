@@ -757,4 +757,18 @@ Whenever any experiment (E1, E1b, E2, E3, E4-HH, E5, E6, E7) **changes, adds, or
 
 ---
 
+## V8-BOUNDARY-2 · five new runs folded in; cost-of-evasion claim RETRACTED (Option A)
+- Added 2026-08-15. Five runs completed overnight; all numbers pulled from the committed JSONs. Commit local + pushed.
+- **T3 CleanBase reproduced** (`expT3_cleanbase_s042.json`): similarity graph + clique detection, z swept to a matched 0.69% clean FPR (z=2.24, tau=0.861). **100% templated / 0% host-anchored clones -- identical to SEVA on both regimes.** New `tab:boundary` in SS V. This is the paper's novelty anchor: the blind spot belongs to the shared mutual-similarity assumption, not to `cluster_coh`.
+- **A1 end-to-end** (`expA1_endtoend_s042.json`): templated attack corrupts **18%** of 50 targets undefended, **0%** with the gate (drop-flagged + backfill from K_FETCH); poison in top-K **2.74 -> 0.00**. New SS V subsection `subsec:e2e`.
+- **A2/A3 sensitivity** (`expA23_sensitivity_s042.json`): 100% catch at K in {3,5,10,20} (recalibrated per K; K=5 reproduces frozen doc_coh exactly, delta=0.00000) and at every FPR target 0.1-5%; **AUC 0.99994**.
+- **S1 chunk+rerank** (`expS1_chunk_rerank_s042.json`): 168,865 chunks at 128 words, re-embedded, recalibrated -> clean/poison coh 0.752/0.991, **100% catch at 0.690% FPR**; `bge-reranker-base` reorders 3.6 positions/query with poison@5 unchanged (2.72). Answers the chunking/reranking threat-model objection.
+- **T2b potency frontier** (`expT2b_potency_frontier_s042.json`): payload prominence 12/25/37/62% -> evasion 100/100/86/46%, retrievable 90/78/72/38%, **ASR 16/28/22/12%**. Figure 1 gained a third axis.
+- **RETRACTION (Option A).** The cost-of-evasion claim added earlier the same day is **removed everywhere** (abstract, C4, SS V-boundary, SS VI-D, Limitations). It compared our 26% against PoisonedRAG's *published* 90-97%, which uses a different generator, corpus and criterion. Harmonized on one protocol: templated undefended **18%**, templated gated **0%**, clones **26%**, prominence-optimal clones **28%** -- the bypass is *more* effective than the attack it replaces, and the adversary's optimum (25% payload) sits where evasion is still 100%, so the gate never binds there. The paper now makes **no** cost-of-attack claim and says so explicitly, noting we held the opposite view before measuring.
+- **SS VI-D retitled** "What the Geometry Does and Does Not Buy". SS VI-B (Distillation Through Rigor) removed as post-reframe restatement; `shap` bibitem dropped with it. `regain`/`simhash` remain dropped.
+- **Layout:** `tab:scale`, `tab:xdomain` moved to the supplement (joining signals/core/xplat/encoder/h2h). Main paper keeps `tab:main`, `tab:coh`, `tab:boundary` + Figure 1. **Main 12 pages incl. references; supplement 4 pages.** Both compile clean: 0 errors, 0 undefined refs, 0 overfull boxes, 34/34 cites=bibitems.
+- **Known deviation:** the boundary attack's paraphraser is `mistral:7b-instruct` (gpt-oss:20b loops in hidden reasoning on the long rewrite prompt and returns empty output); the answer-corruption judge remains `gpt-oss:20b` at temperature 0, identical to expC/expD, so potency figures stay comparable. Documented in the supplement.
+
+---
+
 *(further entries: E5 / E6 / E7 — appended per the Standing rule)*

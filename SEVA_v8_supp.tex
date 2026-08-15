@@ -408,4 +408,53 @@ RAGDefender & $\sim$89\% & 50.4\% \\
 \end{tabular}
 \end{table}
 
+\section{Million-Document Scale Detail}
+\label{app:scale}
+Per-density detail for the million-document scale validation reported in the main paper.
+
+\begin{table}[htbp]
+\centering
+\caption{Validation at million-document scale: $N=1{,}000{,}000$, a broader hash-gated
+technical corpus (SHA-256 \texttt{317eb43c}$\dots$---\emph{distinct} from the
+cross-platform corpus of the main paper). Latency is $15.0$\,ms mean / $18.2$\,ms p95,
+of which retrieval and gate are $\approx\!0.4$\,ms (sub-millisecond at $10\times$ scale);
+poison-evasion is $0\%$, the gap density-invariant, and the non-oracle document-FPR
+$0.70\%$. The poison budget fills $1\%$ and $5\%$; $10\%$ exceeds it. Three seeds.}
+\label{tab:scale}
+\begin{tabular}{lccccc}
+\toprule
+Density & $n_{\mathrm{poison}}$ & Gap & SNR & Evasion & Doc-FPR \\
+\midrule
+$1\%$ & $10{,}000$ & $+0.245$ & $5.63$ & $\mathbf{0\%}$ & $0.68\%$ \\
+$5\%$ & $50{,}000$ & $+0.249$ & $5.57$ & $\mathbf{0\%}$ & $0.72\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Cross-Domain Detection Detail}
+\label{app:xdomain}
+Per-corpus detail for the cross-domain results reported in the main paper: cluster coherence against lexical MinHash and embedding near-duplicate detection at the matched non-oracle operating point.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-domain detection of the PoisonedRAG attack at the $0.69\%$ non-oracle
+operating point (released poison on Natural Questions and HotpotQA; a faithful black-box
+build on Security). \texttt{cluster\_coh} catches the attack on all three corpora
+(``Evasion'' is the residual it misses, a detection metric); lexical MinHash filtering is
+corpus-fragile, while embedding deduplication ($s_{nd}$) is competitive. ``Benign dup.''\
+is the fraction of clean documents sharing a 5-gram.}
+\label{tab:xdomain}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+\multirow{2}{*}{Corpus} & Benign & \texttt{cluster\_coh} & MinHash & $s_{nd}$ & Poison \\
+       & dup. & (ours) & (lexical) & (embed.) & evasion \\
+\midrule
+Security SE       & 0.24\% & \textbf{98\%} & 98\% & 98\% & 2\% \\
+Natural Questions & 1.15\% & \textbf{82\%} & 0\%  & 52\% & 18\% \\
+HotpotQA          & 9.06\% & \textbf{97\%} & 0\%  & 98\% & 3\% \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
 \end{document}

@@ -42,15 +42,16 @@ encounters at the frozen gate---at a 0.58\% document-level false-positive rate, 
 frozen non-oracle calibration and 1--10\% contamination density. On PoisonedRAG's
 \emph{own released} poison for the field's general-domain benchmarks (Natural Questions,
 HotpotQA), and a faithful black-box build on the in-domain Security corpus, it catches
-the attack at 82--98\%. We further show that the lexical duplicate filtering PoisonedRAG
-itself found insufficient is corpus-fragile: at matched false-positive rate it fails
-entirely on duplicate-dense benchmarks where cluster coherence holds. Against a
-keyword-dropping adaptive adversary, a multi-signal composite collapses to 49--57\%
-poison-evasion while the geometric hard gate holds 0\%. We also delimit the assumption the gate rests
-on: \emph{host-anchored cloning}---one benign host mimicked per injected passage---evades it on
-every target while staying retrievable, and no complementary geometric signal we tested closes
-the gap; but it corrupts only 26\% of targets end to end, against the 90--97\% the same attack
-family achieves undetected. The signal is \emph{encoder-invariant}---%
+the attack at 82--98\%, while the lexical duplicate filtering PoisonedRAG itself found
+insufficient proves corpus-fragile at matched false-positive rate. End to end the gate prevents
+all the corruption it detects: the templated attack corrupts 18\% of targets undefended and 0\%
+with the gate in the loop. We then delimit the assumption it rests on. \emph{Host-anchored
+cloning}---one benign host mimicked per injected passage---evades the gate on every target while
+staying retrievable, no complementary geometric signal we tested closes the gap, and the bypass
+is not expensive: it corrupts 26--28\% of targets, more than the templated attack achieves
+undefended. Reproducing CleanBase, the closest corpus-level peer, at a matched operating point
+yields the same pattern (100\% templated, 0\% clones), so the boundary belongs to the shared
+mutual-similarity assumption rather than to our statistic. The signal is \emph{encoder-invariant}---%
 templated-poison detection generalizes across three embedding models of independent
 lineages, bge (BAAI), e5 (Microsoft), and gte (Alibaba)---and \emph{reproducible to
 within $5\times10^{-7}$} across two accelerator backends (CUDA and Apple Silicon) on a
@@ -167,10 +168,11 @@ detection can and cannot do. Soft linguistic signals are domain-confounded and c
 keyword-dropping adversary (49--57\% poison-evasion) while the geometric hard gate holds $0\%$;
 but \emph{host-anchored cloning}---injecting passages each mimicking a distinct benign
 document---evades the deployed gate entirely while remaining retrievable, and the natural
-complementary geometric signal does not close the gap. Evasion is nevertheless expensive: it
-costs the attacker the large majority of its end-to-end effectiveness
-(\S\ref{subsec:boundary}). Because this boundary follows from the mutual-similarity assumption
-rather than from our statistic, it delimits the cohesion-detection family, not SEVA alone.
+complementary geometric signal does not close the gap. Nor is the bypass expensive: it corrupts
+more targets end to end than the templated attack it replaces (\S\ref{subsec:boundary}). Because
+the boundary follows from the mutual-similarity assumption rather than from our statistic---and
+reproducing CleanBase at a matched operating point reproduces it exactly---it delimits the
+cohesion-detection family, not SEVA alone.
 
 \item \textbf{C5 --- Methodological rigor.} Evaluation is density-agnostic, non-oracle (frozen,
 held-out) at 1--10\% density with complete per-seed false-positive reporting, and against what
@@ -741,8 +743,7 @@ passages for Natural Questions and HotpotQA---and a faithful black-box PoisonedR
 built with the authors' \emph{released} attack code, on the in-domain Security
 corpus---SEVA flags
 the attack at the $0.69\%$ non-oracle operating point, catching $98\%$ (Security),
-$82\%$ (Natural Questions), and $97\%$ (HotpotQA) of the injected poison
-(Table~\ref{tab:xdomain})---a poison-evasion rate of $2\%$, $18\%$, and $3\%$
+$82\%$ (Natural Questions), and $97\%$ (HotpotQA) of the injected poison---a poison-evasion rate of $2\%$, $18\%$, and $3\%$
 respectively. These are \emph{detection} rates, the fraction of poison the gate
 flags, not end-to-end answer-corruption: PoisonedRAG's released passages are
 engineered for high end-to-end attack-success against a generator in the
@@ -757,31 +758,8 @@ defense works only
 against its designers' own re-implementation of the attack: SEVA detects
 PoisonedRAG on the ground PoisonedRAG was built to win.
 
-\begin{table}[t]
-\centering
-\caption{Cross-domain detection of the PoisonedRAG attack at the $0.69\%$ non-oracle
-operating point (released poison on Natural Questions and HotpotQA; a faithful black-box
-build on Security). \texttt{cluster\_coh} catches the attack on all three corpora
-(``Evasion'' is the residual it misses, a detection metric); lexical MinHash filtering is
-corpus-fragile, while embedding deduplication ($s_{nd}$) is competitive. ``Benign dup.''\
-is the fraction of clean documents sharing a 5-gram.}
-\label{tab:xdomain}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccccc}
-\toprule
-\multirow{2}{*}{Corpus} & Benign & \texttt{cluster\_coh} & MinHash & $s_{nd}$ & Poison \\
-       & dup. & (ours) & (lexical) & (embed.) & evasion \\
-\midrule
-Security SE       & 0.24\% & \textbf{98\%} & 98\% & 98\% & 2\% \\
-Natural Questions & 1.15\% & \textbf{82\%} & 0\%  & 52\% & 18\% \\
-HotpotQA          & 9.06\% & \textbf{97\%} & 0\%  & 98\% & 3\% \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
 \subsection{Lexical Duplicate Filtering Is Corpus-Fragile}
-\label{subsec:lex}
-Table~\ref{tab:xdomain} also answers the sharpest objection to a cohesion-based detector: that
+\label{subsec:lex} also answers the sharpest objection to a cohesion-based detector: that
 it merely reimplements the duplicate filtering PoisonedRAG itself tested and dismissed
 (\S7.3 of~\cite{poisonedrag}). Lexical near-duplicate filtering (MinHash~\cite{minhash}) is \emph{corpus-fragile}. On the lexically
 sparse Security corpus it catches the attack ($98\%$), because a matched-FPR threshold can sit
@@ -872,46 +850,89 @@ $98\%$.
 \addplot[mark=square*, thick, color=blue!60!black] coordinates
   {(12.3,62.8) (24.7,49.6) (37.0,43.2) (61.7,33.2) (98.7,18.0) (100,18.0)};
 \addlegendentry{retrievable @$K{=}5$}
+\addplot[mark=triangle*, thick, dashed, color=orange!80!black] coordinates
+  {(12.3,16.0) (24.7,28.0) (37.0,22.0) (61.7,12.0)};
+\addlegendentry{end-to-end ASR}
 \end{axis}
 \end{tikzpicture}
-\caption{The attacker's evasion frontier (in-domain, seed~42). As the injected payload grows
-more prominent within its carrier, cohesion rises through $\tau$ and evasion collapses
-($92\%\!\to\!4\%$)---but retrievability collapses with it ($63\%\!\to\!18\%$). The viable region
-is the low-prominence corner, precisely where the payload is too dilute to reliably corrupt the
-answer (\S\ref{subsec:boundary}).}
+\caption{The attacker's frontier over payload prominence (in-domain, seed~42). Raising payload
+prominence trades evasion ($92\%\!\to\!4\%$) and retrievability ($63\%\!\to\!18\%$) against
+potency, giving an interior optimum at $25\%$ payload where end-to-end success peaks at $28\%$
+\emph{and evasion is still total}. The gate only begins to fire beyond that point, so it does
+not bind at the operating point an adversary would choose (\S\ref{subsec:boundary}).}
 \label{fig:frontier}
 \end{figure}
 
 \subsection{The Boundary: Host-Anchored Cloning}
 \label{subsec:boundary}
 Every result so far concerns injections built from a shared recipe, which is exactly what the
-gate reads---so the honest question is what happens when an adversary abandons it. We construct
-\emph{host-anchored clones}: for each target the attacker takes the top-ranked benign document,
-rewrites it with an offline LLM to preserve meaning while changing surface form, and splices in
-the payload. Each injected passage is now anchored to a \emph{different} benign document, so its
-$K$-nearest neighbours are that host's neighbourhood rather than its own siblings, and cohesion
-never leaves the clean band.
+gate reads---so the honest question is what happens when an adversary abandons it. In a
+\emph{host-anchored clone}, the attacker rewrites the target's top-ranked benign document with an
+offline LLM to preserve meaning while changing surface form, then splices in the payload. Each
+injected passage is anchored to a \emph{different} benign document, so its $K$-nearest
+neighbours are that host's neighbourhood rather than its own siblings.
 
 The gate does not see this attack. Clone cohesion averages $0.751$ against $\tau=0.841$---below
-the gate for \emph{every} one of $50$ targets ($100\%$ poison-evasion), while $84\%$ of clones
-are still retrieved at $K=5$. Multiplicity does not rescue detection: sweeping $1$ to $5$ clones
-per target moves mean cohesion only from $0.722$ to $0.790$, because each document's embedding
-is dominated by its distinct host rather than the shared payload. Nor does the complementary
-signal: nearest-neighbour duplication $s_{nd}$, which flags templated poison perfectly, catches
-only $13$--$20\%$ of clones, and a two-signal union gate at the same $0.69\%$ budget reaches
-just $6.7$--$33.3\%$. The blind spot is thus not an artifact of our statistic; it follows from
-the mutual-similarity assumption the whole family shares (\S\ref{sec:related}).
+the gate for \emph{every} one of $50$ targets ($100\%$ poison-evasion), while $84\%$ remain
+retrieved at $K=5$. Multiplicity does not rescue detection: $1$ to $5$ clones per target moves
+mean cohesion only from $0.722$ to $0.790$, because each embedding is dominated by its distinct
+host rather than the shared payload. Nor does the complementary signal: nearest-neighbour
+duplication $s_{nd}$, which flags templated poison perfectly, catches only $13$--$20\%$ of
+clones, and a two-signal union gate at the same $0.69\%$ budget reaches just $6.7$--$33.3\%$.
 
-What the attacker pays for this is potency. Among the $42$ clones that both evade the deployed
-gate and are retrieved, $31.0\%$ ($13/42$; $95\%$ Wilson $19.1$--$46.0\%$) actually corrupt the
-answer under the marker test detailed in the supplementary material---an end-to-end success rate
-of $26\%$ over all $50$ targets, against the $90$--$97\%$ PoisonedRAG reports when
-undetected~\cite{poisonedrag}. Dilution is the mechanism:
-Figure~\ref{fig:frontier} sweeps payload prominence and shows evasion falling from $92\%$ to
-$4\%$ and retrievability from $63\%$ to $18\%$ as the payload grows to dominate its carrier. The
-adversary may have dispersion or potency, but buys them against each other. We report this
-residual---an evading, retrievable, answer-corrupting injection on roughly a quarter of
-targets---as a genuine limitation of the deployed gate rather than a hypothetical one.
+\emph{The bypass is not expensive.} It would be convenient to report that evasion costs the
+adversary its effect, and we initially expected it to. Measured consistently it does not. Among
+the $42$ clones that evade the deployed gate and are retrieved, $31.0\%$ ($13/42$; $95\%$ Wilson
+$19.1$--$46.0\%$) corrupt the answer, an end-to-end success rate of $26\%$ over all $50$
+targets. On the \emph{same} targets, generator, and corruption criterion, the templated attack
+the gate does stop reaches only $18\%$ undefended (\S\ref{subsec:e2e}). Sweeping payload
+prominence (Fig.~\ref{fig:frontier}) gives the adversary an interior optimum at $25\%$ payload,
+where evasion is still total and end-to-end success peaks at $28\%$; beyond that the gate begins
+to fire, but retrievability is already falling, so the optimum is unaffected by whether the gate
+is deployed at all. We therefore make no cost-of-attack claim: against an adversary willing to
+change strategy, the gate removes the attack it detects without raising the attacker's price.
+
+\emph{The blind spot is shared, not ours.} Reproducing CleanBase~\cite{cleanbase}---the closest
+peer, which detects the cliques that co-targeted documents form in a corpus-level similarity
+graph---and matching it to the same $0.69\%$ clean false-positive point, it catches $100\%$ of
+templated poison and $0\%$ of host-anchored clones: identical to SEVA on both regimes
+(Table~\ref{tab:boundary}). Since the two detectors share only the mutual-similarity assumption
+and not the statistic computed from it, the boundary is a property of the assumption, and so of
+the cohesion-detection family.
+
+\begin{table}[t]
+\centering
+\caption{Both corpus-level cohesion detectors, at a matched $0.69\%$ clean false-positive point,
+on the two injection regimes. They agree exactly: the assumption they share is what fails.}
+\label{tab:boundary}
+\begin{tabular}{lcc}
+\toprule
+Detector & Templated & Host-anchored clones \\
+\midrule
+SEVA (\texttt{cluster\_coh} gate) & \textbf{100\%} & $0\%$ \\
+CleanBase~\cite{cleanbase} (reproduced) & \textbf{100\%} & $0\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Prevention, Not Just Flagging}
+\label{subsec:e2e}
+Every result so far measures whether poison is \emph{flagged}. Because the boundary above is
+reported end to end, we close the asymmetry in the direction that tests us hardest and measure
+the templated attack the same way: retrieve, drop documents the gate flags, backfill from the
+$K_{\mathrm{FETCH}}$ over-fetch, generate, and count payload markers in the answer. Undefended,
+the attack corrupts $18\%$ of the $50$ targets and places $2.74$ poison passages in the average
+retrieval window. With the gate in the loop both fall to zero: $0.00$ poison passages retrieved
+and $0\%$ of answers corrupted. The gate prevents all of the corruption it detects; what it does
+not detect is \S\ref{subsec:boundary}.
+
+The result is not an artifact of the two frozen choices, nor of an idealised pipeline. Catch
+stays at $100\%$ for $K\in\{3,5,10,20\}$ (recalibrating non-oracle at each $K$) and for every
+false-positive target from $0.1\%$ to $5\%$, at an AUC of $0.9999$. Rechunking the corpus to
+$128$-word passages ($168{,}865$ chunks) and re-embedding leaves clean and poison coherence at
+$0.752$ and $0.991$ and catch at $100\%$, while a cross-encoder reranker reorders $3.6$ positions
+per query without changing how much poison reaches the top-$5$: chunking and reranking defeat
+neither the attack nor the detector.
 
 \subsection{Cross-Platform Reproducibility and Efficiency}
 \label{subsec:eff}
@@ -941,7 +962,7 @@ remainder is the encoder forward pass, which is independent of corpus size. The
 detector's own cost therefore stays \emph{sub-millisecond} at a million
 documents---a ten-fold corpus increase moves the retrieval-plus-gate term by a
 fraction of a millisecond---confirming the $O(\log N)$ deployment claim by measurement
-rather than extrapolation (Table~\ref{tab:scale}). Detection holds at scale: the
+rather than extrapolation. Detection holds at scale: the
 poison--clean gap is density-invariant ($+0.245$ at $1\%$, $+0.249$ at $5\%$) at an
 SNR near $5.6$, poison-evasion is $0\%$ on every condition and seed, and the
 non-oracle document-FPR is $0.70\%$---a $0.011\%$ deviation from the $0.69\%$
@@ -957,25 +978,6 @@ unrun rather than fabricated, density-invariance across the full band being esta
 $100{,}000$ (\S\ref{subsec:geom}). \emph{(iii)~Calibration.} The $1$M point extends the trend to
 three scales---deviation $0.075\%$, $0.016\%$, $0.011\%$---shrinking as Observation~2 implies;
 because it uses the broader corpus we read it as direction, not a fitted exponent.
-
-\begin{table}[t]
-\centering
-\caption{Validation at million-document scale: $N=1{,}000{,}000$, a broader hash-gated
-technical corpus (SHA-256 \texttt{317eb43c}$\dots$---\emph{distinct} from the
-cross-platform corpus of \S\ref{subsec:eff}). Latency is $15.0$\,ms mean / $18.2$\,ms p95,
-of which retrieval and gate are $\approx\!0.4$\,ms (sub-millisecond at $10\times$ scale);
-poison-evasion is $0\%$, the gap density-invariant, and the non-oracle document-FPR
-$0.70\%$. The poison budget fills $1\%$ and $5\%$; $10\%$ exceeds it. Three seeds.}
-\label{tab:scale}
-\begin{tabular}{lccccc}
-\toprule
-Density & $n_{\mathrm{poison}}$ & Gap & SNR & Evasion & Doc-FPR \\
-\midrule
-$1\%$ & $10{,}000$ & $+0.245$ & $5.63$ & $\mathbf{0\%}$ & $0.68\%$ \\
-$5\%$ & $50{,}000$ & $+0.249$ & $5.57$ & $\mathbf{0\%}$ & $0.72\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \section{Discussion}
 
@@ -993,16 +995,6 @@ air-gapped, and no-egress deployments alike: the only standing cost is the corpu
 precompute, and re-screening after an ingestion batch touches only the new documents and their
 neighbourhoods.
 
-\subsection{Distillation Through Rigor}
-SEVA's final form is the product of an adversarial evaluation of its own earlier design: an
-in-domain control and a keyword-dropping adversary exposed the ten-signal composite's soft
-signals as domain-confounded---much of their apparent power discriminated security text from
-Wikipedia, not poison from clean---and adaptively fragile, leaving the geometric core, which we
-therefore report as an ablation. The lesson is transferable: the signal that survives a
-domain-confound control and an adaptive adversary is the one worth deploying, even when it is
-not the highest-SNR signal in a permissive evaluation---a selection that learned feature
-attribution such as SHAP~\cite{shap} would have inverted on a permissive evaluation.
-
 \subsection{What Cluster Coherence Adds Over Deduplication}
 Cluster coherence is a group-cohesion signal, not the pairwise near-duplicate score a
 deduplicator computes---and that difference is what the cross-domain results expose. Averaging
@@ -1016,26 +1008,25 @@ it is an honest edge, not a rout: $s_{nd}$ is competitive, with cluster coherenc
 clearest where benign redundancy is moderate (Natural Questions) and at parity where it is very
 sparse or very dense---we claim the former and disclose the latter.
 
-\subsection{The Cost of Evading the Geometric Gate}
-What must an adversary do to defeat the deployed detector? The gate fires on one
-property---that the passages injected for a target query occupy a tight neighbourhood in
-embedding space---so evading it means injecting poison that does \emph{not} cluster.
-Attacks that preserve the shared-recipe structure cannot do this: a diversity-injection
-adversary that spreads poison across multiple semantic frames, perturbing each passage to
-lower its cohesion, reduces poison cohesion only marginally and leaves every injected
-passage above the gate ($0\%$ poison-evasion).
+\subsection{What the Geometry Does and Does Not Buy}
+The gate fires on one property---that the passages injected for a target occupy a tight
+neighbourhood in embedding space---so evading it means injecting poison that does \emph{not}
+cluster. Attacks that preserve the shared-recipe structure cannot do this: a diversity-injection
+adversary that spreads poison across semantic frames, perturbing each passage to lower its
+cohesion, reduces poison cohesion only marginally and leaves every injected passage above the
+gate ($0\%$ poison-evasion). Within that family the geometry is decisive, and it is decisive for
+a reason the soft signals never had: cohesion is a property of the attack's construction, not of
+vocabulary an adversary can normalise away.
 
-We deliberately do \emph{not} claim that the geometry makes evasion impossible, and our
-own measurements rule that claim out. Dispersion and retrievability can be purchased
-together, cheaply, by abandoning the shared recipe and anchoring each injected passage to a
-distinct benign host document (\S\ref{subsec:boundary}). What the geometry imposes is not a
-barrier but a \emph{price}, and the price is paid in payload potency. Figure~\ref{fig:frontier}
-makes the trade-off explicit: as the injected payload grows more prominent within its carrier
-document, cohesion rises through the gate threshold---evasion falls from $92\%$ to $4\%$---while
-retrievability simultaneously collapses from $63\%$ to $18\%$. The attacker's viable region is
-the low-prominence corner, precisely where the payload is too dilute to reliably corrupt the
-answer. This is the cost-of-attack floor the soft, normalizable signals never had: not that
-evasion is unavailable, but that evasion and effectiveness pull in opposite directions.
+What it does \emph{not} buy is a cost floor. Dispersion and retrievability can be purchased
+together, cheaply, by abandoning the shared recipe (\S\ref{subsec:boundary}), and doing so costs
+the adversary nothing measurable---the bypass is more effective end to end than the attack it
+replaces. Figure~\ref{fig:frontier} shows why the intuition that it should be expensive is
+wrong: payload prominence trades evasion against retrievability, but the adversary's optimum
+sits at $25\%$ prominence, where evasion is still total, so the gate never binds at the
+operating point a rational attacker chooses. We state this plainly because the opposite claim is
+easy to make and we made it ourselves before measuring: a geometric gate raises the bar for the
+attack it reads, and does not raise it at all for an attacker willing to write different text.
 
 \section{Limitations}
 \label{sec:limits}
@@ -1045,12 +1036,16 @@ claimed regime.
 \emph{Injections that form no cluster.} The sharpest limitation is measured, not hypothetical
 (\S\ref{subsec:boundary}): an adversary who abandons the shared recipe and anchors each injected
 passage to a distinct benign host evades the deployed gate on \emph{every} target while $84\%$
-of clones remain retrievable, corrupting $26\%$ of targets end to end. Neither injection
-multiplicity nor nearest-neighbour duplication as a second geometric signal recovers detection,
-and single-document injections that mimic the clean distribution~\cite{corruptrag} form no
-cluster at all. This is a property of the mutual-similarity assumption itself---and so of the
-cohesion-detection family, not SEVA alone; closing it plausibly requires a signal that is not
-purely geometric.
+of clones remain retrievable, corrupting $26$--$28\%$ of targets end to end---more than the
+$18\%$ the templated attack achieves undefended. Neither injection multiplicity nor
+nearest-neighbour duplication as a second geometric signal recovers detection, and
+single-document injections that mimic the clean distribution~\cite{corruptrag} form no cluster
+at all. Reproduced at a matched operating point, CleanBase~\cite{cleanbase} fails on exactly the
+same inputs, so this is a property of the mutual-similarity assumption---and of the
+cohesion-detection family, not SEVA alone. A defender should read our positive results as
+bounded accordingly: the gate eliminates the dominant published attack at negligible cost, and
+does not raise the price for an adversary who switches strategy. Closing that gap plausibly
+requires a signal that is not purely geometric.
 
 \emph{Calibration assumption.} Like any calibrated detector, SEVA assumes access
 to a reference sample of the attack class for threshold setting; we show that a
@@ -1113,7 +1108,6 @@ capability comparison are provided separately.
 \bibitem{faiss} M. Douze, A. Guzhva, C. Deng \emph{et al.}, ``The FAISS library,'' 2024.
 \bibitem{hnsw} Y. A. Malkov and D. A. Yashunin, ``Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs,'' \emph{IEEE Trans. Pattern Anal. Mach. Intell.}, vol. 42, no. 4, pp. 824--836, 2020.
 \bibitem{wikitext} S. Merity, C. Xiong, J. Bradbury \emph{et al.}, ``Pointer sentinel mixture models,'' in \emph{Int. Conf. on Learning Representations (ICLR)}, 2017.
-\bibitem{shap} S. M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model predictions,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2017, pp. 4768--4777.
 \bibitem{minhash} A. Z. Broder, ``On the resemblance and containment of documents,'' in \emph{Proc. Compression and Complexity of Sequences}, 1997, pp. 21--29.
 \bibitem{nq} T. Kwiatkowski, J. Palomaki, O. Redfield, M. Collins, A. Parikh, C. Alberti, D. Epstein, I. Polosukhin, J. Devlin, K. Lee \emph{et al.}, ``Natural Questions: A benchmark for question answering research,'' \emph{Trans. Assoc. Comput. Linguistics}, vol. 7, pp. 453--466, 2019.
 \bibitem{hotpotqa} Z. Yang, P. Qi, S. Zhang \emph{et al.}, ``HotpotQA: A dataset for diverse, explainable multi-hop question answering,'' in \emph{Proc. Conf. on Empirical Methods in Natural Language Processing (EMNLP)}, 2018.

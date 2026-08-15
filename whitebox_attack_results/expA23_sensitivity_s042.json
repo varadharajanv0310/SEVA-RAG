@@ -1,0 +1,93 @@
+{
+  "A2_K_sensitivity": {
+    "note": "cluster_coh recomputed for each K; tau recalibrated non-oracle at 0.69% FPR per K; whole 100k p050 corpus",
+    "rows": [
+      {
+        "K": 3,
+        "tau": 0.8606536388397217,
+        "clean_coh_mean": 0.7572377324104309,
+        "poison_coh_mean": 0.9990419745445251,
+        "catch_pct": 100.0,
+        "clean_FPR_pct": 0.6884210526315789,
+        "poison_evasion_pct": 0.0
+      },
+      {
+        "K": 5,
+        "tau": 0.8405244973957537,
+        "clean_coh_mean": 0.7500917911529541,
+        "poison_coh_mean": 0.9909476637840271,
+        "catch_pct": 100.0,
+        "clean_FPR_pct": 0.6905263157894738,
+        "poison_evasion_pct": 0.0,
+        "validates_against_frozen": 0.0
+      },
+      {
+        "K": 10,
+        "tau": 0.8210607952654356,
+        "clean_coh_mean": 0.7390403151512146,
+        "poison_coh_mean": 0.9885943531990051,
+        "catch_pct": 100.0,
+        "clean_FPR_pct": 0.6905263157894738,
+        "poison_evasion_pct": 0.0
+      },
+      {
+        "K": 20,
+        "tau": 0.8032064676403999,
+        "clean_coh_mean": 0.7270965576171875,
+        "poison_coh_mean": 0.978187620639801,
+        "catch_pct": 100.0,
+        "clean_FPR_pct": 0.6905263157894738,
+        "poison_evasion_pct": 0.0
+      }
+    ]
+  },
+  "A3_operating_point": {
+    "note": "frozen K=5 doc_coh; FPR target swept in-domain",
+    "rows": [
+      {
+        "fpr_target_pct": 0.1,
+        "tau": 0.863708942651749,
+        "catch_pct": 100.0,
+        "realized_FPR_pct": 0.1
+      },
+      {
+        "fpr_target_pct": 0.25,
+        "tau": 0.8518901112675668,
+        "catch_pct": 100.0,
+        "realized_FPR_pct": 0.2505263157894737
+      },
+      {
+        "fpr_target_pct": 0.5,
+        "tau": 0.8444095039367678,
+        "catch_pct": 100.0,
+        "realized_FPR_pct": 0.5
+      },
+      {
+        "fpr_target_pct": 0.69,
+        "tau": 0.8408008857190609,
+        "catch_pct": 100.0,
+        "realized_FPR_pct": 0.6905263157894738
+      },
+      {
+        "fpr_target_pct": 1.0,
+        "tau": 0.8367123663425444,
+        "catch_pct": 100.0,
+        "realized_FPR_pct": 1.0
+      },
+      {
+        "fpr_target_pct": 2.0,
+        "tau": 0.8272326695919037,
+        "catch_pct": 100.0,
+        "realized_FPR_pct": 2.0
+      },
+      {
+        "fpr_target_pct": 5.0,
+        "tau": 0.8129639148712158,
+        "catch_pct": 100.0,
+        "realized_FPR_pct": 5.0
+      }
+    ],
+    "AUC": 0.9999393242105263
+  },
+  "runtime_s": 17.46893334388733
+}

@@ -1,0 +1,30 @@
+{
+  "method": "CleanBase reproduction (similarity graph + clique detection), matched to SEVA's 0.69% clean FPR by sweeping the z threshold parameter",
+  "params": {
+    "knn": 10,
+    "clique_min": 3,
+    "FPR_TARGET_pct": 0.69
+  },
+  "templated": {
+    "tag": "templated",
+    "z": 2.236328125,
+    "tau": 0.860528998367954,
+    "clean_FPR_pct": 0.6894736842105263,
+    "catch_pct": 100.0,
+    "n_attack": 5000
+  },
+  "host_anchored_clones": {
+    "tag": "host-anchored clones",
+    "z": 2.2353515625,
+    "tau": 0.8605299427290447,
+    "clean_FPR_pct": 0.6894736842105263,
+    "catch_pct": 0.0,
+    "n_attack": 50
+  },
+  "seva_reference": {
+    "templated_catch_pct": 100.0,
+    "clone_catch_pct": 0.0,
+    "note": "cluster_coh hard gate at the same 0.69% operating point"
+  },
+  "runtime_s": 34.644450187683105
+}

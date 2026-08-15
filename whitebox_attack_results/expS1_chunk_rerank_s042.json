@@ -1,0 +1,28 @@
+{
+  "setting": "in-domain p050 corpus rechunked at 128 words, re-embedded, cluster_coh recomputed on chunks, tau recalibrated non-oracle at 0.69% FPR",
+  "n_chunks": 168865,
+  "n_poison_chunks": 5000,
+  "chunk_gate": {
+    "tau": 0.8404632190227509,
+    "clean_coh_mean": 0.7522569894790649,
+    "poison_coh_mean": 0.9909476637840271,
+    "catch_pct": 100.0,
+    "clean_FPR_pct": 0.6902023006743356,
+    "poison_evasion_pct": 0.0
+  },
+  "retrieval": {
+    "mean_poison_in_top5": 2.72,
+    "mean_flagged_in_top5": 2.72
+  },
+  "rerank": {
+    "available": true,
+    "post_rerank_poison_in_top5": 2.72,
+    "post_rerank_flagged_in_top5": 2.72,
+    "mean_positions_changed": 3.56
+  },
+  "doc_level_reference": {
+    "catch_pct": 100.0,
+    "note": "unchunked p050 gate catches all templated poison"
+  },
+  "runtime_s": 1227.4886112213135
+}
