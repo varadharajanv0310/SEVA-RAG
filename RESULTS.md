@@ -65,6 +65,8 @@ no templated poison present).
 | **End-to-end ASR vs deployed gate** | **26.0%** of all 50 targets | same |
 | CleanBase reproduced, matched 0.69% FPR | **100%** templated / **0%** clones -- identical to SEVA | `expT3_cleanbase_s042.json` |
 | Payload-prominence frontier (Figure 1) | evasion 100->46%, retrievable 90->38%, **ASR peaks 28% at 25% payload** | `expT2b_potency_frontier_s042.json` |
+| Complementary signal `s_nd` on clones | catches 13-20%; two-signal union gate 6.7-33.3% | `expA_snd_vs_paraclone_s042.json`, `expA2_cloneonly_s042.json` |
+| Multiplicity sweep (1->5 clones/target) | coh 0.722 -> 0.790, still under tau | `expA2_cloneonly_s042.json` |
 
 ## Prevention, robustness, sensitivity
 
@@ -79,9 +81,6 @@ no templated poison present).
 undefended **18%**, templated with gate **0%**, host-anchored clones **26%**, prominence-optimal
 clones **28%**. The bypass is at least as effective as the attack it replaces, and the gate does
 not bind at the adversary's optimum (25% payload, where evasion is still 100%).
-| Complementary signal `s_nd` on clones | catches 13-20%; two-signal union gate 6.7-33.3% | `expA_snd_vs_paraclone_s042.json`, `expA2_cloneonly_s042.json` |
-| Multiplicity sweep (1->5 clones/target) | coh 0.722 -> 0.790, still under tau | `expA2_cloneonly_s042.json` |
-| Evasion/retrievability frontier (Figure 1) | evasion 92->4%, retrievable 63->18% | `whitebox_attack_results/prominence_s042.json` |
 
 Attack generation used `mistral:7b-instruct` (temperature 0); the answer-corruption judge used
 `gpt-oss:20b` (temperature 0), identical to the earlier `expC_potency_s042.json` run, so potency
